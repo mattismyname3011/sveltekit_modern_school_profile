@@ -2,9 +2,14 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	server: {
-		allowedHosts: ['brave-birch-7851a99b.tunnl.gg','e01854430ab8cd.lhr.life']
-	}
+export default defineConfig(() => {
+	const allowedHosts = (process.env.VITE_ALLOWED_HOSTS ?? '')
+		.split(',')
+		.map((host) => host.trim())
+		.filter(Boolean);
+
+	return {
+		plugins: [tailwindcss(), sveltekit()],
+		server: allowedHosts.length > 0 ? { allowedHosts } : undefined
+	};
 });
