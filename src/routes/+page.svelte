@@ -28,6 +28,8 @@
     {
       title: "Robotics Club",
       icon: "🤖",
+      schedule: "Tuesdays",
+      focus: "Build lab",
       image:
         "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop",
       description:
@@ -36,6 +38,8 @@
     {
       title: "Basketball Team",
       icon: "🏀",
+      schedule: "After school",
+      focus: "Team sport",
       image:
         "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop",
       description:
@@ -44,6 +48,8 @@
     {
       title: "Music Society",
       icon: "🎵",
+      schedule: "Fridays",
+      focus: "Performance",
       image:
         "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1200&auto=format&fit=crop",
       description: "Students explore instruments, vocals, and performances.",
@@ -54,6 +60,7 @@
     {
       title: "Innovation Seminar",
       date: "March 12, 2026",
+      location: "Main Auditorium",
       image:
         "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
       description: "Technology and leadership seminar with guest speakers.",
@@ -61,6 +68,7 @@
     {
       title: "Sports Competition",
       date: "April 8, 2026",
+      location: "Athletic Field",
       image:
         "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop",
       description: "Annual interschool sports championship event.",
@@ -68,6 +76,7 @@
     {
       title: "Graduation Ceremony",
       date: "June 18, 2026",
+      location: "Grand Hall",
       image:
         "https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=1200&auto=format&fit=crop",
       description: "Celebrating student achievements and milestones.",
@@ -75,6 +84,7 @@
     {
       title: "Creative Workshop",
       date: "July 2, 2026",
+      location: "Arts Studio",
       image:
         "https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop",
       description: "Interactive creative learning workshops for students.",
@@ -82,6 +92,7 @@
     {
       title: "Coding Bootcamp",
       date: "August 15, 2026",
+      location: "Innovation Lab",
       image:
         "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop",
       description: "Programming and innovation bootcamp for young developers.",
@@ -92,6 +103,7 @@
     {
       title: "Science Fair 2026 Highlights",
       category: "School Event",
+      readTime: "4 min read",
       image:
         "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop",
       summary:
@@ -100,6 +112,7 @@
     {
       title: "Basketball Team Victory",
       category: "Sports",
+      readTime: "3 min read",
       image:
         "https://images.unsplash.com/photo-1519861531473-9200262188bf?q=80&w=1200&auto=format&fit=crop",
       summary:
@@ -108,6 +121,7 @@
     {
       title: "Leadership Camp Success",
       category: "Student Life",
+      readTime: "5 min read",
       image:
         "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
       summary:
@@ -300,187 +314,374 @@
     </div>
   </section>
 
-  <section class="py-24 px-6 bg-slate-50">
-    <div class="max-w-7xl mx-auto text-center">
-      <h2 class="text-4xl font-black text-blue-950">Academic Programs</h2>
+  <section class="bg-[oklch(96%_0.018_235)] px-4 py-20 sm:px-6 sm:py-24">
+    <div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+      <div class="lg:sticky lg:top-28">
+        <p class="text-sm font-bold uppercase tracking-wide text-sky-700">
+          Academic Programs
+        </p>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mt-14">
-        {#each programs as program}
-          <div
-            class="bg-white rounded-4xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
-          >
-            <h3 class="text-2xl font-bold text-blue-900 mb-4">
-              {program.title}
-            </h3>
-
-            <p class="text-slate-600 leading-relaxed text-sm">
-              {program.description}
-            </p>
-          </div>
-        {/each}
-      </div>
-    </div>
-  </section>
-
-  <section class="py-24 px-6 bg-white">
-    <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-black text-blue-950">
-          Extracurricular Activities
+        <h2 class="mt-4 max-w-xl text-4xl font-black leading-tight text-blue-950 text-balance sm:text-5xl">
+          Core subjects shaped around how students actually learn.
         </h2>
 
-        <p class="text-slate-600 mt-5 text-lg max-w-3xl mx-auto">
-          Students can develop creativity, leadership, and teamwork beyond the
-          classroom.
+        <p class="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+          Each track blends classroom depth with projects, mentorship, and campus experiences that make the work visible.
         </p>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {#each extracurriculars as activity}
-          <div
-            class="group overflow-hidden bg-slate-50 rounded-4xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+      <div class="grid gap-4 sm:grid-cols-2 sm:gap-5">
+        {#each programs as program, index}
+          <article
+            class={[
+              "group rounded-[1.5rem] p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl focus-within:shadow-xl sm:p-7",
+              index === 0
+                ? "bg-[oklch(26%_0.09_255)] text-white sm:col-span-2"
+                : "bg-[oklch(99%_0.008_235)] text-blue-950 ring-1 ring-blue-950/6",
+            ]}
           >
-            <div class="relative h-60 overflow-hidden">
-              <img
-                src={activity.image}
-                alt={activity.title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-
-              <div
-                class="absolute top-5 left-5 bg-white/90 backdrop-blur-lg w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg"
+            <div class="flex items-start justify-between gap-5">
+              <p
+                class={[
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black",
+                  index === 0
+                    ? "bg-yellow-300 text-blue-950"
+                    : "bg-blue-950 text-yellow-200",
+                ]}
               >
-                {activity.icon}
-              </div>
-            </div>
+                {String(index + 1).padStart(2, "0")}
+              </p>
 
-            <div class="p-8">
-              <h3 class="text-2xl font-bold text-blue-900 mb-4">
-                {activity.title}
-              </h3>
-
-              <p class="text-slate-600 leading-relaxed">
-                {activity.description}
+              <p
+                class={[
+                  "rounded-full px-3 py-1 text-xs font-bold",
+                  index === 0
+                    ? "bg-sky-100/12 text-sky-100"
+                    : "bg-sky-100 text-sky-700",
+                ]}
+              >
+                Program
               </p>
             </div>
-          </div>
+
+            <h3
+              class={[
+                "mt-8 text-2xl font-black leading-tight",
+                index === 0 ? "sm:text-4xl" : "",
+              ]}
+            >
+              {program.title}
+            </h3>
+
+            <p
+              class={[
+                "mt-4 leading-7",
+                index === 0 ? "max-w-2xl text-sky-50/82" : "text-slate-600",
+              ]}
+            >
+              {program.description}
+            </p>
+          </article>
         {/each}
       </div>
     </div>
   </section>
 
-  <section class="py-24 px-6 bg-slate-50">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex items-end justify-between mb-14">
+  <section class="bg-[oklch(99%_0.006_235)] px-4 py-20 sm:px-6 sm:py-24">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-10 grid gap-6 lg:mb-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
         <div>
-          <h2 class="text-4xl font-black text-blue-950">Upcoming Events</h2>
+          <p class="text-sm font-bold uppercase tracking-wide text-sky-700">
+            Beyond Class
+          </p>
 
-          <p class="text-slate-600 mt-4 text-lg">
-            Stay updated with the latest school activities and events.
+          <h2 class="mt-4 max-w-2xl text-4xl font-black leading-tight text-blue-950 text-balance sm:text-5xl">
+            Clubs where students practice confidence in public.
+          </h2>
+        </div>
+
+        <p class="max-w-2xl text-base leading-7 text-slate-600 lg:ml-auto lg:text-lg lg:leading-8">
+          Students can develop creativity, leadership, teamwork, and discipline in spaces that make school feel alive after the final lesson.
+        </p>
+      </div>
+
+      <div class="grid gap-5 lg:grid-cols-3">
+        {#each extracurriculars as activity, index}
+          <article
+            class="group relative min-h-[29rem] overflow-hidden rounded-[1.75rem] bg-[oklch(96%_0.018_235)] p-4 text-blue-950 shadow-sm ring-1 ring-blue-950/6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+          >
+            <div
+              class="absolute right-4 top-4 h-48 w-[58%] overflow-hidden rounded-[1.25rem] shadow-xl shadow-blue-950/16 transition-transform duration-500 group-hover:-rotate-1 group-hover:scale-[1.02]"
+            >
+              <img
+                src={activity.image}
+                alt={activity.title}
+                class="h-full w-full object-cover"
+              />
+            </div>
+
+            <div class="relative flex h-full min-h-[27rem] flex-col justify-between">
+              <div class="flex items-start justify-between gap-4">
+                <div
+                  class="flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-white text-3xl shadow-lg shadow-blue-950/10"
+                >
+                  {activity.icon}
+                </div>
+
+                <p class="text-5xl font-black leading-none text-blue-950/10">
+                  0{index + 1}
+                </p>
+              </div>
+
+              <div class="mt-28 max-w-[17rem]">
+                <p class="mb-3 inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">
+                  {activity.focus}
+                </p>
+
+                <h3 class="text-3xl font-black leading-tight">
+                {activity.title}
+              </h3>
+
+                <p class="mt-4 leading-7 text-slate-600">
+                  {activity.description}
+                </p>
+              </div>
+
+              <div class="mt-7 flex items-center justify-between gap-4 rounded-[1.25rem] bg-white px-4 py-3 ring-1 ring-blue-950/6">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-wide text-sky-700">
+                    Meets
+                  </p>
+                  <p class="mt-1 font-black">{activity.schedule}</p>
+                </div>
+
+                <span class="h-10 w-px bg-blue-950/10"></span>
+
+                <p class="max-w-24 text-right text-sm font-semibold leading-5 text-blue-950/64">
+                  Open for new members
+                </p>
+              </div>
+            </div>
+          </article>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-[oklch(96%_0.018_235)] px-4 py-16 sm:px-6 sm:py-24">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 flex flex-col gap-5 sm:mb-10 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-wide text-sky-700">
+            Campus Calendar
+          </p>
+
+          <h2 class="mt-3 text-3xl font-black leading-tight text-blue-950 text-balance sm:mt-4 sm:text-5xl">
+            Upcoming Events
+          </h2>
+
+          <p class="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:mt-4 sm:text-lg sm:leading-8">
+            Key dates for seminars, competitions, ceremonies, and workshops across campus.
           </p>
         </div>
 
         <button
-          class="hidden md:block border border-blue-900 text-blue-900 px-6 py-3 rounded-full hover:bg-blue-900 hover:text-white transition-all duration-300"
+          class="min-h-12 w-full rounded-full border border-blue-950/18 px-6 font-bold text-blue-950 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-950 hover:bg-blue-950 hover:text-sky-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:w-fit"
         >
           View All Events
         </button>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {#each events.slice(0, 4) as event}
-          <div
-            class="group overflow-hidden bg-white rounded-4xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
-          >
-            <div class="relative h-56 overflow-hidden">
-              <img
-                src={event.image}
-                alt={event.title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+      <div class="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <article class="group overflow-hidden rounded-[1.5rem] bg-blue-950 text-white shadow-xl shadow-blue-950/16 sm:rounded-[1.75rem]">
+          <div class="relative h-[31rem] overflow-hidden sm:h-96 lg:h-full lg:min-h-[34rem]">
+            <img
+              src={events[0].image}
+              alt={events[0].title}
+              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
 
-              <div
-                class="absolute top-4 left-4 bg-yellow-400 text-blue-950 px-4 py-2 rounded-full text-sm font-bold shadow-lg"
-              >
-                {event.date}
-              </div>
+            <div class="absolute inset-0 bg-linear-to-t from-blue-950 via-blue-950/48 to-blue-950/4"></div>
+
+            <div class="absolute left-4 top-4 rounded-[1.15rem] bg-yellow-300 px-3.5 py-2.5 text-blue-950 shadow-xl shadow-blue-950/20 sm:left-5 sm:top-5 sm:px-4 sm:py-3">
+              <p class="text-xs font-bold uppercase tracking-wide">Next</p>
+              <p class="mt-1 text-base font-black sm:text-lg">{events[0].date}</p>
             </div>
 
-            <div class="p-6">
-              <h3 class="text-xl font-bold text-blue-900 mb-3">
-                {event.title}
+            <div class="absolute inset-x-4 bottom-4 sm:inset-x-5 sm:bottom-5">
+              <p class="text-sm font-bold text-yellow-200">{events[0].location}</p>
+              <h3 class="mt-3 max-w-xl text-3xl font-black leading-tight text-balance sm:text-4xl">
+                {events[0].title}
               </h3>
-
-              <p class="text-slate-600 text-sm leading-relaxed mb-5">
-                {event.description}
+              <p class="mt-3 max-w-xl text-sm leading-6 text-sky-50/78 sm:mt-4 sm:text-base sm:leading-7">
+                {events[0].description}
               </p>
 
               <button
-                class="text-blue-900 font-semibold hover:text-sky-500 transition-colors duration-300"
+                class="mt-5 min-h-12 w-full rounded-full bg-sky-50 px-6 font-bold text-blue-950 transition-all duration-300 hover:-translate-y-0.5 hover:bg-yellow-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow-200 sm:mt-6 sm:w-fit"
               >
                 View Event
               </button>
             </div>
           </div>
-        {/each}
+        </article>
+
+        <div class="grid gap-4">
+          {#each events.slice(1, 4) as event}
+            <article
+              class="group grid gap-3 rounded-[1.35rem] bg-[oklch(99%_0.008_235)] p-3 shadow-sm ring-1 ring-blue-950/6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:grid-cols-[9rem_1fr] sm:gap-4 sm:rounded-[1.5rem] sm:p-4"
+            >
+              <div class="relative h-36 overflow-hidden rounded-[1rem] sm:h-full sm:rounded-[1.15rem]">
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+
+                <div class="absolute inset-0 bg-blue-950/12"></div>
+              </div>
+
+              <div class="flex flex-col justify-between gap-5 p-1 sm:gap-6 sm:p-2">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="rounded-full bg-yellow-300 px-2.5 py-1 text-xs font-black text-blue-950 sm:px-3">
+                      {event.date}
+                    </p>
+                    <p class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 sm:px-3">
+                      {event.location}
+                    </p>
+                  </div>
+
+                  <h3 class="mt-3 text-xl font-black leading-tight text-blue-950 sm:mt-4 sm:text-2xl">
+                    {event.title}
+                  </h3>
+
+                  <p class="mt-3 text-sm leading-6 text-slate-600">
+                    {event.description}
+                  </p>
+                </div>
+
+                <button
+                  class="w-fit font-bold text-blue-950 transition-colors duration-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900"
+                >
+                  View Event
+                </button>
+              </div>
+            </article>
+          {/each}
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="py-24 px-6 bg-white">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex items-end justify-between mb-14">
+  <section class="bg-[oklch(99%_0.006_235)] px-4 py-16 sm:px-6 sm:py-24">
+    <div class="mx-auto max-w-7xl">
+      <div class="mb-8 flex flex-col gap-5 sm:mb-10 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 class="text-4xl font-black text-blue-950">School News & Blog</h2>
+          <p class="text-sm font-bold uppercase tracking-wide text-sky-700">
+            Newsroom
+          </p>
 
-          <p class="text-slate-600 mt-4 text-lg max-w-2xl">
-            Highlights and summaries from school events and activities.
+          <h2 class="mt-3 text-3xl font-black leading-tight text-blue-950 text-balance sm:mt-4 sm:text-5xl">
+            School News & Blog
+          </h2>
+
+          <p class="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:mt-4 sm:text-lg sm:leading-8">
+            Highlights from student work, campus wins, and the moments families ask about after school.
           </p>
         </div>
 
         <button
-          class="hidden md:block border border-blue-900 text-blue-900 px-6 py-3 rounded-full hover:bg-blue-900 hover:text-white transition-all duration-300"
+          class="min-h-12 w-full rounded-full border border-blue-950/18 px-6 font-bold text-blue-950 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-950 hover:bg-blue-950 hover:text-sky-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:w-fit"
         >
           View All Posts
         </button>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {#each blogPosts as post}
-          <div
-            class="group overflow-hidden bg-slate-50 rounded-4xl shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
-          >
-            <div class="relative h-56 overflow-hidden">
-              <img
-                src={post.image}
-                alt={post.title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-
-              <div
-                class="absolute top-4 left-4 bg-white/90 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-semibold text-blue-900 shadow-lg"
-              >
-                {post.category}
+      <div class="rounded-[1.5rem] bg-[oklch(96%_0.018_235)] p-3 shadow-sm ring-1 ring-blue-950/6 sm:rounded-[2rem] sm:p-5">
+        <article class="group grid gap-5 rounded-[1.25rem] bg-[oklch(99%_0.008_235)] p-4 ring-1 ring-blue-950/6 sm:rounded-[1.5rem] sm:p-5 lg:grid-cols-[1fr_24rem] lg:p-7">
+          <div class="flex flex-col justify-between sm:min-h-80">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full bg-yellow-300 px-2.5 py-1 text-xs font-black text-blue-950 sm:px-3">
+                  Lead Story
+                </span>
+                <span class="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 sm:px-3">
+                  {blogPosts[0].category}
+                </span>
+                <span class="rounded-full bg-blue-950/6 px-2.5 py-1 text-xs font-bold text-blue-950/64 sm:px-3">
+                  {blogPosts[0].readTime}
+                </span>
               </div>
-            </div>
 
-            <div class="p-6">
-              <h3 class="text-2xl font-bold text-blue-900 mb-4">
-                {post.title}
+              <h3 class="mt-6 max-w-3xl text-3xl font-black leading-tight text-blue-950 text-balance sm:mt-8 sm:text-5xl">
+                {blogPosts[0].title}
               </h3>
 
-              <p class="text-slate-600 leading-relaxed mb-6">
-                {post.summary}
+              <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:mt-5 sm:text-lg sm:leading-8">
+                {blogPosts[0].summary}
               </p>
+            </div>
 
-              <button
-                class="text-blue-900 font-semibold hover:text-sky-500 transition-colors duration-300"
-              >
-                Read Full Story
-              </button>
+            <button
+              class="mt-7 min-h-12 w-full rounded-full bg-blue-950 px-6 font-bold text-sky-50 transition-all duration-300 hover:-translate-y-0.5 hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:mt-8 sm:w-fit"
+            >
+              Read Story
+            </button>
+          </div>
+
+          <div class="relative h-56 overflow-hidden rounded-[1.1rem] sm:h-72 sm:rounded-[1.25rem] lg:h-auto lg:min-h-full">
+            <img
+              src={blogPosts[0].image}
+              alt={blogPosts[0].title}
+              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+
+            <div class="absolute bottom-3 left-3 rounded-full bg-[oklch(99%_0.008_235)] px-3.5 py-2 text-xs font-black text-blue-950 shadow-xl shadow-blue-950/18 sm:bottom-4 sm:left-4 sm:px-4 sm:text-sm">
+              Campus Dispatch 01
             </div>
           </div>
-        {/each}
+        </article>
+
+        <div class="mt-4 grid gap-3 sm:mt-5 sm:gap-4 md:grid-cols-2">
+          {#each blogPosts.slice(1) as post, index}
+            <article class="group grid gap-3 rounded-[1.25rem] bg-[oklch(99%_0.008_235)] p-3 ring-1 ring-blue-950/6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:grid-cols-[7.5rem_1fr] sm:gap-4 sm:rounded-[1.5rem] sm:p-4">
+              <div class="relative h-36 overflow-hidden rounded-[1rem] sm:h-auto sm:min-h-32">
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="text-xs font-black text-blue-950/38">
+                    0{index + 2}
+                  </p>
+                  <p class="rounded-full bg-yellow-300 px-3 py-1 text-xs font-black text-blue-950">
+                    {post.category}
+                  </p>
+                  <p class="text-xs font-bold text-sky-700">
+                    {post.readTime}
+                  </p>
+                </div>
+
+                <h3 class="mt-3 text-xl font-black leading-tight text-blue-950 sm:mt-4 sm:text-2xl">
+                  {post.title}
+                </h3>
+
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                  {post.summary}
+                </p>
+
+                <button class="mt-4 font-bold text-blue-950 transition-colors duration-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:mt-5">
+                  Read Story
+                </button>
+              </div>
+            </article>
+          {/each}
+        </div>
       </div>
     </div>
   </section>
