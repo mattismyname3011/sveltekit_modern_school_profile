@@ -130,19 +130,19 @@
     class="fixed left-0 top-0 z-50 w-full border-b border-blue-950/8 bg-[oklch(98%_0.01_235)]/88 text-blue-950 shadow-sm shadow-blue-950/5 backdrop-blur-xl"
     aria-label="Primary navigation"
   >
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-5 py-3.5">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:py-3.5">
       <a
         href="/"
-        class="group flex items-center gap-3 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900"
+        class="group flex min-w-0 items-center gap-2.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:gap-3"
         aria-label="EduNova home"
       >
         <span
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-950 text-sm font-black text-yellow-200 shadow-lg shadow-blue-950/18 transition-transform duration-300 group-hover:-translate-y-0.5"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-950 text-xs font-black text-yellow-200 shadow-lg shadow-blue-950/18 transition-transform duration-300 group-hover:-translate-y-0.5 sm:h-10 sm:w-10 sm:text-sm"
           aria-hidden="true"
         >
           EN
         </span>
-        <span class="text-2xl font-black tracking-tight">EduNova</span>
+        <span class="truncate text-xl font-black tracking-tight sm:text-2xl">EduNova</span>
       </a>
 
       <div class="hidden items-center rounded-full bg-blue-950/5 p-1 text-sm font-semibold lg:flex">
@@ -158,14 +158,14 @@
 
       <div class="flex items-center gap-3">
         <button
-          class="hidden rounded-full bg-blue-950 px-5 py-3 text-sm font-bold text-sky-50 shadow-lg shadow-blue-950/16 transition-all duration-300 hover:-translate-y-0.5 hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:inline-flex"
+          class="hidden rounded-full bg-blue-950 px-5 py-3 text-sm font-bold text-sky-50 shadow-lg shadow-blue-950/16 transition-all duration-300 hover:-translate-y-0.5 hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 lg:inline-flex"
         >
           Student Portal
         </button>
 
         <details class="group relative lg:hidden">
           <summary
-            class="flex h-12 w-12 cursor-pointer list-none items-center justify-center rounded-full border border-blue-950/10 bg-white text-blue-950 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-950/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 [&::-webkit-details-marker]:hidden"
+            class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-blue-950/10 bg-white text-blue-950 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-950/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:h-12 sm:w-12 [&::-webkit-details-marker]:hidden"
             aria-label="Open navigation menu"
           >
             <span class="sr-only">Menu</span>
@@ -176,12 +176,16 @@
             </span>
           </summary>
 
-          <div class="absolute right-0 top-14 w-[min(18rem,calc(100vw-3rem))] rounded-[1.5rem] border border-blue-950/8 bg-[oklch(98%_0.01_235)] p-3 shadow-2xl shadow-blue-950/18">
-            <div class="grid gap-1">
+          <div class="fixed left-4 right-4 top-[4.5rem] rounded-[1.5rem] border border-blue-950/8 bg-[oklch(98%_0.01_235)] p-3 shadow-2xl shadow-blue-950/18 sm:absolute sm:left-auto sm:right-0 sm:top-14 sm:w-80">
+            <p class="px-4 pb-2 pt-1 text-xs font-bold uppercase tracking-wide text-blue-950/48">
+              Navigate
+            </p>
+
+            <div class="grid gap-1 sm:grid-cols-2">
               {#each navLinks as link}
                 <a
                   href="/"
-                  class="rounded-2xl px-4 py-3 text-sm font-semibold text-blue-950/76 transition-colors duration-300 hover:bg-blue-950/6 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+                  class="min-h-12 rounded-2xl px-4 py-3 text-sm font-semibold text-blue-950/76 transition-colors duration-300 hover:bg-blue-950/6 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
                 >
                   {link}
                 </a>
@@ -189,7 +193,7 @@
             </div>
 
             <button
-              class="mt-3 min-h-12 w-full rounded-full bg-blue-950 px-5 text-sm font-bold text-sky-50 transition-all duration-300 hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900 sm:hidden"
+              class="mt-3 min-h-12 w-full rounded-full bg-blue-950 px-5 text-sm font-bold text-sky-50 transition-all duration-300 hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-900"
             >
               Student Portal
             </button>
@@ -200,7 +204,7 @@
   </nav>
 
   <section
-    class="relative overflow-hidden pt-36 pb-20 px-6 bg-[oklch(26%_0.09_255)] text-white sm:pt-40 lg:pb-24"
+    class="relative overflow-hidden bg-[oklch(26%_0.09_255)] px-4 pt-28 pb-16 text-white sm:px-6 sm:pt-40 sm:pb-20 lg:pb-24"
   >
     <div
       class="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-sky-400/30 to-transparent"
@@ -213,82 +217,82 @@
     ></div>
 
     <div
-      class="relative max-w-7xl mx-auto grid gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center"
+      class="relative mx-auto grid max-w-7xl gap-10 sm:gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center"
     >
       <div>
         <p
-          class="inline-flex items-center rounded-full bg-sky-100/12 px-4 py-2 text-sm font-semibold text-sky-100 ring-1 ring-sky-100/20"
+          class="inline-flex max-w-full items-center rounded-full bg-sky-100/12 px-3.5 py-2 text-sm font-semibold leading-5 text-sky-100 ring-1 ring-sky-100/20 sm:px-4"
         >
           Admissions open for the 2026 school year
         </p>
 
         <h1
-          class="mt-7 max-w-4xl text-5xl font-black leading-[0.96] text-balance sm:text-6xl lg:text-7xl"
+          class="mt-6 max-w-4xl text-4xl font-black leading-[1.02] text-balance sm:mt-7 sm:text-6xl sm:leading-[0.96] lg:text-7xl"
         >
           A sharper school day for curious minds
         </h1>
 
-        <p class="mt-7 max-w-2xl text-lg leading-8 text-sky-50/86 sm:text-xl">
+        <p class="mt-5 max-w-2xl text-base leading-7 text-sky-50/86 sm:mt-7 sm:text-xl sm:leading-8">
           EduNova pairs rigorous academics with labs, arts, sport, and
           mentorship so students learn by building, questioning, and leading.
         </p>
 
-        <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center">
           <button
-            class="rounded-full bg-yellow-300 px-8 py-4 font-bold text-blue-950 shadow-xl shadow-blue-950/25 transition-all duration-300 hover:-translate-y-1 hover:bg-yellow-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow-200"
+            class="min-h-12 rounded-full bg-yellow-300 px-8 py-3.5 font-bold text-blue-950 shadow-xl shadow-blue-950/25 transition-all duration-300 hover:-translate-y-1 hover:bg-yellow-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow-200 sm:py-4"
           >
             Start Enrollment
           </button>
 
           <button
-            class="rounded-full border border-sky-100/30 px-8 py-4 font-semibold text-sky-50 transition-all duration-300 hover:-translate-y-1 hover:border-sky-50 hover:bg-sky-50 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-100"
+            class="min-h-12 rounded-full border border-sky-100/30 px-8 py-3.5 font-semibold text-sky-50 transition-all duration-300 hover:-translate-y-1 hover:border-sky-50 hover:bg-sky-50 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-100 sm:py-4"
           >
             View Programs
           </button>
         </div>
 
         <div
-          class="mt-12 grid max-w-2xl grid-cols-3 gap-6 border-t border-sky-100/18 pt-8"
+          class="mt-9 grid max-w-2xl grid-cols-3 gap-3 border-t border-sky-100/18 pt-6 sm:mt-12 sm:gap-6 sm:pt-8"
         >
           <div>
-            <p class="text-3xl font-black text-yellow-200">2,500+</p>
-            <p class="mt-1 text-sm font-medium text-sky-100/80">
+            <p class="text-2xl font-black text-yellow-200 sm:text-3xl">2,500+</p>
+            <p class="mt-1 text-xs font-medium leading-5 text-sky-100/80 sm:text-sm">
               Active students
             </p>
           </div>
 
           <div>
-            <p class="text-3xl font-black text-yellow-200">120+</p>
-            <p class="mt-1 text-sm font-medium text-sky-100/80">
+            <p class="text-2xl font-black text-yellow-200 sm:text-3xl">120+</p>
+            <p class="mt-1 text-xs font-medium leading-5 text-sky-100/80 sm:text-sm">
               Faculty mentors
             </p>
           </div>
 
           <div>
-            <p class="text-3xl font-black text-yellow-200">98%</p>
-            <p class="mt-1 text-sm font-medium text-sky-100/80">
+            <p class="text-2xl font-black text-yellow-200 sm:text-3xl">98%</p>
+            <p class="mt-1 text-xs font-medium leading-5 text-sky-100/80 sm:text-sm">
               Graduation rate
             </p>
           </div>
         </div>
       </div>
 
-      <div class="relative min-h-[420px] lg:min-h-[560px]">
+      <div class="relative sm:min-h-[500px] lg:min-h-[560px]">
         <div
-          class="absolute inset-x-8 top-10 bottom-0 rounded-[2rem] bg-sky-300/16"
+          class="absolute inset-x-5 top-8 bottom-0 hidden rounded-[2rem] bg-sky-300/16 sm:block"
         ></div>
 
         <img
           src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop"
           alt="EduNova students working together at a campus table"
-          class="relative h-[420px] w-full rounded-[2rem] object-cover shadow-2xl shadow-blue-950/40 sm:h-[500px] lg:h-[560px]"
+          class="relative h-76 w-full rounded-[1.5rem] object-cover shadow-2xl shadow-blue-950/40 sm:h-[500px] sm:rounded-[2rem] lg:h-[560px]"
         />
 
         <div
-          class="absolute left-4 right-4 bottom-4 rounded-3xl bg-[oklch(97%_0.02_94)] p-5 text-blue-950 shadow-2xl shadow-blue-950/25 sm:left-8 sm:right-auto sm:max-w-xs"
+          class="relative -mt-8 mx-3 rounded-3xl bg-[oklch(97%_0.02_94)] p-4 text-blue-950 shadow-2xl shadow-blue-950/25 sm:absolute sm:left-8 sm:right-auto sm:bottom-4 sm:mx-0 sm:mt-0 sm:max-w-xs sm:p-5"
         >
           <p class="text-sm font-bold text-sky-700">This week on campus</p>
-          <p class="mt-2 text-2xl font-black leading-tight">
+          <p class="mt-2 text-xl font-black leading-tight sm:text-2xl">
             Innovation seminar with student-built prototypes.
           </p>
         </div>
