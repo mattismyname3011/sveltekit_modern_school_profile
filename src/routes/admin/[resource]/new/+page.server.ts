@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUser } from '$lib/server/auth/guard';
 import { findAdminResource } from '$lib/server/admin/resources';
+import { audit } from '$lib/server/audit/log';
 
 export const load: PageServerLoad = async (event) => {
 	requireUser(event);
@@ -29,7 +30,6 @@ export const actions: Actions = {
 			const v = form.get(f.name);
 			if (v === null) continue;
 			const s = String(v);
-			// Empty optional fields → undefined so Zod's optional()/nullable() picks them up.
 			if (s === '' && !f.required) continue;
 			raw[f.name] = s;
 		}
@@ -44,7 +44,13 @@ export const actions: Actions = {
 		}
 
 		try {
-			await resource.repo.create(parsed.data);
+			const created = (await resource.repo.create(parsed.data)) as { id: number };
+			await audit(event, {
+				action: 'resource.create',
+				resource: resource.slug,
+				resourceId: created.id,
+				details: { fields: Object.keys(parsed.data as object) }
+			});
 		} catch (err) {
 			console.error(`[admin/${resource.slug}/new]`, err);
 			return fail(500, { values: raw, message: 'Gagal menyimpan ke database.' });

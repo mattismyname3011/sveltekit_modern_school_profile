@@ -6,13 +6,20 @@
 
 	const isLogin = $derived(page.url.pathname === '/admin/login');
 
-	type NavItem = { href: string; label: string; icon: string };
+	type NavItem = { href: string; label: string; icon: string; adminOnly?: boolean };
 	const navItems: NavItem[] = [
 		{ href: '/admin', label: 'Overview', icon: '◧' },
 		{ href: '/admin/programs', label: 'Programs', icon: '◇' },
 		{ href: '/admin/news', label: 'News', icon: '✦' },
-		{ href: '/admin/events', label: 'Events', icon: '◆' }
+		{ href: '/admin/events', label: 'Events', icon: '◆' },
+		{ href: '/admin/users', label: 'Users', icon: '◉', adminOnly: true },
+		{ href: '/admin/audit', label: 'Audit log', icon: '◎', adminOnly: true },
+		{ href: '/admin/account', label: 'Account', icon: '○' }
 	];
+
+	const visibleNav = $derived(
+		navItems.filter((item) => !item.adminOnly || data.user?.role === 'admin')
+	);
 
 	function isActive(href: string) {
 		if (href === '/admin') return page.url.pathname === '/admin';
@@ -62,7 +69,7 @@
 			</div>
 
 			<nav class="nav" aria-label="Admin navigation">
-				{#each navItems as item (item.href)}
+				{#each visibleNav as item (item.href)}
 					<a
 						href={item.href}
 						class="nav-link"

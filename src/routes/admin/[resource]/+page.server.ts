@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUser } from '$lib/server/auth/guard';
 import { findAdminResource } from '$lib/server/admin/resources';
+import { audit } from '$lib/server/audit/log';
 
 export const load: PageServerLoad = async (event) => {
 	requireUser(event);
@@ -39,6 +40,11 @@ export const actions: Actions = {
 		}
 
 		await resource.repo.remove(id);
+		await audit(event, {
+			action: 'resource.delete',
+			resource: resource.slug,
+			resourceId: id
+		});
 		return { ok: true };
 	}
 };

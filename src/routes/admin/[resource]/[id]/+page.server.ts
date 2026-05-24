@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUser } from '$lib/server/auth/guard';
 import { findAdminResource } from '$lib/server/admin/resources';
+import { audit } from '$lib/server/audit/log';
 
 function parseId(s: string | undefined): number {
 	if (!s || !/^\d+$/.test(s)) throw error(400, 'Invalid id');
@@ -59,6 +60,12 @@ export const actions: Actions = {
 		try {
 			const updated = await resource.repo.update(id, parsed.data);
 			if (!updated) throw error(404, `${resource.label} not found`);
+			await audit(event, {
+				action: 'resource.update',
+				resource: resource.slug,
+				resourceId: id,
+				details: { fields: Object.keys(parsed.data as object) }
+			});
 		} catch (err) {
 			console.error(`[admin/${resource.slug}/${id}]`, err);
 			return fail(500, { values: raw, message: 'Gagal menyimpan perubahan.' });

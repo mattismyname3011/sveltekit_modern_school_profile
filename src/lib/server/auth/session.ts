@@ -6,7 +6,7 @@
  * - 30-day rolling expiry.
  */
 import { createHash, randomBytes } from 'node:crypto';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import type { Cookies } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { sessions, users, type User } from '$lib/db/schema';
@@ -62,6 +62,11 @@ export async function resolveSession(token: string | null | undefined): Promise<
 		await db.delete(sessions).where(eq(sessions.id, id));
 		return null;
 	}
+	if (!user.isActive) {
+		// Account was deactivated — kill the session.
+		await db.delete(sessions).where(eq(sessions.id, id));
+		return null;
+	}
 	// Rolling expiry: if more than 1 day has passed since creation, refresh.
 	let refreshed = false;
 	if (session.expiresAt.getTime() - Date.now() < (SESSION_DAYS - 1) * 24 * 60 * 60 * 1000) {
@@ -73,6 +78,18 @@ export async function resolveSession(token: string | null | undefined): Promise<
 
 export async function destroySession(sessionId: string): Promise<void> {
 	await db.delete(sessions).where(eq(sessions.id, sessionId));
+}
+
+/**
+ * Revoke every session for a user *except* optionally the current one.
+ * Used after password change so other browsers/devices are signed out.
+ */
+export async function revokeAllSessions(userId: number, exceptSessionId?: string): Promise<number> {
+	const conditions = exceptSessionId
+		? and(eq(sessions.userId, userId), ne(sessions.id, exceptSessionId))
+		: eq(sessions.userId, userId);
+	const rows = await db.delete(sessions).where(conditions).returning({ id: sessions.id });
+	return rows.length;
 }
 
 export function setSessionCookie(cookies: Cookies, token: string) {
