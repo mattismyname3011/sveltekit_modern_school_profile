@@ -46,8 +46,8 @@
 <!-- Mobile top bar -->
 <header class="mobile-bar">
 	<a href="/docs" class="brand">
-		<span class="brand-mark">SMP</span>
-		<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
+		<span class="brand-mark">API</span>
+		<span class="brand-text">Aristotle. <span class="brand-accent">Docs</span></span>
 	</a>
 	<button
 		type="button"
@@ -64,8 +64,8 @@
 	<aside class="sidebar" id="docsSidebar">
 		<div class="brand-block">
 			<a href="/docs" class="brand">
-				<span class="brand-mark">SMP</span>
-				<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
+				<span class="brand-mark">API</span>
+				<span class="brand-text">Aristotle. <span class="brand-accent">Docs</span></span>
 			</a>
 		</div>
 
