@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
  * programs
@@ -71,6 +71,7 @@ export const users = pgTable('users', {
 	name: text('name').notNull(),
 	passwordHash: text('password_hash').notNull(),
 	role: text('role').notNull().default('admin'),
+	isActive: boolean('is_active').notNull().default(true),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 	lastLoginAt: timestamp('last_login_at', { withTimezone: true })
@@ -94,8 +95,41 @@ export const sessions = pgTable('sessions', {
 	userAgent: text('user_agent')
 });
 
+/**
+ * audit_logs — append-only record of who-did-what-when.
+ *
+ * - Email and role are snapshot strings, not foreign keys, so the log stays
+ *   useful even if the user is later deleted.
+ * - `details` is JSON for free-form context (changed fields, target name, etc.).
+ * - Indexed by (user_id, created_at) and (resource, created_at) for the
+ *   common filter cases on the audit page.
+ */
+export const auditLogs = pgTable(
+	'audit_logs',
+	{
+		id: serial('id').primaryKey(),
+		userId: integer('user_id'),
+		userEmail: text('user_email').notNull(),
+		userRole: text('user_role').notNull(),
+		action: text('action').notNull(),
+		resource: text('resource').notNull(),
+		resourceId: integer('resource_id'),
+		details: jsonb('details'),
+		ip: text('ip'),
+		userAgent: text('user_agent'),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(t) => ({
+		byUser: index('audit_logs_user_idx').on(t.userId, t.createdAt),
+		byResource: index('audit_logs_resource_idx').on(t.resource, t.createdAt)
+	})
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;
