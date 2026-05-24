@@ -50,7 +50,7 @@
 	</div>
 </section>
 
-<section class="docs-card">
+<section class="docs-card" id="response-envelope">
 	<h2>Response envelope</h2>
 	<p>Semua respons API dibungkus dengan envelope JSON yang konsisten:</p>
 	<code class="docs-codeblock">{`// success
@@ -60,7 +60,7 @@
 { "ok": false, "error": { "code": "BAD_REQUEST", "message": "...", "details": {} } }`}</code>
 </section>
 
-<section class="docs-card">
+<section class="docs-card" id="rate-limiting">
 	<h2>Rate limiting</h2>
 	<p>
 		Setiap endpoint punya budget rate-limit per-IP. Batas dan sisa quota dikembalikan via header:

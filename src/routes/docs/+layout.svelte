@@ -6,89 +6,157 @@
 
 	const resources = $derived(data.registry.resources);
 	const currentPath = $derived(page.url.pathname);
+	const currentHash = $derived(page.url.hash);
 
-	function isActive(href: string) {
+	function isPath(href: string) {
 		return currentPath === href || currentPath === href + '/';
+	}
+
+	function isHash(resourceSlug: string, anchor: string) {
+		return currentPath === `/docs/${resourceSlug}` && currentHash === `#${anchor}`;
 	}
 
 	function methodClass(m: string) {
 		switch (m) {
 			case 'GET':
-				return 'text-emerald-400';
+				return 'sm get';
 			case 'POST':
-				return 'text-sky-400';
+				return 'sm post';
 			case 'PATCH':
-				return 'text-amber-400';
 			case 'PUT':
-				return 'text-amber-400';
+				return 'sm patch';
 			case 'DELETE':
-				return 'text-rose-400';
+				return 'sm delete';
 			default:
-				return 'text-slate-300';
+				return 'sm';
 		}
 	}
+
+	let mobileOpen = $state(false);
 </script>
 
 <svelte:head>
 	<title>API Docs — SMP 1 Anggana</title>
-	<meta name="description" content="Dokumentasi REST API SMP 1 Anggana — programs, news, events." />
+	<meta
+		name="description"
+		content="Dokumentasi REST API SMP 1 Anggana — programs, news, events."
+	/>
 </svelte:head>
 
-<div class="docs-shell">
-	<!-- Sidebar -->
-	<aside class="docs-sidebar">
-		<a href="/docs" class="docs-brand">
-			<span class="docs-brand-mark">SMP</span>
-			<span class="docs-brand-text">1A <span class="docs-brand-accent">Docs</span></span>
-		</a>
+<!-- Mobile top bar -->
+<header class="mobile-bar">
+	<a href="/docs" class="brand">
+		<span class="brand-mark">SMP</span>
+		<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
+	</a>
+	<button
+		type="button"
+		class="hamburger"
+		aria-label="Open navigation"
+		onclick={() => (mobileOpen = !mobileOpen)}
+	>
+		{mobileOpen ? '✕' : '☰'}
+	</button>
+</header>
 
-		<nav class="docs-nav">
-			<div class="docs-nav-group">
-				<div class="docs-nav-label">Getting Started</div>
-				<a href="/docs" class="docs-nav-link" class:active={isActive('/docs')}>Introduction</a>
+<div class="shell" class:mobile-open={mobileOpen}>
+	<!-- Sidebar -->
+	<aside class="sidebar" id="docsSidebar">
+		<div class="brand-block">
+			<a href="/docs" class="brand">
+				<span class="brand-mark">SMP</span>
+				<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
+			</a>
+		</div>
+
+		<nav class="nav" aria-label="API navigation">
+			<div class="group">
+				<div class="group-title">Getting Started</div>
+				<a
+					href="/docs"
+					class="link"
+					class:active={isPath('/docs') && !currentHash}
+					onclick={() => (mobileOpen = false)}>Introduction</a
+				>
 				<a
 					href="/docs#authentication"
-					class="docs-nav-link"
-					class:active={currentPath === '/docs' && page.url.hash === '#authentication'}
+					class="link"
+					class:active={isPath('/docs') && currentHash === '#authentication'}
+					onclick={() => (mobileOpen = false)}>Authentication</a
 				>
-					Authentication
-				</a>
-				<a href="/api/docs" class="docs-nav-link" target="_blank" rel="noopener">
-					Machine-readable spec ↗
+				<a
+					href="/docs#response-envelope"
+					class="link"
+					class:active={isPath('/docs') && currentHash === '#response-envelope'}
+					onclick={() => (mobileOpen = false)}>Response Envelope</a
+				>
+				<a
+					href="/docs#rate-limiting"
+					class="link"
+					class:active={isPath('/docs') && currentHash === '#rate-limiting'}
+					onclick={() => (mobileOpen = false)}>Rate Limiting</a
+				>
+				<a class="link" href="/api/docs" target="_blank" rel="noopener">
+					Spec JSON ↗
 				</a>
 			</div>
 
 			{#each resources as r (r.slug)}
-				<div class="docs-nav-group">
-					<div class="docs-nav-label">{r.label}</div>
+				<div class="group">
+					<div class="group-title">{r.label}</div>
 					{#each r.endpoints as e (e.id)}
 						<a
 							href={`/docs/${r.slug}#${e.id}`}
-							class="docs-nav-endpoint"
-							class:active={currentPath === `/docs/${r.slug}` && page.url.hash === `#${e.id}`}
+							class="link with-method"
+							class:active={isHash(r.slug, e.id)}
+							onclick={() => (mobileOpen = false)}
 						>
-							<span class={`docs-method ${methodClass(e.method)}`}>{e.method}</span>
-							<span class="docs-endpoint-label">{e.summary}</span>
+							<span class={methodClass(e.method)}>{e.method}</span>
+							<span class="link-label">{e.summary}</span>
 						</a>
 					{/each}
 				</div>
 			{/each}
 		</nav>
+
+		<a
+			href="https://github.com"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="github-cta"
+			aria-label="View source on GitHub"
+		>
+			<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+				<path
+					d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+				/>
+			</svg>
+			<span>View on GitHub</span>
+		</a>
 	</aside>
 
+	<button
+		type="button"
+		class="scrim"
+		aria-label="Close navigation"
+		onclick={() => (mobileOpen = false)}
+	></button>
+
 	<!-- Main content -->
-	<main class="docs-main">
+	<main class="main">
 		{@render children()}
 	</main>
 </div>
 
 <style>
 	/* ---------- Theme ---------- */
-	:global(html) {
+	:global(html, body) {
 		background: #05070d;
+		margin: 0;
+		padding: 0;
 	}
 
-	.docs-shell {
+	.shell {
 		display: grid;
 		grid-template-columns: 280px 1fr;
 		min-height: 100vh;
@@ -107,43 +175,65 @@
 			sans-serif;
 	}
 
-	@media (max-width: 900px) {
-		.docs-shell {
-			grid-template-columns: 1fr;
+	/* ---------- Mobile bar ---------- */
+	.mobile-bar {
+		display: none;
+		position: sticky;
+		top: 0;
+		z-index: 30;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.875rem 1rem;
+		background: rgba(2, 6, 23, 0.85);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+	}
+
+	.hamburger {
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		color: #f1f5f9;
+		font-size: 1.125rem;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.5rem;
+		cursor: pointer;
+	}
+
+	@media (max-width: 1024px) {
+		.mobile-bar {
+			display: flex;
 		}
 	}
 
 	/* ---------- Sidebar ---------- */
-	.docs-sidebar {
+	.sidebar {
 		position: sticky;
 		top: 0;
 		height: 100vh;
-		overflow-y: auto;
-		padding: 1.75rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		background:
+			linear-gradient(180deg, rgba(8, 12, 22, 0.85), rgba(8, 12, 22, 0.6)),
+			radial-gradient(600px 400px at 0% 0%, rgba(56, 189, 248, 0.05), transparent 70%);
 		border-right: 1px solid rgba(148, 163, 184, 0.12);
-		background: linear-gradient(180deg, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.2));
-		backdrop-filter: blur(8px);
+		z-index: 20;
 	}
 
-	@media (max-width: 900px) {
-		.docs-sidebar {
-			position: relative;
-			height: auto;
-			border-right: none;
-			border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-		}
+	.brand-block {
+		padding: 1.25rem 1.25rem 1rem;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.08);
 	}
 
-	.docs-brand {
+	.brand {
 		display: flex;
 		align-items: center;
 		gap: 0.625rem;
 		text-decoration: none;
 		color: #f8fafc;
-		margin-bottom: 1.5rem;
 	}
 
-	.docs-brand-mark {
+	.brand-mark {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -155,87 +245,187 @@
 		font-weight: 800;
 		font-size: 0.7rem;
 		letter-spacing: 0.02em;
+		box-shadow: 0 6px 20px -8px rgba(56, 189, 248, 0.7);
 	}
 
-	.docs-brand-text {
+	.brand-text {
 		font-weight: 800;
-		font-size: 1.125rem;
-		letter-spacing: 0.01em;
+		font-size: 1.0625rem;
+		letter-spacing: -0.01em;
 	}
 
-	.docs-brand-accent {
+	.brand-accent {
 		color: #38bdf8;
 	}
 
-	.docs-nav {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
+	/* ---------- Nav ---------- */
+	.nav {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		padding: 0.75rem 0.625rem 1rem;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
 	}
 
-	.docs-nav-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.125rem;
+	.nav::-webkit-scrollbar {
+		width: 6px;
+	}
+	.nav::-webkit-scrollbar-thumb {
+		background: rgba(148, 163, 184, 0.25);
+		border-radius: 3px;
 	}
 
-	.docs-nav-label {
+	.group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.0625rem;
+		margin-bottom: 0.875rem;
+	}
+
+	.group-title {
 		font-size: 0.6875rem;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: #64748b;
-		padding: 0 0.625rem;
-		margin-bottom: 0.375rem;
+		letter-spacing: 0.1em;
+		color: #475569;
+		padding: 0.5rem 0.75rem 0.375rem;
 	}
 
-	.docs-nav-link,
-	.docs-nav-endpoint {
+	.link {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.625rem;
+		gap: 0.625rem;
+		padding: 0.4375rem 0.75rem;
 		border-radius: 0.5rem;
 		text-decoration: none;
-		color: #cbd5e1;
-		font-size: 0.875rem;
+		color: #94a3b8;
+		font-size: 0.8125rem;
 		font-weight: 500;
-		transition: background 150ms ease, color 150ms ease;
+		line-height: 1.3;
+		transition: background-color 120ms ease, color 120ms ease;
 	}
 
-	.docs-nav-link:hover,
-	.docs-nav-endpoint:hover {
+	.link:hover {
 		background: rgba(56, 189, 248, 0.06);
-		color: #f1f5f9;
+		color: #e2e8f0;
 	}
 
-	.docs-nav-link.active,
-	.docs-nav-endpoint.active {
-		background: rgba(56, 189, 248, 0.1);
-		color: #f1f5f9;
-		box-shadow: inset 2px 0 0 #38bdf8;
+	.link.active {
+		background: rgba(56, 189, 248, 0.13);
+		color: #f8fafc;
+		font-weight: 600;
 	}
 
-	.docs-method {
+	.link.with-method {
+		gap: 0.5rem;
+	}
+
+	.link-label {
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	/* Compact inline method tag — color-only, no box */
+	.sm {
+		display: inline-block;
+		min-width: 2.625rem;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.6875rem;
+		font-size: 0.625rem;
 		font-weight: 800;
-		min-width: 3rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: #94a3b8;
+		flex: none;
 	}
 
-	.docs-endpoint-label {
-		font-weight: 500;
+	.sm.get {
+		color: #34d399;
+	}
+	.sm.post {
+		color: #38bdf8;
+	}
+	.sm.patch {
+		color: #fbbf24;
+	}
+	.sm.delete {
+		color: #fb7185;
+	}
+
+	/* GitHub CTA */
+	.github-cta {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		margin: 0.75rem 1rem 1rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		background: rgba(15, 23, 42, 0.55);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		color: #e2e8f0;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 150ms ease;
+	}
+
+	.github-cta:hover {
+		background: rgba(56, 189, 248, 0.1);
+		border-color: rgba(56, 189, 248, 0.4);
+		color: #f8fafc;
 	}
 
 	/* ---------- Main ---------- */
-	.docs-main {
+	.main {
 		padding: 3rem clamp(1.25rem, 3vw, 3rem);
 		max-width: 1100px;
 		width: 100%;
 		margin: 0 auto;
 	}
 
-	/* ---------- Shared content styles (used by child pages via :global) ---------- */
+	/* ---------- Mobile drawer ---------- */
+	.scrim {
+		display: none;
+		position: fixed;
+		inset: 0;
+		background: rgba(2, 6, 23, 0.6);
+		border: 0;
+		z-index: 15;
+		cursor: pointer;
+	}
+
+	@media (max-width: 1024px) {
+		.shell {
+			grid-template-columns: 1fr;
+		}
+
+		.sidebar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 280px;
+			transform: translateX(-100%);
+			transition: transform 220ms ease;
+		}
+
+		.shell.mobile-open .sidebar {
+			transform: translateX(0);
+		}
+
+		.shell.mobile-open .scrim {
+			display: block;
+		}
+
+		.main {
+			padding: 1.25rem;
+		}
+	}
+
+	/* ---------- Shared content styles ---------- */
 	:global(.docs-hero) {
 		position: relative;
 		padding: 2.25rem 2rem;
@@ -276,6 +466,7 @@
 		background: linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.35));
 		border: 1px solid rgba(148, 163, 184, 0.12);
 		margin-bottom: 1.5rem;
+		scroll-margin-top: 1.25rem;
 	}
 
 	:global(.docs-card h2) {
@@ -328,113 +519,6 @@
 		transform: translateY(-1px);
 	}
 
-	:global(.docs-endpoint) {
-		padding: 1.5rem;
-		border-radius: 1rem;
-		background: linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.3));
-		border: 1px solid rgba(148, 163, 184, 0.12);
-		margin-bottom: 1.25rem;
-		scroll-margin-top: 1.25rem;
-	}
-
-	:global(.docs-endpoint-head) {
-		display: flex;
-		align-items: center;
-		gap: 0.625rem;
-		flex-wrap: wrap;
-		margin-bottom: 0.75rem;
-	}
-
-	:global(.docs-pill) {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.25rem 0.625rem;
-		border-radius: 0.375rem;
-		background: rgba(15, 23, 42, 0.7);
-		border: 1px solid rgba(148, 163, 184, 0.18);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.75rem;
-		font-weight: 700;
-	}
-
-	:global(.docs-pill-get) {
-		color: #34d399;
-		border-color: rgba(52, 211, 153, 0.3);
-	}
-
-	:global(.docs-pill-post) {
-		color: #38bdf8;
-		border-color: rgba(56, 189, 248, 0.3);
-	}
-
-	:global(.docs-pill-patch),
-	:global(.docs-pill-put) {
-		color: #fbbf24;
-		border-color: rgba(251, 191, 36, 0.3);
-	}
-
-	:global(.docs-pill-delete) {
-		color: #fb7185;
-		border-color: rgba(251, 113, 133, 0.3);
-	}
-
-	:global(.docs-pill-public) {
-		color: #94a3b8;
-	}
-
-	:global(.docs-pill-admin) {
-		color: #c084fc;
-		border-color: rgba(192, 132, 252, 0.3);
-	}
-
-	:global(.docs-path) {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.95rem;
-		color: #f1f5f9;
-		font-weight: 600;
-	}
-
-	:global(.docs-table) {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.875rem;
-		margin-top: 0.5rem;
-	}
-
-	:global(.docs-table th) {
-		text-align: left;
-		font-weight: 700;
-		color: #94a3b8;
-		text-transform: uppercase;
-		font-size: 0.7rem;
-		letter-spacing: 0.08em;
-		padding: 0.5rem 0.75rem;
-		border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-	}
-
-	:global(.docs-table td) {
-		padding: 0.625rem 0.75rem;
-		border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-		color: #cbd5e1;
-		vertical-align: top;
-	}
-
-	:global(.docs-table td code) {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.8125rem;
-		color: #e2e8f0;
-		background: rgba(148, 163, 184, 0.08);
-		padding: 0.0625rem 0.375rem;
-		border-radius: 0.25rem;
-	}
-
-	:global(.docs-required) {
-		color: #fb7185;
-		font-size: 0.7rem;
-		margin-left: 0.25rem;
-	}
-
 	:global(.docs-codeblock) {
 		display: block;
 		background: rgba(2, 6, 23, 0.85);
@@ -447,6 +531,7 @@
 		line-height: 1.65;
 		overflow-x: auto;
 		margin: 0.5rem 0;
+		white-space: pre;
 	}
 
 	:global(.docs-callout) {
