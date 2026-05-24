@@ -365,3 +365,61 @@ Pola sama persis dengan `programs` / `news` / `events`:
 4. Daftarkan resource ke `src/lib/server/api/registry.ts` agar muncul otomatis di `/docs` dan `/api/docs`.
 
 Helper `requireAdmin`, `rateLimit`, `readJson`, `parseId`, dan `ApiError` bisa dipakai langsung tanpa duplikasi.
+
+## Admin Dashboard
+
+Dashboard ada di `/admin` — **tidak di-link** dari landing page atau navigasi publik dan diblokir di `robots.txt`. URL ini sengaja "hidden", dijaga di sisi server dengan session cookie HttpOnly.
+
+### Akses pertama kali
+
+1. Set di `.env`:
+   ```
+   BOOTSTRAP_ADMIN_EMAIL="admin@yourdomain.local"
+   BOOTSTRAP_ADMIN_PASSWORD="GantiPasswordIni!"
+   BOOTSTRAP_ADMIN_NAME="Administrator"
+   ```
+2. Jalankan `npm run db:seed`. Akan membuat akun admin pertama (idempotent — kalau sudah ada, akan di-skip).
+3. Buka `http://localhost:5173/admin/login` dan masuk.
+
+### Lapis keamanan
+
+| Lapis              | Implementasi                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Password storage   | Hash dengan **scrypt** (Node built-in), salt 16 byte, parameter N=16384, r=8, p=1.    |
+| Login              | `verifyPassword` constant-time. Untuk akun yang tidak ada, dummy hash dijalankan agar tidak bocor lewat timing. |
+| Session            | Token random 256-bit base64url di cookie `sid` (HttpOnly, SameSite=Lax, Secure di produksi). DB hanya menyimpan `sha256(token)`, jadi DB leak ≠ session leak. |
+| Rolling expiry     | 30 hari, refresh otomatis tiap request bila < 29 hari tersisa.                        |
+| Logout             | Hapus row session dari DB + clear cookie.                                              |
+| CSRF               | SvelteKit form actions menerapkan origin check otomatis untuk POST.                   |
+| URL hiding         | Tidak ada link publik. `robots.txt` Disallow `/admin/` dan `/api/`. `<meta name="robots">` di halaman admin set ke `noindex,nofollow`. |
+| Role-based access  | Helper `requireUser()` dan `requireRole()` siap pakai. Saat ini hanya role `admin`, tinggal tambah `editor`/`viewer` lewat schema kapan saja. |
+
+### Halaman dashboard
+
+| URL                            | Fungsi                                                |
+| ------------------------------ | ----------------------------------------------------- |
+| `/admin/login`                 | Login form. Kalau sudah login, redirect ke `/admin`. |
+| `/admin/logout`                | POST untuk hapus session. GET → redirect ke login.    |
+| `/admin`                       | Overview (jumlah programs / news / events).           |
+| `/admin/programs` (sama untuk `news`, `events`) | List dengan tombol **Tambah**, **Edit**, **Delete** (dengan konfirmasi inline). |
+| `/admin/programs/new`          | Form create.                                          |
+| `/admin/programs/:id`          | Form edit.                                            |
+
+### Scalability
+
+- **Resource registry**: `src/lib/server/admin/resources.ts` mendefinisikan tiap resource dengan field config + Zod schema + repository. Tambah resource baru = tambah satu entri di sini, selesai. Halaman `/admin/[resource]`, `/admin/[resource]/new`, `/admin/[resource]/:id` otomatis muncul.
+- **Generic CRUD route**: route `[resource]` dynamic, jadi tidak perlu duplikasi handler per tabel.
+- **Reusable form**: `ResourceForm.svelte` render kolom dari config (`text`, `textarea`, `url`, `longtext`). Validasi pakai Zod schema yang sama dengan API publik — tidak ada drift antara dashboard dan API.
+- **Session di DB**: bukan in-memory, jadi siap multi-instance / behind load balancer.
+- **API layer terpakai dua sisi**: dashboard panggil repo langsung (cepat); script eksternal lewat `/api/*` dengan `API_ADMIN_TOKEN`. Helper `requireAdmin()` API menerima keduanya — login dengan session admin di browser otomatis dianggap berwenang.
+
+### Cara menambah resource baru
+
+Sama dengan workflow API:
+
+1. Tambah tabel di `src/lib/db/schema.ts`.
+2. Tambah Zod schema di `src/lib/server/api/schemas/<name>.ts`.
+3. Tambah repository di `src/lib/server/repositories/<name>.ts`.
+4. Tambah route API di `src/routes/api/<name>/+server.ts` dan `[id]/+server.ts`.
+5. Daftarkan ke `src/lib/server/api/registry.ts` (untuk docs).
+6. **Daftarkan ke `src/lib/server/admin/resources.ts`** dengan field config — dashboard otomatis menyediakan list/new/edit/delete.

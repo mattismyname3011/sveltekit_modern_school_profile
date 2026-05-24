@@ -5,10 +5,29 @@
  * environment variables itself instead of using $env/static/private.
  */
 import 'dotenv/config';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { randomBytes, scrypt as scryptCb } from 'node:crypto';
+import { promisify } from 'node:util';
 import * as schema from './schema';
-import { events, news, programs } from './schema';
+import { events, news, programs, users } from './schema';
+
+const scrypt = promisify(scryptCb) as (
+	password: string | Buffer,
+	salt: string | Buffer,
+	keylen: number,
+	options: { N: number; r: number; p: number; maxmem: number }
+) => Promise<Buffer>;
+
+async function hashPassword(password: string): Promise<string> {
+	const salt = randomBytes(16);
+	const N = 16384,
+		r = 8,
+		p = 1;
+	const hash = await scrypt(password, salt, 64, { N, r, p, maxmem: 128 * 1024 * 1024 });
+	return `scrypt$${N}$${r}$${p}$${salt.toString('hex')}$${hash.toString('hex')}`;
+}
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -200,6 +219,44 @@ async function main() {
 	console.log(
 		`✅ Done. Inserted ${programSeed.length} programs, ${newsSeed.length} news, ${eventsSeed.length} events.`
 	);
+
+	// --- Bootstrap admin user (idempotent) ---
+	const adminEmail = process.env.BOOTSTRAP_ADMIN_EMAIL;
+	const adminPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+	const adminName = process.env.BOOTSTRAP_ADMIN_NAME ?? 'Administrator';
+
+	if (adminEmail && adminPassword) {
+		const normalizedEmail = adminEmail.trim().toLowerCase();
+		const existing = await db
+			.select()
+			.from(users)
+			.where(eq(users.email, normalizedEmail))
+			.limit(1);
+		if (existing.length > 0) {
+			console.log(`👤 Admin user already exists: ${normalizedEmail}`);
+		} else {
+			if (adminPassword.length < 12) {
+				console.warn(
+					'⚠️  BOOTSTRAP_ADMIN_PASSWORD is shorter than 12 chars — choose something stronger for production.'
+				);
+			}
+			const passwordHash = await hashPassword(adminPassword);
+			const [created] = await db
+				.insert(users)
+				.values({
+					email: normalizedEmail,
+					name: adminName.trim(),
+					passwordHash,
+					role: 'admin'
+				})
+				.returning();
+			console.log(`👤 Admin user created: ${created.email} (id=${created.id})`);
+		}
+	} else {
+		console.log(
+			'ℹ️  Skipped admin bootstrap (set BOOTSTRAP_ADMIN_EMAIL + BOOTSTRAP_ADMIN_PASSWORD).'
+		);
+	}
 
 	await client.end();
 }

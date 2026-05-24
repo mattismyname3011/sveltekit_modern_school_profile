@@ -4,17 +4,23 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { ApiError } from './response';
 
 /**
- * Bearer-token auth for write endpoints.
+ * Auth for write endpoints. Two acceptable credentials:
  *
- * The token is read from the API_ADMIN_TOKEN env var (server-only) so it
- * can be rotated without code changes. Comparison uses a constant-time
- * algorithm to avoid leaking information through timing.
+ *   1. A logged-in admin session (cookie → event.locals.user.role === 'admin').
+ *   2. A bearer token in Authorization header that matches API_ADMIN_TOKEN.
+ *
+ * Either is enough. The session path is what the dashboard uses;
+ * the bearer-token path is for scripts and the docs "Try it out" flow.
  *
  * Returns null on success, or a Response on failure (caller should return it).
  */
 export function requireAdmin(event: RequestEvent): Response | null {
-	const expected = env.API_ADMIN_TOKEN;
+	// 1) Session-based — preferred for browser clients.
+	const sessionUser = event.locals.user;
+	if (sessionUser && sessionUser.role === 'admin') return null;
 
+	// 2) Bearer-token — for scripts.
+	const expected = env.API_ADMIN_TOKEN;
 	if (!expected || expected.length < 16) {
 		// Refuse to authenticate against a weak/missing token rather than fail open.
 		return ApiError.internal('API auth is misconfigured.');
@@ -33,7 +39,6 @@ export function requireAdmin(event: RequestEvent): Response | null {
 function constantTimeEqual(a: string, b: string): boolean {
 	const ab = Buffer.from(a, 'utf8');
 	const bb = Buffer.from(b, 'utf8');
-	// timingSafeEqual requires equal length; pad to longest to avoid early return leak.
 	const len = Math.max(ab.length, bb.length);
 	const pa = Buffer.alloc(len);
 	const pb = Buffer.alloc(len);

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
  * programs
@@ -60,3 +60,42 @@ export type NewNews = typeof news.$inferInsert;
 
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
+
+/**
+ * users — admin / editor / viewer accounts for the dashboard.
+ * Roles are stored as plain strings to keep it open-ended; enforce in code.
+ */
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	email: text('email').notNull().unique(),
+	name: text('name').notNull(),
+	passwordHash: text('password_hash').notNull(),
+	role: text('role').notNull().default('admin'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+	lastLoginAt: timestamp('last_login_at', { withTimezone: true })
+});
+
+/**
+ * sessions — server-side session store.
+ *
+ * `id` is the sha256 of the random session token. We never store the raw
+ * token, so even a DB compromise doesn't grant active session access.
+ * The cookie holds the raw token; we hash it to look up the session.
+ */
+export const sessions = pgTable('sessions', {
+	id: text('id').primaryKey(),
+	userId: integer('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	ip: text('ip'),
+	userAgent: text('user_agent')
+});
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
