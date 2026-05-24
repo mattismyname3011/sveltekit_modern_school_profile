@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authToken } from './auth-store.svelte';
+	import { locale } from '$lib/i18n/locale.svelte';
 
 	let open = $state(false);
 	let draft = $state('');
@@ -25,21 +26,23 @@
 	<div class="auth-status">
 		{#if authToken.isSet}
 			<span class="auth-dot dot-on" aria-hidden="true"></span>
-			<span class="auth-label">Authorized</span>
-			<span class="auth-hint">Token loaded for this session</span>
+			<span class="auth-label">{locale.t('auth.authorized')}</span>
+			<span class="auth-hint">{locale.t('auth.authorizedHint')}</span>
 		{:else}
 			<span class="auth-dot dot-off" aria-hidden="true"></span>
-			<span class="auth-label">Not authorized</span>
-			<span class="auth-hint">Write endpoints will return 401</span>
+			<span class="auth-label">{locale.t('auth.notAuthorized')}</span>
+			<span class="auth-hint">{locale.t('auth.notAuthorizedHint')}</span>
 		{/if}
 	</div>
 
 	<div class="auth-actions">
 		{#if authToken.isSet}
-			<button type="button" class="auth-btn ghost" onclick={logout}>Logout</button>
+			<button type="button" class="auth-btn ghost" onclick={logout}>
+				{locale.t('auth.logout')}
+			</button>
 		{/if}
 		<button type="button" class="auth-btn primary" onclick={() => (open = !open)}>
-			🔐 {authToken.isSet ? 'Update token' : 'Authorize'}
+			🔐 {authToken.isSet ? locale.t('auth.update') : locale.t('auth.authorize')}
 		</button>
 	</div>
 </div>
@@ -47,8 +50,8 @@
 {#if open}
 	<div class="auth-form">
 		<label for="auth-input">
-			<strong>API_ADMIN_TOKEN</strong>
-			<span>Stored in sessionStorage only, never sent anywhere except this server.</span>
+			<strong>{locale.t('auth.tokenLabel')}</strong>
+			<span>{locale.t('auth.tokenHint')}</span>
 		</label>
 		<div class="auth-input-row">
 			<input
@@ -57,9 +60,11 @@
 				autocomplete="off"
 				spellcheck="false"
 				bind:value={draft}
-				placeholder="Paste your admin bearer token"
+				placeholder={locale.t('auth.tokenPlaceholder')}
 			/>
-			<button type="button" class="auth-btn primary" onclick={save}>Save</button>
+			<button type="button" class="auth-btn primary" onclick={save}>
+				{locale.t('auth.save')}
+			</button>
 		</div>
 	</div>
 {/if}

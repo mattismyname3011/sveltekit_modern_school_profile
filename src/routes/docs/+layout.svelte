@@ -1,12 +1,17 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { LayoutData } from './$types';
 	import { page } from '$app/state';
+	import { locale } from '$lib/i18n/locale.svelte';
+	import LangSwitcher from '$lib/components/docs/LangSwitcher.svelte';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
 	const resources = $derived(data.registry.resources);
 	const currentPath = $derived(page.url.pathname);
 	const currentHash = $derived(page.url.hash);
+
+	onMount(() => locale.hydrate());
 
 	function isPath(href: string) {
 		return currentPath === href || currentPath === href + '/';
@@ -46,17 +51,20 @@
 <!-- Mobile top bar -->
 <header class="mobile-bar">
 	<a href="/docs" class="brand">
-		<span class="brand-mark">API</span>
-		<span class="brand-text">Aristotle. <span class="brand-accent">Docs</span></span>
+		<span class="brand-mark">SMP</span>
+		<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
 	</a>
-	<button
-		type="button"
-		class="hamburger"
-		aria-label="Open navigation"
-		onclick={() => (mobileOpen = !mobileOpen)}
-	>
-		{mobileOpen ? '✕' : '☰'}
-	</button>
+	<div style="display:flex;align-items:center;gap:0.5rem">
+		<LangSwitcher />
+		<button
+			type="button"
+			class="hamburger"
+			aria-label={locale.t(mobileOpen ? 'sidebar.closeNav' : 'sidebar.openNav')}
+			onclick={() => (mobileOpen = !mobileOpen)}
+		>
+			{mobileOpen ? '✕' : '☰'}
+		</button>
+	</div>
 </header>
 
 <div class="shell" class:mobile-open={mobileOpen}>
@@ -64,46 +72,47 @@
 	<aside class="sidebar" id="docsSidebar">
 		<div class="brand-block">
 			<a href="/docs" class="brand">
-				<span class="brand-mark">API</span>
-				<span class="brand-text">Aristotle. <span class="brand-accent">Docs</span></span>
+				<span class="brand-mark">SMP</span>
+				<span class="brand-text">1A <span class="brand-accent">Docs</span></span>
 			</a>
+			<LangSwitcher />
 		</div>
 
 		<nav class="nav" aria-label="API navigation">
 			<div class="group">
-				<div class="group-title">Getting Started</div>
+				<div class="group-title">{locale.t('sidebar.gettingStarted')}</div>
 				<a
 					href="/docs"
 					class="link"
 					class:active={isPath('/docs') && !currentHash}
-					onclick={() => (mobileOpen = false)}>Introduction</a
+					onclick={() => (mobileOpen = false)}>{locale.t('sidebar.introduction')}</a
 				>
 				<a
 					href="/docs#authentication"
 					class="link"
 					class:active={isPath('/docs') && currentHash === '#authentication'}
-					onclick={() => (mobileOpen = false)}>Authentication</a
+					onclick={() => (mobileOpen = false)}>{locale.t('sidebar.authentication')}</a
 				>
 				<a
 					href="/docs#response-envelope"
 					class="link"
 					class:active={isPath('/docs') && currentHash === '#response-envelope'}
-					onclick={() => (mobileOpen = false)}>Response Envelope</a
+					onclick={() => (mobileOpen = false)}>{locale.t('sidebar.responseEnvelope')}</a
 				>
 				<a
 					href="/docs#rate-limiting"
 					class="link"
 					class:active={isPath('/docs') && currentHash === '#rate-limiting'}
-					onclick={() => (mobileOpen = false)}>Rate Limiting</a
+					onclick={() => (mobileOpen = false)}>{locale.t('sidebar.rateLimiting')}</a
 				>
 				<a class="link" href="/api/docs" target="_blank" rel="noopener">
-					Spec JSON ↗
+					{locale.t('sidebar.specJson')} ↗
 				</a>
 			</div>
 
 			{#each resources as r (r.slug)}
 				<div class="group">
-					<div class="group-title">{r.label}</div>
+					<div class="group-title">{locale.tr(r.label)}</div>
 					{#each r.endpoints as e (e.id)}
 						<a
 							href={`/docs/${r.slug}#${e.id}`}
@@ -112,7 +121,7 @@
 							onclick={() => (mobileOpen = false)}
 						>
 							<span class={methodClass(e.method)}>{e.method}</span>
-							<span class="link-label">{e.summary}</span>
+							<span class="link-label">{locale.tr(e.summary)}</span>
 						</a>
 					{/each}
 				</div>
@@ -124,21 +133,21 @@
 			target="_blank"
 			rel="noopener noreferrer"
 			class="github-cta"
-			aria-label="View source on GitHub"
+			aria-label={locale.t('sidebar.viewOnGithub')}
 		>
 			<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
 				<path
 					d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
 				/>
 			</svg>
-			<span>View on GitHub</span>
+			<span>{locale.t('sidebar.viewOnGithub')}</span>
 		</a>
 	</aside>
 
 	<button
 		type="button"
 		class="scrim"
-		aria-label="Close navigation"
+		aria-label={locale.t('sidebar.closeNav')}
 		onclick={() => (mobileOpen = false)}
 	></button>
 
@@ -223,6 +232,9 @@
 	.brand-block {
 		padding: 1.25rem 1.25rem 1rem;
 		border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
 	}
 
 	.brand {
@@ -329,7 +341,6 @@
 		white-space: nowrap;
 	}
 
-	/* Compact inline method tag — color-only, no box */
 	.sm {
 		display: inline-block;
 		min-width: 2.625rem;
@@ -355,7 +366,6 @@
 		color: #fb7185;
 	}
 
-	/* GitHub CTA */
 	.github-cta {
 		display: flex;
 		align-items: center;

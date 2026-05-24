@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { EndpointDoc } from '$lib/server/api/registry';
 	import { authToken } from './auth-store.svelte';
+	import { locale } from '$lib/i18n/locale.svelte';
 
 	type Props = { endpoint: EndpointDoc };
 	let { endpoint }: Props = $props();
@@ -8,12 +9,10 @@
 	let open = $state(false);
 	let trying = $state(false);
 
-	// Parameter state — keyed by name, separated by section.
 	let pathValues = $state<Record<string, string>>({});
 	let queryValues = $state<Record<string, string>>({});
 	let bodyDraft = $state('');
 
-	// Response state
 	let loading = $state(false);
 	let response = $state<{
 		status: number;
@@ -25,7 +24,6 @@
 	} | null>(null);
 	let errorMsg = $state<string | null>(null);
 
-	// Initial body template seeded once when "Try it out" is opened.
 	function seedBody() {
 		if (bodyDraft || !endpoint.requestBody?.length) return;
 		const template: Record<string, unknown> = {};
@@ -83,21 +81,19 @@
 		errorMsg = null;
 		response = null;
 
-		// Validate path params present
 		if (endpoint.pathParams) {
 			for (const p of endpoint.pathParams) {
 				if (p.required !== false && !(pathValues[p.name] ?? '').trim()) {
-					errorMsg = `Path parameter "${p.name}" is required.`;
+					errorMsg = locale.t('ep.errPathRequired').replace('{name}', p.name);
 					return;
 				}
 			}
 		}
 
-		// Build init
 		const headers: Record<string, string> = { Accept: 'application/json' };
 		if (endpoint.auth === 'admin') {
 			if (!authToken.isSet) {
-				errorMsg = 'This endpoint requires admin auth. Click Authorize at the top.';
+				errorMsg = locale.t('ep.errAuthRequired');
 				return;
 			}
 			headers['Authorization'] = `Bearer ${authToken.value}`;
@@ -109,7 +105,7 @@
 			try {
 				JSON.parse(bodyDraft);
 			} catch (err) {
-				errorMsg = `Body is not valid JSON: ${(err as Error).message}`;
+				errorMsg = `${locale.t('ep.errInvalidJson')} ${(err as Error).message}`;
 				return;
 			}
 			body = bodyDraft;
@@ -138,7 +134,7 @@
 				bodyParsed: parsed
 			};
 		} catch (err) {
-			errorMsg = `Network error: ${(err as Error).message}`;
+			errorMsg = `${locale.t('ep.errNetwork')} ${(err as Error).message}`;
 		} finally {
 			loading = false;
 		}
@@ -167,12 +163,12 @@
 	>
 		<span class={methodPillClass(endpoint.method)}>{endpoint.method}</span>
 		<span class="ep-path">{endpoint.path}</span>
-		<span class="ep-summary">{endpoint.summary}</span>
+		<span class="ep-summary">{locale.tr(endpoint.summary)}</span>
 		<span class="ep-spacer"></span>
 		{#if endpoint.auth === 'admin'}
-			<span class="auth-pill" title="Admin token required">🔐 admin</span>
+			<span class="auth-pill">🔐 {locale.t('ep.admin')}</span>
 		{:else}
-			<span class="auth-pill auth-public">public</span>
+			<span class="auth-pill auth-public">{locale.t('ep.public')}</span>
 		{/if}
 		<span class="chev" aria-hidden="true">{open ? '▾' : '▸'}</span>
 	</button>
@@ -180,26 +176,27 @@
 	{#if open}
 		<div id={`ep-body-${endpoint.id}`} class="ep-body">
 			{#if endpoint.description}
-				<p class="ep-desc">{endpoint.description}</p>
+				<p class="ep-desc">{locale.tr(endpoint.description)}</p>
 			{/if}
 
 			<div class="ep-meta">
 				<span>
-					Rate limit: <strong>{endpoint.rateLimit.limit}</strong> req /
+					{locale.t('ep.rateLimit')}
+					<strong>{endpoint.rateLimit.limit}</strong>
+					{locale.t('ep.requestsPer')}
 					<strong>{endpoint.rateLimit.windowSec}s</strong>
 				</span>
 			</div>
 
-			<!-- Path parameters -->
 			{#if endpoint.pathParams && endpoint.pathParams.length > 0}
-				<h4 class="section">Path parameters</h4>
+				<h4 class="section">{locale.t('ep.pathParams')}</h4>
 				<table class="param-table">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Type</th>
-							<th>Description</th>
-							<th>Value</th>
+							<th>{locale.t('ep.colName')}</th>
+							<th>{locale.t('ep.colType')}</th>
+							<th>{locale.t('ep.colDescription')}</th>
+							<th>{locale.t('ep.colValue')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -210,7 +207,7 @@
 									{#if p.required !== false}<span class="req">*</span>{/if}
 								</td>
 								<td><code>{p.type}</code></td>
-								<td>{p.description}</td>
+								<td>{locale.tr(p.description)}</td>
 								<td>
 									<input
 										type="text"
@@ -225,16 +222,15 @@
 				</table>
 			{/if}
 
-			<!-- Query parameters -->
 			{#if endpoint.queryParams && endpoint.queryParams.length > 0}
-				<h4 class="section">Query parameters</h4>
+				<h4 class="section">{locale.t('ep.queryParams')}</h4>
 				<table class="param-table">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Type</th>
-							<th>Description</th>
-							<th>Value</th>
+							<th>{locale.t('ep.colName')}</th>
+							<th>{locale.t('ep.colType')}</th>
+							<th>{locale.t('ep.colDescription')}</th>
+							<th>{locale.t('ep.colValue')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -242,7 +238,7 @@
 							<tr>
 								<td><code>{p.name}</code></td>
 								<td><code>{p.type}</code></td>
-								<td>{p.description}</td>
+								<td>{locale.tr(p.description)}</td>
 								<td>
 									<input
 										type="text"
@@ -257,15 +253,14 @@
 				</table>
 			{/if}
 
-			<!-- Request body -->
 			{#if endpoint.requestBody && endpoint.requestBody.length > 0}
-				<h4 class="section">Request body (application/json)</h4>
+				<h4 class="section">{locale.t('ep.requestBody')}</h4>
 				<table class="param-table">
 					<thead>
 						<tr>
-							<th>Field</th>
-							<th>Type</th>
-							<th>Description</th>
+							<th>{locale.t('ep.colField')}</th>
+							<th>{locale.t('ep.colType')}</th>
+							<th>{locale.t('ep.colDescription')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -276,7 +271,7 @@
 									{#if p.required}<span class="req">*</span>{/if}
 								</td>
 								<td><code>{p.type}</code></td>
-								<td>{p.description}</td>
+								<td>{locale.tr(p.description)}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -290,7 +285,6 @@
 				></textarea>
 			{/if}
 
-			<!-- Try it out -->
 			<div class="try-row">
 				{#if !trying}
 					<button
@@ -301,11 +295,11 @@
 							seedBody();
 						}}
 					>
-						▶ Try it out
+						{locale.t('ep.tryItOut')}
 					</button>
 				{:else}
 					<button type="button" class="btn btn-primary" onclick={execute} disabled={loading}>
-						{loading ? '⏳ Executing…' : '▶ Execute'}
+						{loading ? locale.t('ep.executing') : locale.t('ep.execute')}
 					</button>
 					<button
 						type="button"
@@ -315,16 +309,18 @@
 							clearResponse();
 						}}
 					>
-						Cancel
+						{locale.t('ep.cancel')}
 					</button>
 				{/if}
 				{#if response}
-					<button type="button" class="btn btn-ghost" onclick={clearResponse}>Clear</button>
+					<button type="button" class="btn btn-ghost" onclick={clearResponse}>
+						{locale.t('ep.clear')}
+					</button>
 				{/if}
 			</div>
 
 			{#if trying}
-				<h4 class="section">cURL</h4>
+				<h4 class="section">{locale.t('ep.curlHeading')}</h4>
 				<pre class="codeblock"><code>{buildCurl()}</code></pre>
 			{/if}
 
@@ -333,25 +329,27 @@
 			{/if}
 
 			{#if response}
-				<h4 class="section">Response</h4>
+				<h4 class="section">{locale.t('ep.responseHeading')}</h4>
 				<div class="resp-meta">
 					<span class={`status-pill ${statusClass(response.status)}`}>
 						{response.status}
 					</span>
 					<span class="resp-info">
-						{response.ok ? 'OK' : 'Error'} · {response.durationMs}ms
+						{response.ok ? locale.t('ep.statusOk') : locale.t('ep.statusError')} · {response.durationMs}ms
 					</span>
 				</div>
 
 				<div class="tabs">
 					<details open>
-						<summary>Body</summary>
+						<summary>{locale.t('ep.bodyTab')}</summary>
 						<pre class="codeblock"><code>{typeof response.bodyParsed === 'string'
 								? response.body
 								: JSON.stringify(response.bodyParsed, null, 2)}</code></pre>
 					</details>
 					<details>
-						<summary>Headers ({Object.keys(response.headers).length})</summary>
+						<summary>
+							{locale.t('ep.headersTab')} ({Object.keys(response.headers).length})
+						</summary>
 						<pre class="codeblock"><code>{Object.entries(response.headers)
 								.map(([k, v]) => `${k}: ${v}`)
 								.join('\n')}</code></pre>

@@ -5,24 +5,28 @@
  * Both the human-readable docs (/docs) and the machine-readable spec
  * (/api/docs) are rendered from this object, so adding or changing an
  * endpoint here updates both surfaces at once.
+ *
+ * Translatable strings are { id, en } pairs.
  */
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+
+/** Bilingual string. `id` (Bahasa Indonesia) and `en` (English). */
+export type LocalizedText = { id: string; en: string };
 
 export type FieldDoc = {
 	name: string;
 	type: string;
 	required?: boolean;
-	description: string;
+	description: LocalizedText;
 };
 
 export type EndpointDoc = {
-	/** Stable slug used as the URL anchor in /docs. */
 	id: string;
 	method: HttpMethod;
 	path: string;
-	summary: string;
-	description?: string;
+	summary: LocalizedText;
+	description?: LocalizedText;
 	auth: 'public' | 'admin';
 	rateLimit: { limit: number; windowSec: number };
 	pathParams?: FieldDoc[];
@@ -32,10 +36,9 @@ export type EndpointDoc = {
 };
 
 export type ResourceDoc = {
-	/** URL slug — appears as /docs/<slug>. */
 	slug: string;
-	label: string;
-	description: string;
+	label: LocalizedText;
+	description: LocalizedText;
 	endpoints: EndpointDoc[];
 };
 
@@ -48,22 +51,50 @@ const WRITE_LIMIT = { limit: 20, windowSec: 60 };
 // -----------------------------------------------------------------------
 const programs: ResourceDoc = {
 	slug: 'programs',
-	label: 'Programs',
-	description: 'Daftar program akademik & ekstrakurikuler sekolah.',
+	label: { id: 'Programs', en: 'Programs' },
+	description: {
+		id: 'Daftar program akademik & ekstrakurikuler sekolah.',
+		en: 'List of academic and extracurricular programs offered by the school.'
+	},
 	endpoints: [
 		{
 			id: 'list-programs',
 			method: 'GET',
 			path: '/api/programs',
-			summary: 'List programs',
-			description: 'Mengambil daftar program dengan pagination dan filter opsional.',
+			summary: { id: 'List programs', en: 'List programs' },
+			description: {
+				id: 'Mengambil daftar program dengan pagination dan filter opsional.',
+				en: 'Fetch a paginated list of programs with optional filters.'
+			},
 			auth: 'public',
 			rateLimit: READ_LIMIT,
 			queryParams: [
-				{ name: 'limit', type: 'integer (1–100)', description: 'Jumlah item per halaman. Default 20.' },
-				{ name: 'offset', type: 'integer ≥ 0', description: 'Offset pagination. Default 0.' },
-				{ name: 'tag', type: 'string', description: 'Filter exact-match berdasarkan tag.' },
-				{ name: 'q', type: 'string', description: 'Pencarian case-insensitive di title + excerpt.' }
+				{
+					name: 'limit',
+					type: 'integer (1–100)',
+					description: { id: 'Jumlah item per halaman. Default 20.', en: 'Items per page. Default 20.' }
+				},
+				{
+					name: 'offset',
+					type: 'integer ≥ 0',
+					description: { id: 'Offset pagination. Default 0.', en: 'Pagination offset. Default 0.' }
+				},
+				{
+					name: 'tag',
+					type: 'string',
+					description: {
+						id: 'Filter exact-match berdasarkan tag.',
+						en: 'Exact-match filter by tag.'
+					}
+				},
+				{
+					name: 'q',
+					type: 'string',
+					description: {
+						id: 'Pencarian case-insensitive di title + excerpt.',
+						en: 'Case-insensitive search across title + excerpt.'
+					}
+				}
 			],
 			responseExample: {
 				ok: true,
@@ -88,10 +119,17 @@ const programs: ResourceDoc = {
 			id: 'get-program',
 			method: 'GET',
 			path: '/api/programs/:id',
-			summary: 'Get program by id',
+			summary: { id: 'Get program by id', en: 'Get program by id' },
 			auth: 'public',
 			rateLimit: READ_ONE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID program.' }],
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID program.', en: 'Program id.' }
+				}
+			],
 			responseExample: {
 				ok: true,
 				data: {
@@ -110,15 +148,42 @@ const programs: ResourceDoc = {
 			id: 'create-program',
 			method: 'POST',
 			path: '/api/programs',
-			summary: 'Create program',
+			summary: { id: 'Create program', en: 'Create program' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
 			requestBody: [
-				{ name: 'title', type: 'string (1–160)', required: true, description: 'Judul program.' },
-				{ name: 'tag', type: 'string (1–60)', required: true, description: 'Kategori/label.' },
-				{ name: 'excerpt', type: 'string (1–500)', required: true, description: 'Deskripsi singkat.' },
-				{ name: 'image', type: 'string (URL https)', required: true, description: 'URL gambar.' },
-				{ name: 'post', type: 'string | null', description: 'Konten panjang opsional, max 20000 char.' }
+				{
+					name: 'title',
+					type: 'string (1–160)',
+					required: true,
+					description: { id: 'Judul program.', en: 'Program title.' }
+				},
+				{
+					name: 'tag',
+					type: 'string (1–60)',
+					required: true,
+					description: { id: 'Kategori/label.', en: 'Category or label.' }
+				},
+				{
+					name: 'excerpt',
+					type: 'string (1–500)',
+					required: true,
+					description: { id: 'Deskripsi singkat.', en: 'Short description.' }
+				},
+				{
+					name: 'image',
+					type: 'string (URL https)',
+					required: true,
+					description: { id: 'URL gambar.', en: 'Image URL.' }
+				},
+				{
+					name: 'post',
+					type: 'string | null',
+					description: {
+						id: 'Konten panjang opsional, max 20000 char.',
+						en: 'Optional long-form content, max 20000 chars.'
+					}
+				}
 			],
 			responseExample: { ok: true, data: { id: 7, title: '...', tag: '...' } }
 		},
@@ -126,27 +191,56 @@ const programs: ResourceDoc = {
 			id: 'update-program',
 			method: 'PATCH',
 			path: '/api/programs/:id',
-			summary: 'Update program',
-			description: 'Partial update. Minimal satu field harus dikirim.',
+			summary: { id: 'Update program', en: 'Update program' },
+			description: {
+				id: 'Partial update. Minimal satu field harus dikirim.',
+				en: 'Partial update. At least one field is required.'
+			},
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID program.' }],
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID program.', en: 'Program id.' }
+				}
+			],
 			requestBody: [
-				{ name: 'title', type: 'string (1–160)', description: 'Optional.' },
-				{ name: 'tag', type: 'string (1–60)', description: 'Optional.' },
-				{ name: 'excerpt', type: 'string (1–500)', description: 'Optional.' },
-				{ name: 'image', type: 'string (URL https)', description: 'Optional.' },
-				{ name: 'post', type: 'string | null', description: 'Optional.' }
+				{
+					name: 'title',
+					type: 'string (1–160)',
+					description: { id: 'Opsional.', en: 'Optional.' }
+				},
+				{ name: 'tag', type: 'string (1–60)', description: { id: 'Opsional.', en: 'Optional.' } },
+				{
+					name: 'excerpt',
+					type: 'string (1–500)',
+					description: { id: 'Opsional.', en: 'Optional.' }
+				},
+				{
+					name: 'image',
+					type: 'string (URL https)',
+					description: { id: 'Opsional.', en: 'Optional.' }
+				},
+				{ name: 'post', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } }
 			]
 		},
 		{
 			id: 'delete-program',
 			method: 'DELETE',
 			path: '/api/programs/:id',
-			summary: 'Delete program',
+			summary: { id: 'Delete program', en: 'Delete program' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID program.' }],
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID program.', en: 'Program id.' }
+				}
+			],
 			responseExample: { ok: true, data: { id: 7 } }
 		}
 	]
@@ -157,71 +251,145 @@ const programs: ResourceDoc = {
 // -----------------------------------------------------------------------
 const news: ResourceDoc = {
 	slug: 'news',
-	label: 'News',
-	description: 'Berita dan pengumuman sekolah.',
+	label: { id: 'News', en: 'News' },
+	description: {
+		id: 'Berita dan pengumuman sekolah.',
+		en: 'School news and announcements.'
+	},
 	endpoints: [
 		{
 			id: 'list-news',
 			method: 'GET',
 			path: '/api/news',
-			summary: 'List news',
+			summary: { id: 'List news', en: 'List news' },
 			auth: 'public',
 			rateLimit: READ_LIMIT,
 			queryParams: [
-				{ name: 'limit', type: 'integer (1–100)', description: 'Default 20.' },
-				{ name: 'offset', type: 'integer ≥ 0', description: 'Default 0.' },
-				{ name: 'category', type: 'string', description: 'Filter exact-match category.' },
-				{ name: 'q', type: 'string', description: 'Pencarian title + excerpt.' }
+				{
+					name: 'limit',
+					type: 'integer (1–100)',
+					description: { id: 'Default 20.', en: 'Default 20.' }
+				},
+				{
+					name: 'offset',
+					type: 'integer ≥ 0',
+					description: { id: 'Default 0.', en: 'Default 0.' }
+				},
+				{
+					name: 'category',
+					type: 'string',
+					description: {
+						id: 'Filter exact-match category.',
+						en: 'Exact-match category filter.'
+					}
+				},
+				{
+					name: 'q',
+					type: 'string',
+					description: {
+						id: 'Pencarian title + excerpt.',
+						en: 'Search across title + excerpt.'
+					}
+				}
 			]
 		},
 		{
 			id: 'get-news',
 			method: 'GET',
 			path: '/api/news/:id',
-			summary: 'Get news by id',
+			summary: { id: 'Get news by id', en: 'Get news by id' },
 			auth: 'public',
 			rateLimit: READ_ONE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID berita.' }]
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID berita.', en: 'News id.' }
+				}
+			]
 		},
 		{
 			id: 'create-news',
 			method: 'POST',
 			path: '/api/news',
-			summary: 'Create news',
+			summary: { id: 'Create news', en: 'Create news' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
 			requestBody: [
-				{ name: 'category', type: 'string (1–60)', required: true, description: 'Kategori berita.' },
-				{ name: 'date', type: 'string (1–40)', required: true, description: 'Tanggal human, mis. "12 Mei 2026".' },
-				{ name: 'title', type: 'string (1–200)', required: true, description: 'Judul.' },
-				{ name: 'excerpt', type: 'string (1–500)', required: true, description: 'Ringkasan.' },
-				{ name: 'image', type: 'string (URL https)', required: true, description: 'URL gambar.' }
+				{
+					name: 'category',
+					type: 'string (1–60)',
+					required: true,
+					description: { id: 'Kategori berita.', en: 'News category.' }
+				},
+				{
+					name: 'date',
+					type: 'string (1–40)',
+					required: true,
+					description: {
+						id: 'Tanggal human, mis. "12 Mei 2026".',
+						en: 'Human-readable date, e.g. "12 Mei 2026".'
+					}
+				},
+				{
+					name: 'title',
+					type: 'string (1–200)',
+					required: true,
+					description: { id: 'Judul.', en: 'Title.' }
+				},
+				{
+					name: 'excerpt',
+					type: 'string (1–500)',
+					required: true,
+					description: { id: 'Ringkasan.', en: 'Summary.' }
+				},
+				{
+					name: 'image',
+					type: 'string (URL https)',
+					required: true,
+					description: { id: 'URL gambar.', en: 'Image URL.' }
+				}
 			]
 		},
 		{
 			id: 'update-news',
 			method: 'PATCH',
 			path: '/api/news/:id',
-			summary: 'Update news',
+			summary: { id: 'Update news', en: 'Update news' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID berita.' }],
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID berita.', en: 'News id.' }
+				}
+			],
 			requestBody: [
-				{ name: 'category', type: 'string', description: 'Optional.' },
-				{ name: 'date', type: 'string', description: 'Optional.' },
-				{ name: 'title', type: 'string', description: 'Optional.' },
-				{ name: 'excerpt', type: 'string', description: 'Optional.' },
-				{ name: 'image', type: 'string', description: 'Optional.' }
+				{ name: 'category', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'date', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'title', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'excerpt', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'image', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } }
 			]
 		},
 		{
 			id: 'delete-news',
 			method: 'DELETE',
 			path: '/api/news/:id',
-			summary: 'Delete news',
+			summary: { id: 'Delete news', en: 'Delete news' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID berita.' }]
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID berita.', en: 'News id.' }
+				}
+			]
 		}
 	]
 };
@@ -231,76 +399,167 @@ const news: ResourceDoc = {
 // -----------------------------------------------------------------------
 const events: ResourceDoc = {
 	slug: 'events',
-	label: 'Events',
-	description: 'Agenda kegiatan dan event sekolah.',
+	label: { id: 'Events', en: 'Events' },
+	description: {
+		id: 'Agenda kegiatan dan event sekolah.',
+		en: 'School events and agenda.'
+	},
 	endpoints: [
 		{
 			id: 'list-events',
 			method: 'GET',
 			path: '/api/events',
-			summary: 'List events',
+			summary: { id: 'List events', en: 'List events' },
 			auth: 'public',
 			rateLimit: READ_LIMIT,
 			queryParams: [
-				{ name: 'limit', type: 'integer (1–100)', description: 'Default 20.' },
-				{ name: 'offset', type: 'integer ≥ 0', description: 'Default 0.' },
-				{ name: 'q', type: 'string', description: 'Pencarian title + excerpt.' }
+				{
+					name: 'limit',
+					type: 'integer (1–100)',
+					description: { id: 'Default 20.', en: 'Default 20.' }
+				},
+				{
+					name: 'offset',
+					type: 'integer ≥ 0',
+					description: { id: 'Default 0.', en: 'Default 0.' }
+				},
+				{
+					name: 'q',
+					type: 'string',
+					description: {
+						id: 'Pencarian title + excerpt.',
+						en: 'Search across title + excerpt.'
+					}
+				}
 			]
 		},
 		{
 			id: 'get-event',
 			method: 'GET',
 			path: '/api/events/:id',
-			summary: 'Get event by id',
+			summary: { id: 'Get event by id', en: 'Get event by id' },
 			auth: 'public',
 			rateLimit: READ_ONE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID acara.' }]
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID acara.', en: 'Event id.' }
+				}
+			]
 		},
 		{
 			id: 'create-event',
 			method: 'POST',
 			path: '/api/events',
-			summary: 'Create event',
+			summary: { id: 'Create event', en: 'Create event' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
 			requestBody: [
-				{ name: 'date', type: 'string (1–40)', required: true, description: 'Tanggal human, mis. "12 Jun 2026".' },
-				{ name: 'dateDay', type: 'string (1–2 digit)', required: true, description: 'Tanggal numerik, mis. "12".' },
-				{ name: 'dateMonth', type: 'string (1–10)', required: true, description: 'Bulan singkat, mis. "Jun".' },
-				{ name: 'title', type: 'string (1–200)', required: true, description: 'Judul.' },
-				{ name: 'excerpt', type: 'string (1–500)', required: true, description: 'Ringkasan.' },
-				{ name: 'image', type: 'string (URL https)', required: true, description: 'URL gambar.' },
-				{ name: 'time', type: 'string (1–40)', required: true, description: 'Waktu acara, mis. "08:00 WITA".' },
-				{ name: 'location', type: 'string (1–120)', required: true, description: 'Lokasi.' }
+				{
+					name: 'date',
+					type: 'string (1–40)',
+					required: true,
+					description: {
+						id: 'Tanggal human, mis. "12 Jun 2026".',
+						en: 'Human-readable date, e.g. "12 Jun 2026".'
+					}
+				},
+				{
+					name: 'dateDay',
+					type: 'string (1–2 digit)',
+					required: true,
+					description: {
+						id: 'Tanggal numerik, mis. "12".',
+						en: 'Numeric day, e.g. "12".'
+					}
+				},
+				{
+					name: 'dateMonth',
+					type: 'string (1–10)',
+					required: true,
+					description: {
+						id: 'Bulan singkat, mis. "Jun".',
+						en: 'Short month label, e.g. "Jun".'
+					}
+				},
+				{
+					name: 'title',
+					type: 'string (1–200)',
+					required: true,
+					description: { id: 'Judul.', en: 'Title.' }
+				},
+				{
+					name: 'excerpt',
+					type: 'string (1–500)',
+					required: true,
+					description: { id: 'Ringkasan.', en: 'Summary.' }
+				},
+				{
+					name: 'image',
+					type: 'string (URL https)',
+					required: true,
+					description: { id: 'URL gambar.', en: 'Image URL.' }
+				},
+				{
+					name: 'time',
+					type: 'string (1–40)',
+					required: true,
+					description: {
+						id: 'Waktu acara, mis. "08:00 WITA".',
+						en: 'Event time, e.g. "08:00 WITA".'
+					}
+				},
+				{
+					name: 'location',
+					type: 'string (1–120)',
+					required: true,
+					description: { id: 'Lokasi.', en: 'Location.' }
+				}
 			]
 		},
 		{
 			id: 'update-event',
 			method: 'PATCH',
 			path: '/api/events/:id',
-			summary: 'Update event',
+			summary: { id: 'Update event', en: 'Update event' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID acara.' }],
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID acara.', en: 'Event id.' }
+				}
+			],
 			requestBody: [
-				{ name: 'date', type: 'string', description: 'Optional.' },
-				{ name: 'dateDay', type: 'string', description: 'Optional.' },
-				{ name: 'dateMonth', type: 'string', description: 'Optional.' },
-				{ name: 'title', type: 'string', description: 'Optional.' },
-				{ name: 'excerpt', type: 'string', description: 'Optional.' },
-				{ name: 'image', type: 'string', description: 'Optional.' },
-				{ name: 'time', type: 'string', description: 'Optional.' },
-				{ name: 'location', type: 'string', description: 'Optional.' }
+				{ name: 'date', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'dateDay', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'dateMonth', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'title', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'excerpt', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'image', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'time', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'location', type: 'string', description: { id: 'Opsional.', en: 'Optional.' } }
 			]
 		},
 		{
 			id: 'delete-event',
 			method: 'DELETE',
 			path: '/api/events/:id',
-			summary: 'Delete event',
+			summary: { id: 'Delete event', en: 'Delete event' },
 			auth: 'admin',
 			rateLimit: WRITE_LIMIT,
-			pathParams: [{ name: 'id', type: 'integer', required: true, description: 'ID acara.' }]
+			pathParams: [
+				{
+					name: 'id',
+					type: 'integer',
+					required: true,
+					description: { id: 'ID acara.', en: 'Event id.' }
+				}
+			]
 		}
 	]
 };
