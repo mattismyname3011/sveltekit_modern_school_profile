@@ -1,14 +1,14 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as schema from "./schema";
-import dotenv from "dotenv";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { DATABASE_URL } from '$env/static/private';
+import * as schema from './schema';
 
-dotenv.config();
+if (!DATABASE_URL) {
+	throw new Error('DATABASE_URL is not set. Copy .env.example to .env and fill it in.');
+}
 
-const client = postgres(process.env.DATABASE_URL!, {
-  prepare: false,
-});
+const client = postgres(DATABASE_URL, { prepare: false });
 
-export const db = drizzle(client, {
-  schema,
-});
+export const db = drizzle(client, { schema });
+
+export { schema };
