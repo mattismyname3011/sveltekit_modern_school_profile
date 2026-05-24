@@ -150,3 +150,126 @@ export const load = async () => {
 | `npm run db:migrate`  | Apply migration files ke DB                    |
 | `npm run db:seed`     | Reset & isi tabel dengan data contoh           |
 | `npm run db:studio`   | Buka Drizzle Studio (UI buat lihat/edit data)  |
+
+## API
+
+REST endpoint dipasang di bawah `/api/*` dan dijalankan oleh SvelteKit server. Semua respons memakai envelope JSON yang konsisten:
+
+```json
+// success
+{ "ok": true, "data": ... }
+
+// failure
+{ "ok": false, "error": { "code": "BAD_REQUEST", "message": "...", "details": {} } }
+```
+
+### Keamanan
+
+| Lapis              | Implementasi                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| Auth (write)       | Bearer token via header `Authorization: Bearer <API_ADMIN_TOKEN>`. Compare constant-time.          |
+| Validasi           | Zod schema per resource — semua input divalidasi dan di-trim, URL wajib `http(s)`.                 |
+| Body limit         | 32 KB per request. Ketolak `413` kalau lebih.                                                      |
+| Content-Type       | Wajib `application/json` untuk write. Ketolak `415` kalau bukan.                                   |
+| Rate limit         | Per-IP per-endpoint. Default: read 120/menit, write 20/menit. Header `X-RateLimit-*`.              |
+| Method whitelist   | Hooks server menolak metode HTTP di luar daftar resmi sebelum mencapai handler.                    |
+| Headers            | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `Cache-Control: no-store`. |
+| Error handling     | Error internal di-log server-side, client hanya menerima pesan generik (no leak).                  |
+
+Set `API_ADMIN_TOKEN` di `.env` (minimal 16 karakter). Generate token kuat di PowerShell:
+
+```powershell
+[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+### Endpoint: `programs`
+
+| Method | Path                  | Auth  | Deskripsi                              |
+| ------ | --------------------- | ----- | -------------------------------------- |
+| GET    | `/api/programs`       | publik | List program, support pagination + filter |
+| GET    | `/api/programs/:id`   | publik | Ambil satu program by id               |
+| POST   | `/api/programs`       | admin | Buat program baru                      |
+| PATCH  | `/api/programs/:id`   | admin | Update sebagian field program          |
+| DELETE | `/api/programs/:id`   | admin | Hapus program                          |
+
+#### Query params untuk list
+
+| Param    | Tipe   | Default | Catatan                                       |
+| -------- | ------ | ------- | --------------------------------------------- |
+| `limit`  | int    | 20      | 1–100                                         |
+| `offset` | int    | 0       | Untuk pagination                              |
+| `tag`    | string | -       | Filter exact-match tag                        |
+| `q`      | string | -       | Pencarian case-insensitive di title + excerpt |
+
+#### Body untuk create / update
+
+```ts
+{
+  title:   string,        // 1-160 char
+  tag:     string,        // 1-60 char
+  excerpt: string,        // 1-500 char
+  image:   string,        // URL http(s), max 2048 char
+  post?:   string | null  // optional, max 20000 char
+}
+```
+
+`PATCH` menerima subset field yang sama (minimal salah satu harus dikirim).
+
+#### Contoh pakai
+
+```sh
+# List
+curl http://localhost:5173/api/programs
+
+# List dengan filter
+curl "http://localhost:5173/api/programs?tag=Akademik&limit=5"
+
+# Detail
+curl http://localhost:5173/api/programs/1
+
+# Create (butuh token admin)
+curl -X POST http://localhost:5173/api/programs `
+  -H "Authorization: Bearer $env:API_ADMIN_TOKEN" `
+  -H "Content-Type: application/json" `
+  -d '{"title":"Klub Robotik","tag":"Teknologi","excerpt":"...","image":"https://example.com/x.jpg"}'
+
+# Update
+curl -X PATCH http://localhost:5173/api/programs/1 `
+  -H "Authorization: Bearer $env:API_ADMIN_TOKEN" `
+  -H "Content-Type: application/json" `
+  -d '{"excerpt":"Deskripsi baru"}'
+
+# Delete
+curl -X DELETE http://localhost:5173/api/programs/1 `
+  -H "Authorization: Bearer $env:API_ADMIN_TOKEN"
+```
+
+### Struktur folder API
+
+```
+src/
+├── hooks.server.ts                  # method allowlist + global security headers
+├── lib/server/
+│   ├── api/
+│   │   ├── auth.ts                  # bearer token check (constant-time)
+│   │   ├── parse.ts                 # JSON body reader + ID parser + body limit
+│   │   ├── rate-limit.ts            # in-memory per-IP rate limiter
+│   │   ├── response.ts              # ok() / fail() / ApiError helpers
+│   │   └── schemas/
+│   │       └── programs.ts          # Zod schemas
+│   └── repositories/
+│       └── programs.ts              # Drizzle queries (clean separation)
+└── routes/api/programs/
+    ├── +server.ts                   # GET (list), POST
+    └── [id]/+server.ts              # GET, PATCH, DELETE
+```
+
+### Cara menambah resource baru (`news` / `events`)
+
+Pola sama persis:
+
+1. Tambah file `src/lib/server/api/schemas/<name>.ts` (Zod schema).
+2. Tambah file `src/lib/server/repositories/<name>.ts` (query Drizzle).
+3. Tambah route `src/routes/api/<name>/+server.ts` dan `src/routes/api/<name>/[id]/+server.ts`.
+
+Helper `requireAdmin`, `rateLimit`, `readJson`, `parseId`, dan `ApiError` bisa dipakai langsung tanpa duplikasi.
