@@ -343,6 +343,18 @@ src/
 
 `PATCH` menerima subset field yang sama (minimal salah satu harus dikirim).
 
+### Browsable docs
+
+Tersedia dua surface untuk dokumentasi API, keduanya digenerate dari registry yang sama (`src/lib/server/api/registry.ts`):
+
+| URL                | Tujuan                                                                  |
+| ------------------ | ----------------------------------------------------------------------- |
+| `/docs`            | Halaman dokumentasi interaktif (sidebar navigation, dark theme).        |
+| `/docs/<resource>` | Detail tiap resource (programs, news, events) dengan tabel schema + cURL. |
+| `/api/docs`        | Spec machine-readable (JSON) — list semua endpoint, auth, dan rate limit. |
+
+Karena single source of truth, menambah/mengubah endpoint cukup edit registry — halaman `/docs/*` dan respons `/api/docs` ikut berubah otomatis.
+
 ### Cara menambah resource baru
 
 Pola sama persis dengan `programs` / `news` / `events`:
@@ -350,5 +362,6 @@ Pola sama persis dengan `programs` / `news` / `events`:
 1. Tambah file `src/lib/server/api/schemas/<name>.ts` (Zod schema).
 2. Tambah file `src/lib/server/repositories/<name>.ts` (query Drizzle).
 3. Tambah route `src/routes/api/<name>/+server.ts` dan `src/routes/api/<name>/[id]/+server.ts`.
+4. Daftarkan resource ke `src/lib/server/api/registry.ts` agar muncul otomatis di `/docs` dan `/api/docs`.
 
 Helper `requireAdmin`, `rateLimit`, `readJson`, `parseId`, dan `ApiError` bisa dipakai langsung tanpa duplikasi.
