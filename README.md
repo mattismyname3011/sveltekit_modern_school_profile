@@ -423,3 +423,66 @@ Sama dengan workflow API:
 4. Tambah route API di `src/routes/api/<name>/+server.ts` dan `[id]/+server.ts`.
 5. Daftarkan ke `src/lib/server/api/registry.ts` (untuk docs).
 6. **Daftarkan ke `src/lib/server/admin/resources.ts`** dengan field config — dashboard otomatis menyediakan list/new/edit/delete.
+
+## Account, Users, dan Audit log
+
+### `/admin/account`
+
+Halaman profil dan keamanan untuk akun yang sedang login.
+
+| Fitur            | Detail |
+| ---------------- | ------ |
+| Edit profil      | Update nama. Email tidak diubah dari sini (rotasi email biasanya butuh verifikasi terpisah). |
+| Ganti password   | Wajib masukkan password lama. Password baru minimal 12 karakter. |
+| Session revoke   | Setelah ganti password, semua sesi lain (perangkat lain) otomatis ter-logout. Sesi saat ini dipertahankan agar Anda tidak ditendang dari halaman. |
+| Audit            | `password.change` dengan jumlah sesi yang di-revoke ikut tercatat. |
+
+### `/admin/users` (admin only)
+
+Manajemen akun. Halaman ini diproteksi dengan `requireRole(event, 'admin')` — role lain (editor, viewer) tidak melihat link ini di sidebar dan akan di-redirect kalau memaksa URL.
+
+Aksi yang tersedia:
+
+| Aksi          | Catatan keamanan |
+| ------------- | ---------------- |
+| Invite user   | Set nama + email + password awal + role. Konflik email = `409`. Password awal min 12 char; user wajib ganti via `/admin/account` setelah login. |
+| Update role   | Inline dropdown auto-submit. Tidak bisa mengubah role akun sendiri. Tidak bisa menurunkan admin terakhir. |
+| Deactivate    | Set `is_active = false` + revoke semua sesinya secara real-time. Tidak bisa menonaktifkan akun sendiri atau admin terakhir. |
+| Activate      | Set kembali `is_active = true`. |
+
+Inactive account tidak bisa login (auth menolak) dan session resolver otomatis menghapus sesi yang masih hidup.
+
+### `/admin/audit` (admin only)
+
+Append-only log dari aktivitas penting. Setiap entri menyimpan:
+
+- `userEmail` + `userRole` (snapshot — tahan kalau user dihapus kemudian)
+- `action` (mis. `login.success`, `password.change`, `resource.update`)
+- `resource` + `resourceId` (mis. `programs#7`)
+- `details` (JSON bebas, mis. `{ fields: ['title'] }`)
+- `ip`, `userAgent`, `createdAt`
+
+Halaman audit memiliki:
+
+- Filter dropdown: User · Resource · Action (auto-populate dari nilai distinct yang sudah pernah tercatat)
+- Pagination 50/halaman
+- Detail JSON expandable per row
+- Index DB di `(user_id, created_at)` dan `(resource, created_at)` agar filter cepat saat tabel membesar
+
+Action yang sudah ter-instrumentasi otomatis:
+
+| Action               | Dipicu di                            |
+| -------------------- | ------------------------------------ |
+| `login.success`      | login berhasil                        |
+| `login.failure`      | login gagal (email yang dicoba ikut tercatat) |
+| `logout`             | POST /admin/logout                    |
+| `password.change`    | self-service di /admin/account        |
+| `resource.create`    | tambah programs/news/events           |
+| `resource.update`    | edit programs/news/events             |
+| `resource.delete`    | hapus programs/news/events            |
+| `user.create`        | invite user di /admin/users           |
+| `user.update`        | ubah role atau profil                 |
+| `user.deactivate`    | nonaktifkan akun                      |
+| `user.activate`      | aktifkan kembali akun                 |
+
+Logging dipisah ke fungsi `audit()` di `src/lib/server/audit/log.ts` sehingga tidak mengganggu logika aksi utama (kalau insert log gagal, action tetap berhasil — error hanya di-log ke server console).
