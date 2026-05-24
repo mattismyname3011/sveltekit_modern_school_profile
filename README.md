@@ -255,18 +255,97 @@ src/
 │   │   ├── parse.ts                 # JSON body reader + ID parser + body limit
 │   │   ├── rate-limit.ts            # in-memory per-IP rate limiter
 │   │   ├── response.ts              # ok() / fail() / ApiError helpers
-│   │   └── schemas/
-│   │       └── programs.ts          # Zod schemas
+│   │   ├── schemas/
+│   │   │   ├── programs.ts          # Zod schemas — programs
+│   │   │   ├── news.ts              # Zod schemas — news
+│   │   │   └── events.ts            # Zod schemas — events
 │   └── repositories/
-│       └── programs.ts              # Drizzle queries (clean separation)
-└── routes/api/programs/
-    ├── +server.ts                   # GET (list), POST
-    └── [id]/+server.ts              # GET, PATCH, DELETE
+│       ├── programs.ts              # Drizzle queries — programs
+│       ├── news.ts                  # Drizzle queries — news
+│       └── events.ts                # Drizzle queries — events
+└── routes/api/
+    ├── programs/
+    │   ├── +server.ts                # GET (list), POST
+    │   └── [id]/+server.ts           # GET, PATCH, DELETE
+    ├── news/
+    │   ├── +server.ts                # GET (list), POST
+    │   └── [id]/+server.ts           # GET, PATCH, DELETE
+    └── events/
+        ├── +server.ts                # GET (list), POST
+        └── [id]/+server.ts           # GET, PATCH, DELETE
 ```
 
-### Cara menambah resource baru (`news` / `events`)
+### Endpoint: `news`
 
-Pola sama persis:
+| Method | Path                | Auth   | Deskripsi                                           |
+| ------ | ------------------- | ------ | --------------------------------------------------- |
+| GET    | `/api/news`         | publik | List berita, support pagination + filter            |
+| GET    | `/api/news/:id`     | publik | Ambil satu berita by id                             |
+| POST   | `/api/news`         | admin  | Buat berita baru                                    |
+| PATCH  | `/api/news/:id`     | admin  | Update sebagian field berita                        |
+| DELETE | `/api/news/:id`     | admin  | Hapus berita                                        |
+
+#### Query params untuk list
+
+| Param      | Tipe   | Default | Catatan                                       |
+| ---------- | ------ | ------- | --------------------------------------------- |
+| `limit`    | int    | 20      | 1–100                                         |
+| `offset`   | int    | 0       | Untuk pagination                              |
+| `category` | string | -       | Filter exact-match category                   |
+| `q`        | string | -       | Pencarian case-insensitive di title + excerpt |
+
+#### Body untuk create / update
+
+```ts
+{
+  category: string,   // 1-60 char
+  date:     string,   // 1-40 char, format human, mis. "12 Mei 2026"
+  title:    string,   // 1-200 char
+  excerpt:  string,   // 1-500 char
+  image:    string    // URL http(s), max 2048 char
+}
+```
+
+`PATCH` menerima subset field yang sama (minimal salah satu harus dikirim).
+
+### Endpoint: `events`
+
+| Method | Path                | Auth   | Deskripsi                              |
+| ------ | ------------------- | ------ | -------------------------------------- |
+| GET    | `/api/events`       | publik | List acara, support pagination + filter |
+| GET    | `/api/events/:id`   | publik | Ambil satu acara by id                 |
+| POST   | `/api/events`       | admin  | Buat acara baru                        |
+| PATCH  | `/api/events/:id`   | admin  | Update sebagian field acara            |
+| DELETE | `/api/events/:id`   | admin  | Hapus acara                            |
+
+#### Query params untuk list
+
+| Param    | Tipe   | Default | Catatan                                       |
+| -------- | ------ | ------- | --------------------------------------------- |
+| `limit`  | int    | 20      | 1–100                                         |
+| `offset` | int    | 0       | Untuk pagination                              |
+| `q`      | string | -       | Pencarian case-insensitive di title + excerpt |
+
+#### Body untuk create / update
+
+```ts
+{
+  date:      string,  // 1-40 char, mis. "12 Jun 2026"
+  dateDay:   string,  // 1-2 digit, mis. "12" atau "02"
+  dateMonth: string,  // 1-10 char, mis. "Jun", "Agu"
+  title:     string,  // 1-200 char
+  excerpt:   string,  // 1-500 char
+  image:     string,  // URL http(s), max 2048 char
+  time:      string,  // 1-40 char, mis. "08:00 WITA"
+  location:  string   // 1-120 char
+}
+```
+
+`PATCH` menerima subset field yang sama (minimal salah satu harus dikirim).
+
+### Cara menambah resource baru
+
+Pola sama persis dengan `programs` / `news` / `events`:
 
 1. Tambah file `src/lib/server/api/schemas/<name>.ts` (Zod schema).
 2. Tambah file `src/lib/server/repositories/<name>.ts` (query Drizzle).
