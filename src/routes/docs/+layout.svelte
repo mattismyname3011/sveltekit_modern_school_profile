@@ -129,7 +129,7 @@
 		</nav>
 
 		<a
-			href="https://github.com"
+			href="https://github.com/mattismyname3011/sveltekit_modern_school_profile"
 			target="_blank"
 			rel="noopener noreferrer"
 			class="github-cta"
