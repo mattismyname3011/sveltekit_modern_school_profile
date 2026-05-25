@@ -1,0 +1,39 @@
+import type { Handle } from '@sveltejs/kit';
+import { resolveSession, setSessionCookie, SESSION_COOKIE } from '$lib/server/auth/session';
+
+/**
+ * Global request hook:
+ *  1. Resolve session cookie → attach event.locals.user / sessionId
+ *  2. Reject unknown HTTP methods on /api/*
+ *  3. Apply baseline security headers
+ */
+const ALLOWED_API_METHODS = new Set(['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS', 'HEAD']);
+
+export const handle: Handle = async ({ event, resolve }) => {
+	// --- Session resolution ---
+	const token = event.cookies.get(SESSION_COOKIE);
+	const session = await resolveSession(token);
+	event.locals.user = session?.user ?? null;
+	event.locals.sessionId = session?.sessionId ?? null;
+	if (session?.refreshed && token) {
+		// Re-issue cookie with new expiry to keep it rolling.
+		setSessionCookie(event.cookies, token);
+	}
+
+	// --- Method allowlist for /api/* ---
+	if (event.url.pathname.startsWith('/api/')) {
+		if (!ALLOWED_API_METHODS.has(event.request.method)) {
+			return new Response('Method Not Allowed', { status: 405 });
+		}
+	}
+
+	const response = await resolve(event);
+
+	// --- Defense-in-depth headers ---
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+	return response;
+};
