@@ -15,6 +15,13 @@
       "when": 1779632769996,
       "tag": "0001_chemical_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779845900561,
+      "tag": "0002_smiling_human_robot",
+      "breakpoints": true
     }
   ]
 }

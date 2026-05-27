@@ -40,7 +40,7 @@
 				</p>
 			</div>
 			<a
-				href="#program"
+				href="/programs"
 				class="link-underline text-primary font-semibold hidden lg:inline-flex"
 			>
 				Semua program

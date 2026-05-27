@@ -60,7 +60,7 @@
 	const discover = [
 		{ label: 'Tentang SMP 1 Anggana', href: '#tentang' },
 		{ label: 'Sejarah & Visi Misi', href: '#tentang' },
-		{ label: 'Program Unggulan', href: '#program' },
+		{ label: 'Program Unggulan', href: '/programs' },
 		{ label: 'Prestasi & Akreditasi', href: '#tentang' },
 		{ label: 'Berita & Agenda', href: '#berita' }
 	];
@@ -210,7 +210,7 @@
 							</p>
 
 							<div class="mt-7 md:mt-8 flex flex-wrap items-center gap-4">
-								<Button href="#program" variant="accent" size="lg">Jelajahi Sekarang</Button>
+								<Button href="/programs" variant="accent" size="lg">Jelajahi Sekarang</Button>
 
 								<!-- Counter -->
 								<div class="flex items-center gap-3 ml-2">

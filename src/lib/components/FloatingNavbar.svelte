@@ -12,11 +12,11 @@
 
 	let {
 		items = [
-			{ label: 'Beranda', href: '#beranda' },
-			{ label: 'Tentang', href: '#tentang' },
-			{ label: 'Program', href: '#program' },
-			{ label: 'Berita', href: '#berita' },
-			{ label: 'Kontak', href: '#kontak' }
+			{ label: 'Beranda', href: '/' },
+			{ label: 'Tentang', href: '/#tentang' },
+			{ label: 'Program', href: '/programs' },
+			{ label: 'Berita', href: '/#berita' },
+			{ label: 'Kontak', href: '/#kontak' }
 		],
 		brand = 'SMP 1 Anggana'
 	}: Props = $props();
@@ -77,7 +77,7 @@
 	>
 		<!-- Brand -->
 		<a
-			href="#beranda"
+			href="/"
 			class="flex items-center gap-2.5 shrink-0 group"
 		>
 			<span
@@ -135,7 +135,7 @@
 
 		<!-- CTA -->
 		<a
-			href="#kontak"
+			href="/#kontak"
 			class="inline-flex items-center gap-2 shrink-0
 			       bg-primary hover:bg-primary-600 text-white
 			       text-xs md:text-sm font-semibold
