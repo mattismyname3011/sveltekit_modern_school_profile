@@ -3,23 +3,34 @@
 	 * Inline contenteditable rich-text editor.
 	 *
 	 * Layout:
-	 *   ┌─────────────── Action bar (sticky top) ───────────────┐
-	 *   │ Cancel · /berita/[slug] · autosave-status · Preview  │
-	 *   │                                                · Save │
-	 *   ├──────┬────────────────────────────────────────────────┤
-	 *   │ Side │  Post canvas (looks like the public detail    │
-	 *   │ Tool │  page; everything is editable in place)       │
-	 *   │ bar  │                                                │
-	 *   └──────┴────────────────────────────────────────────────┘
+	 *   ┌──────────────── Action bar (sticky top) ────────────────┐
+	 *   │ Cancel · /berita/[slug] · autosave · Preview · Save     │
+	 *   ├──────┬─────────────────────────────────────────────────┤
+	 *   │ Side │  Post canvas (looks like the public detail     │
+	 *   │ Tool │  page; everything is editable in place)        │
+	 *   └──────┴─────────────────────────────────────────────────┘
 	 *
-	 * Side toolbar is always visible; no need to select text first.
-	 *
-	 * Autosave: on every change we debounce-save the full draft to
-	 * localStorage. On mount we check for a more recent local draft and
-	 * offer to restore it. Successful publish clears the draft.
+	 * Quirks handled:
+	 *   - Toolbar lives outside contenteditable, so clicking a button blurs
+	 *     the editor. We snapshot the selection on every change inside the
+	 *     editor and restore it before running format commands.
+	 *   - Empty editor has no block wrapper, so markdown shortcuts couldn't
+	 *     find a "current block". We seed `<p><br></p>` and normalize on
+	 *     every input.
+	 *   - Pressing Enter inside a heading produced another heading. We
+	 *     intercept Enter and force a fresh `<p>` instead.
 	 */
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
+	import {
+		caretToEnd,
+		caretToStart,
+		currentBlock,
+		isCaretAtEndOf,
+		normalizeBlocks,
+		remember,
+		restore
+	} from './editor/selection';
 
 	type FormState = {
 		values?: Record<string, unknown>;
@@ -51,7 +62,6 @@
 	let excerpt = $state(pick('excerpt'));
 	let image = $state(pick('image'));
 
-	// Slug — auto-generated until user manually edits.
 	const initialSlug = pick('slug');
 	let slug = $state(initialSlug);
 	let slugTouched = $state(initialSlug.length > 0);
@@ -83,6 +93,7 @@
 		bold: false,
 		italic: false,
 		underline: false,
+		h1: false,
 		h2: false,
 		h3: false,
 		quote: false,
@@ -102,6 +113,7 @@
 				bold: document.queryCommandState('bold'),
 				italic: document.queryCommandState('italic'),
 				underline: document.queryCommandState('underline'),
+				h1: queryBlock('H1'),
 				h2: queryBlock('H2'),
 				h3: queryBlock('H3'),
 				quote: queryBlock('BLOCKQUOTE'),
@@ -109,11 +121,11 @@
 				ol: document.queryCommandState('insertOrderedList')
 			};
 		} catch {
-			// queryCommandState can throw in some setups; safe to ignore.
+			// queryCommandState can throw when the editor isn't focused.
 		}
 	}
 
-	function queryBlock(tag: string) {
+	function queryBlock(tag: string): boolean {
 		const sel = window.getSelection();
 		if (!sel || sel.rangeCount === 0) return false;
 		let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
@@ -125,26 +137,32 @@
 	}
 
 	function exec(cmd: string, value?: string) {
-		bodyEl?.focus();
+		if (!bodyEl) return;
+		restore(bodyEl);
 		document.execCommand(cmd, false, value);
 		captureBody();
 		refreshActiveStates();
+		remember(bodyEl);
 	}
 
-	function applyBlock(tag: 'h2' | 'h3' | 'p' | 'blockquote') {
-		bodyEl?.focus();
+	function applyBlock(tag: 'h1' | 'h2' | 'h3' | 'p' | 'blockquote') {
+		if (!bodyEl) return;
+		restore(bodyEl);
 		const upper = tag.toUpperCase();
 		const isCurrent =
+			(upper === 'H1' && activeStates.h1) ||
 			(upper === 'H2' && activeStates.h2) ||
 			(upper === 'H3' && activeStates.h3) ||
 			(upper === 'BLOCKQUOTE' && activeStates.quote);
-		document.execCommand('formatBlock', false, isCurrent ? 'P' : `<${tag}>`);
+		document.execCommand('formatBlock', false, isCurrent ? '<p>' : `<${tag}>`);
 		captureBody();
 		refreshActiveStates();
+		remember(bodyEl);
 	}
 
 	function makeLink() {
-		bodyEl?.focus();
+		if (!bodyEl) return;
+		restore(bodyEl);
 		const sel = window.getSelection();
 		if (!sel || sel.isCollapsed) {
 			alert('Pilih teks dulu untuk dijadikan link.');
@@ -152,150 +170,35 @@
 		}
 		const url = window.prompt('URL link:', 'https://');
 		if (!url) return;
-		exec('createLink', url);
+		document.execCommand('createLink', false, url);
+		captureBody();
+		remember(bodyEl);
 	}
 
 	function clearFormatting() {
-		exec('removeFormat');
-	}
-
-	// ---------- Markdown shortcuts ----------
-	//
-	// When the user types a markdown prefix at the start of a line and
-	// presses space, transform that line into the corresponding block.
-	//
-	// Examples:
-	//   "# "        → H1
-	//   "## "       → H2
-	//   "### "      → H3
-	//   "#### "     → H4
-	//   "- " / "* " → Bullet list
-	//   "1. "       → Numbered list
-	//   "> "        → Blockquote
-	//   "---" + Enter → Horizontal rule
-	//
-	// We only act when the cursor is at the END of the prefix and the prefix
-	// occupies the entire line so far. Inline marks like `**bold**` are
-	// handled separately on space too.
-
-	function getCurrentBlock(): HTMLElement | null {
-		const sel = window.getSelection();
-		if (!sel || sel.rangeCount === 0) return null;
-		let node: Node | null = sel.getRangeAt(0).startContainer;
-		while (node && node !== bodyEl) {
-			if (
-				node.nodeType === 1 &&
-				/^(P|H1|H2|H3|H4|H5|H6|LI|BLOCKQUOTE|DIV)$/.test((node as Element).tagName)
-			) {
-				return node as HTMLElement;
-			}
-			node = node.parentNode;
-		}
-		return null;
-	}
-
-	function getLineTextBeforeCursor(): { text: string; block: HTMLElement | null } {
-		const sel = window.getSelection();
-		if (!sel || sel.rangeCount === 0) return { text: '', block: null };
-		const range = sel.getRangeAt(0);
-		const block = getCurrentBlock();
-		if (!block) return { text: '', block: null };
-		const pre = range.cloneRange();
-		pre.selectNodeContents(block);
-		pre.setEnd(range.endContainer, range.endOffset);
-		return { text: pre.toString(), block };
-	}
-
-	function clearBlockText(block: HTMLElement) {
-		// Delete every node in the block; will be replaced with a fresh empty space.
-		while (block.firstChild) block.removeChild(block.firstChild);
-	}
-
-	function moveCaretToStartOf(el: HTMLElement) {
-		const range = document.createRange();
-		range.selectNodeContents(el);
-		range.collapse(true);
-		const sel = window.getSelection();
-		if (!sel) return;
-		sel.removeAllRanges();
-		sel.addRange(range);
-	}
-
-	type ShortcutAction =
-		| { kind: 'block'; tag: 'h1' | 'h2' | 'h3' | 'h4' | 'blockquote' }
-		| { kind: 'list'; ordered: boolean };
-
-	const SPACE_SHORTCUTS: { match: RegExp; action: ShortcutAction }[] = [
-		{ match: /^####$/, action: { kind: 'block', tag: 'h4' } },
-		{ match: /^###$/, action: { kind: 'block', tag: 'h3' } },
-		{ match: /^##$/, action: { kind: 'block', tag: 'h2' } },
-		{ match: /^#$/, action: { kind: 'block', tag: 'h1' } },
-		{ match: /^>$/, action: { kind: 'block', tag: 'blockquote' } },
-		{ match: /^[-*]$/, action: { kind: 'list', ordered: false } },
-		{ match: /^1\.$/, action: { kind: 'list', ordered: true } }
-	];
-
-	/**
-	 * Trigger before the keystroke is added. We only handle plain ASCII
-	 * shortcuts at the start of a line, where `text` (already typed before
-	 * the space) matches one of our patterns AND there's nothing else on
-	 * the line yet.
-	 */
-	function tryMarkdownShortcut(): boolean {
-		const { text, block } = getLineTextBeforeCursor();
-		if (!block) return false;
-		// Only when prefix occupies the whole line so far.
-		if (text !== block.textContent) return false;
-
-		for (const sc of SPACE_SHORTCUTS) {
-			if (sc.match.test(text)) {
-				clearBlockText(block);
-				moveCaretToStartOf(block);
-
-				if (sc.action.kind === 'block') {
-					document.execCommand('formatBlock', false, `<${sc.action.tag}>`);
-				} else if (sc.action.kind === 'list') {
-					document.execCommand(
-						sc.action.ordered ? 'insertOrderedList' : 'insertUnorderedList'
-					);
-				}
-				captureBody();
-				refreshActiveStates();
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Handle Enter on a line that contains exactly `---` to insert an <hr>.
-	 */
-	function tryHrShortcut(): boolean {
-		const { text, block } = getLineTextBeforeCursor();
-		if (!block) return false;
-		if (text !== block.textContent) return false;
-		if (!/^---$/.test(text)) return false;
-
-		clearBlockText(block);
-		// Replace the empty paragraph with an <hr> + a fresh empty paragraph.
-		document.execCommand('insertHTML', false, '<hr><p><br></p>');
+		if (!bodyEl) return;
+		restore(bodyEl);
+		document.execCommand('removeFormat');
+		// Also unwrap headings/blockquote — execCommand removeFormat keeps blocks.
+		document.execCommand('formatBlock', false, '<p>');
 		captureBody();
 		refreshActiveStates();
-		return true;
+		remember(bodyEl);
 	}
 
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === ' ') {
-			if (tryMarkdownShortcut()) e.preventDefault();
-		} else if (e.key === 'Enter') {
-			if (tryHrShortcut()) e.preventDefault();
-		}
-	}
-
-	// ---------- Body capture (HTML → state) ----------
+	// ---------- Body capture ----------
 
 	function captureBody() {
 		if (!bodyEl) return;
+		// Don't collapse the editor if the user emptied it; keep an empty <p>
+		// so the next keystroke has somewhere to go.
+		if (
+			bodyEl.children.length === 0 ||
+			(bodyEl.children.length === 1 && bodyEl.firstElementChild?.tagName === 'BR')
+		) {
+			bodyEl.innerHTML = '<p><br></p>';
+			caretToEnd(bodyEl);
+		}
 		contentHtml = bodyEl.innerHTML;
 	}
 
@@ -312,7 +215,7 @@
 				}
 			}
 		}
-		// Text paste → strip rich formatting we don't support.
+		// Text paste — strip formatting we don't allow.
 		const text = e.clipboardData?.getData('text/plain');
 		if (text !== undefined) {
 			e.preventDefault();
@@ -340,14 +243,15 @@
 	}
 
 	async function handleInlineImage(file: File) {
+		if (!bodyEl) return;
 		const url = await uploadImage(file);
 		if (!url) {
 			alert('Upload gagal.');
 			return;
 		}
-		bodyEl?.focus();
+		restore(bodyEl);
 		const alt = file.name.replace(/\.[^.]+$/, '');
-		const html = `<figure class="md-figure"><img src="${url}" alt="${escapeAttr(alt)}" loading="lazy" /><figcaption>${escapeAttr(alt)}</figcaption></figure><p></p>`;
+		const html = `<figure class="md-figure"><img src="${url}" alt="${escapeAttr(alt)}" loading="lazy" /><figcaption>${escapeAttr(alt)}</figcaption></figure><p><br></p>`;
 		document.execCommand('insertHTML', false, html);
 		captureBody();
 	}
@@ -397,6 +301,112 @@
 		input.click();
 	}
 
+	// ---------- Markdown shortcuts ----------
+
+	type ShortcutAction =
+		| { kind: 'block'; tag: 'h1' | 'h2' | 'h3' | 'h4' | 'blockquote' }
+		| { kind: 'list'; ordered: boolean };
+
+	const SHORTCUTS: { match: RegExp; action: ShortcutAction }[] = [
+		{ match: /^####$/, action: { kind: 'block', tag: 'h4' } },
+		{ match: /^###$/, action: { kind: 'block', tag: 'h3' } },
+		{ match: /^##$/, action: { kind: 'block', tag: 'h2' } },
+		{ match: /^#$/, action: { kind: 'block', tag: 'h1' } },
+		{ match: /^>$/, action: { kind: 'block', tag: 'blockquote' } },
+		{ match: /^[-*]$/, action: { kind: 'list', ordered: false } },
+		{ match: /^1\.$/, action: { kind: 'list', ordered: true } }
+	];
+
+	function getLineTextBeforeCursor(): { text: string; block: HTMLElement | null } {
+		if (!bodyEl) return { text: '', block: null };
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0) return { text: '', block: null };
+		const range = sel.getRangeAt(0);
+		const block = currentBlock(bodyEl);
+		if (!block) return { text: '', block: null };
+		const pre = range.cloneRange();
+		pre.selectNodeContents(block);
+		pre.setEnd(range.endContainer, range.endOffset);
+		return { text: pre.toString(), block };
+	}
+
+	/** Trigger before space is added: rewrite `## ` → H2 etc. */
+	function tryMarkdownShortcut(): boolean {
+		if (!bodyEl) return false;
+		const { text, block } = getLineTextBeforeCursor();
+		if (!block) return false;
+		// Pattern must occupy the entire line so far.
+		if (text !== (block.textContent ?? '')) return false;
+
+		for (const sc of SHORTCUTS) {
+			if (!sc.match.test(text)) continue;
+
+			// Replace the prefix-only block with an empty block of the new type.
+			block.textContent = '';
+			caretToStart(block);
+
+			if (sc.action.kind === 'block') {
+				document.execCommand('formatBlock', false, `<${sc.action.tag}>`);
+			} else {
+				document.execCommand(
+					sc.action.ordered ? 'insertOrderedList' : 'insertUnorderedList'
+				);
+			}
+			captureBody();
+			refreshActiveStates();
+			remember(bodyEl);
+			return true;
+		}
+		return false;
+	}
+
+	/** `---` + Enter → horizontal rule */
+	function tryHrShortcut(): boolean {
+		if (!bodyEl) return false;
+		const { text, block } = getLineTextBeforeCursor();
+		if (!block) return false;
+		if (text !== (block.textContent ?? '')) return false;
+		if (!/^---$/.test(text)) return false;
+		block.textContent = '';
+		caretToStart(block);
+		document.execCommand('insertHTML', false, '<hr><p><br></p>');
+		captureBody();
+		return true;
+	}
+
+	/**
+	 * Pressing Enter at the end of a heading or blockquote should drop to
+	 * a regular paragraph for the new line, not continue the same block.
+	 */
+	function handleEnterAfterHeading(e: KeyboardEvent): boolean {
+		if (e.shiftKey || !bodyEl) return false;
+		const block = currentBlock(bodyEl);
+		if (!block) return false;
+		const tag = block.tagName;
+		if (!/^(H1|H2|H3|H4|H5|H6|BLOCKQUOTE)$/.test(tag)) return false;
+		if (!isCaretAtEndOf(block)) return false;
+
+		e.preventDefault();
+		// Insert a new <p> after the heading and place the caret in it.
+		const p = document.createElement('p');
+		p.innerHTML = '<br>';
+		block.after(p);
+		caretToStart(p);
+		captureBody();
+		refreshActiveStates();
+		remember(bodyEl);
+		return true;
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === ' ') {
+			if (tryMarkdownShortcut()) e.preventDefault();
+		} else if (e.key === 'Enter') {
+			if (handleEnterAfterHeading(e)) return;
+			if (tryHrShortcut()) e.preventDefault();
+		}
+	}
+
 	// ---------- Autosave to localStorage ----------
 
 	const draftKey = $derived(initial && initial.id ? `news-draft:${initial.id}` : 'news-draft:new');
@@ -410,12 +420,22 @@
 		image: string;
 		content: string;
 		savedAt: string;
+		/** Source updatedAt of the record this draft was forked from. */
+		baseUpdatedAt: string | null;
 	};
+
+	const baseUpdatedAt = $derived(
+		typeof initial?.updatedAt === 'string'
+			? initial.updatedAt
+			: initial?.updatedAt
+				? String(initial.updatedAt)
+				: null
+	);
 
 	let autosaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let lastSavedAt = $state<Date | null>(null);
 	let restoreBanner = $state<{ savedAt: Date; data: DraftPayload } | null>(null);
-	let suppressAutosave = $state(true); // true on mount; flips false after first user-driven change
+	let suppressAutosave = $state(true);
 
 	let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 	let savedFlashTimer: ReturnType<typeof setTimeout> | null = null;
@@ -430,7 +450,8 @@
 			excerpt,
 			image,
 			content: contentHtml,
-			savedAt: new Date().toISOString()
+			savedAt: new Date().toISOString(),
+			baseUpdatedAt
 		};
 		try {
 			localStorage.setItem(draftKey, JSON.stringify(data));
@@ -466,6 +487,13 @@
 		savedToastTimer = setTimeout(() => (savedToast = null), 2800);
 	}
 
+	/**
+	 * Compare a stored draft against the record we just loaded.
+	 *
+	 * Don't show the restore banner if:
+	 *   - the draft is older than the record's last save (server is newer), or
+	 *   - the draft fields are identical to what's on screen anyway.
+	 */
 	function loadDraft(): { savedAt: Date; data: DraftPayload } | null {
 		if (typeof localStorage === 'undefined') return null;
 		try {
@@ -473,16 +501,30 @@
 			if (!raw) return null;
 			const data = JSON.parse(raw) as DraftPayload;
 			const savedAt = new Date(data.savedAt);
-			// Skip if draft matches what's already on screen (no real diff to restore).
+
+			// Server has newer data — drop the stale draft.
+			if (
+				baseUpdatedAt &&
+				data.baseUpdatedAt &&
+				new Date(baseUpdatedAt) > new Date(data.baseUpdatedAt)
+			) {
+				localStorage.removeItem(draftKey);
+				return null;
+			}
+
+			// Same content as current → nothing to restore.
 			if (
 				data.title === pick('title') &&
 				data.content === pick('content') &&
 				data.excerpt === pick('excerpt') &&
 				data.image === pick('image') &&
-				data.slug === pick('slug')
+				data.slug === pick('slug') &&
+				data.category === pick('category', 'Berita') &&
+				data.date === pick('date')
 			) {
 				return null;
 			}
+
 			return { savedAt, data };
 		} catch {
 			return null;
@@ -501,9 +543,11 @@
 		excerpt = d.excerpt;
 		image = d.image;
 		contentHtml = d.content;
-		if (bodyEl) bodyEl.innerHTML = d.content;
+		if (bodyEl) {
+			bodyEl.innerHTML = d.content || '<p><br></p>';
+			normalizeBlocks(bodyEl);
+		}
 		restoreBanner = null;
-		// Re-enable autosave next tick so the apply itself isn't re-saved immediately.
 		queueMicrotask(() => (suppressAutosave = false));
 	}
 
@@ -512,30 +556,22 @@
 		restoreBanner = null;
 	}
 
-	// Reactive autosave trigger — whenever any tracked field changes.
+	// Reactive autosave trigger.
 	$effect(() => {
-		// Touch every editable field so Svelte tracks them all.
+		// Touch every editable field so Svelte tracks them.
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		title;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		slug;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		category;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		date;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		excerpt;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		image;
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		contentHtml;
+		title; slug; category; date; excerpt; image; contentHtml;
 		scheduleAutosave();
 	});
 
 	// ---------- Lifecycle ----------
 
 	onMount(() => {
-		// Show toast if we just got redirected here from /admin/news/new.
+		if (bodyEl) {
+			if (!bodyEl.innerHTML.trim()) bodyEl.innerHTML = '<p><br></p>';
+			normalizeBlocks(bodyEl);
+		}
+
 		if (typeof window !== 'undefined') {
 			const url = new URL(window.location.href);
 			if (url.searchParams.get('created') === '1') {
@@ -545,17 +581,18 @@
 			}
 		}
 
-		// Try to recover an unsaved draft.
 		const draft = loadDraft();
 		if (draft) restoreBanner = draft;
 
-		// Wait one tick before enabling autosave so the initial $effect run
-		// (triggered by the first paint) doesn't write a fresh draft.
 		queueMicrotask(() => (suppressAutosave = false));
 
-		document.addEventListener('selectionchange', refreshActiveStates);
+		const onSelectionChange = () => {
+			refreshActiveStates();
+			if (bodyEl) remember(bodyEl);
+		};
+		document.addEventListener('selectionchange', onSelectionChange);
 		return () => {
-			document.removeEventListener('selectionchange', refreshActiveStates);
+			document.removeEventListener('selectionchange', onSelectionChange);
 			if (autosaveTimer) clearTimeout(autosaveTimer);
 			if (savedFlashTimer) clearTimeout(savedFlashTimer);
 			if (savedToastTimer) clearTimeout(savedToastTimer);
@@ -575,14 +612,12 @@
 		return `${hr} jam lalu`;
 	}
 
-	// Force re-render of relative time every 30s while editing.
 	let nowTick = $state(0);
 	$effect(() => {
 		const id = setInterval(() => (nowTick = (nowTick + 1) & 0xfff), 30_000);
 		return () => clearInterval(id);
 	});
 	const relativeText = $derived.by(() => {
-		// Touch nowTick so this re-derives every interval tick.
 		nowTick;
 		return formatRelativeTime(lastSavedAt);
 	});
@@ -623,13 +658,8 @@
 		captureBody();
 		saving = true;
 		return async ({ result, update }) => {
-			// We `update` first so any `fail()` form values come through.
-			// On `success` we clear the draft and show a toast — no navigation.
-			// On `redirect` (used after CREATE only) we let SvelteKit follow it
-			// so the URL becomes /admin/news/<id> with the saved query flag.
 			await update({ reset: false });
 			saving = false;
-
 			if (result.type === 'success' || result.type === 'redirect') {
 				clearDraft();
 				flashSaved('Tersimpan');
@@ -637,7 +667,6 @@
 		};
 	}}
 >
-	<!-- Hidden inputs that get sent to the server -->
 	<input type="hidden" name="title" value={title} />
 	<input type="hidden" name="slug" value={slug} />
 	<input type="hidden" name="category" value={category} />
@@ -663,20 +692,15 @@
 			{#if err('slug')}<span class="adm-flash adm-flash-error inline">{err('slug')}</span>{/if}
 		</div>
 
-		<!-- Autosave status -->
 		<div class="autosave" data-status={autosaveStatus}>
 			{#if autosaveStatus === 'saving'}
-				<span class="dot saving"></span>
-				<span>Menyimpan…</span>
+				<span class="dot saving"></span><span>Menyimpan…</span>
 			{:else if autosaveStatus === 'saved'}
-				<span class="dot saved"></span>
-				<span>Draft disimpan</span>
+				<span class="dot saved"></span><span>Draft disimpan</span>
 			{:else if autosaveStatus === 'error'}
-				<span class="dot error"></span>
-				<span>Gagal autosave</span>
+				<span class="dot error"></span><span>Gagal autosave</span>
 			{:else if lastSavedAt}
-				<span class="dot idle"></span>
-				<span>Draft · {relativeText}</span>
+				<span class="dot idle"></span><span>Draft · {relativeText}</span>
 			{/if}
 		</div>
 
@@ -692,9 +716,15 @@
 		</div>
 	</div>
 
-	<!-- Editor body with side toolbar -->
+	<!-- Editor body -->
 	<div class="editor-shell">
-		<div class="side-toolbar" role="toolbar" tabindex="-1" aria-label="Format toolbar" onmousedown={(e) => e.preventDefault()}>
+		<div
+			class="side-toolbar"
+			role="toolbar"
+			tabindex="-1"
+			aria-label="Format toolbar"
+			onmousedown={(e) => e.preventDefault()}
+		>
 			<button
 				type="button"
 				class="tb"
@@ -728,6 +758,16 @@
 
 			<span class="tb-sep" aria-hidden="true"></span>
 
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.h1}
+				onclick={() => applyBlock('h1')}
+				title="Heading 1"
+				aria-label="Heading 1"
+			>
+				<span class="tb-text">H1</span>
+			</button>
 			<button
 				type="button"
 				class="tb"
@@ -784,7 +824,13 @@
 
 			<span class="tb-sep" aria-hidden="true"></span>
 
-			<button type="button" class="tb" onclick={makeLink} title="Insert link" aria-label="Insert link">
+			<button
+				type="button"
+				class="tb"
+				onclick={makeLink}
+				title="Insert link"
+				aria-label="Insert link"
+			>
 				🔗
 			</button>
 			<button
@@ -803,7 +849,7 @@
 				type="button"
 				class="tb"
 				onclick={clearFormatting}
-				title="Clear formatting"
+				title="Clear formatting (back to paragraph)"
 				aria-label="Clear formatting"
 			>
 				✕
@@ -811,7 +857,6 @@
 		</div>
 
 		<article class="post-canvas">
-			<!-- Cover area -->
 			{#if image}
 				<div class="cover">
 					<img src={image} alt="Cover" />
@@ -883,14 +928,14 @@
 				tabindex="0"
 				aria-multiline="true"
 				aria-label="Isi berita"
-				data-placeholder="Mulai menulis di sini. Pakai toolbar di samping kiri untuk format teks. Drag-drop atau paste image untuk menambahkannya."
+				data-placeholder="Mulai menulis di sini. Pakai toolbar di samping kiri, atau coba: # Judul, ## Sub, - List, > Quote, --- garis, lalu Space/Enter."
 				oninput={captureBody}
 				onkeydown={onKeyDown}
 				onpaste={onPaste}
 				ondragover={(e) => e.preventDefault()}
 				ondrop={onDrop}
 			>
-				{@html initialContent}
+				{@html initialContent || '<p><br></p>'}
 			</div>
 			{#if err('content')}<div class="field-error">{err('content')}</div>{/if}
 		</article>
@@ -910,6 +955,15 @@
 		border: 1px solid rgba(56, 189, 248, 0.3);
 		color: #e0f2fe;
 		margin-bottom: 1rem;
+	}
+
+	.rb-text {
+		font-size: 0.875rem;
+	}
+
+	.rb-actions {
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	.saved-toast {
@@ -945,23 +999,8 @@
 	}
 
 	@keyframes toast-in {
-		from {
-			opacity: 0;
-			transform: translateY(8px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.rb-text {
-		font-size: 0.875rem;
-	}
-
-	.rb-actions {
-		display: flex;
-		gap: 0.5rem;
+		from { opacity: 0; transform: translateY(8px); }
+		to   { opacity: 1; transform: translateY(0); }
 	}
 
 	.re-form {
@@ -970,7 +1009,6 @@
 		gap: 0;
 	}
 
-	/* ---------- Sticky action bar ---------- */
 	.actionbar {
 		position: sticky;
 		top: 0;
@@ -1034,7 +1072,6 @@
 		gap: 0.5rem;
 	}
 
-	/* Autosave status pill */
 	.autosave {
 		display: inline-flex;
 		align-items: center;
@@ -1073,10 +1110,9 @@
 
 	@keyframes pulse {
 		0%, 100% { opacity: 1; }
-		50% { opacity: 0.35; }
+		50%      { opacity: 0.35; }
 	}
 
-	/* ---------- Editor layout: side toolbar + canvas ---------- */
 	.editor-shell {
 		display: grid;
 		grid-template-columns: 2.75rem 1fr;
@@ -1163,7 +1199,6 @@
 		}
 	}
 
-	/* ---------- Post canvas ---------- */
 	.post-canvas {
 		max-width: 720px;
 		color: #e2e8f0;
@@ -1324,10 +1359,17 @@
 		color: #e2e8f0;
 	}
 
-	.body-edit:empty::before {
+	/* Empty placeholder. We render `<p><br></p>` for an empty editor (so
+	   the cursor lands somewhere), but visually it's "empty" — show the
+	   placeholder hint. The :has() selector is wrapped in :global so
+	   svelte-check doesn't strip it. */
+	:global(.body-edit:has(> p:only-child:empty))::before,
+	:global(.body-edit:has(> p:only-child > br:only-child))::before {
 		content: attr(data-placeholder);
 		color: #475569;
 		font-style: italic;
+		display: block;
+		pointer-events: none;
 	}
 
 	.body-edit:focus {
