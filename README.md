@@ -498,6 +498,23 @@ Logging dipisah ke fungsi `audit()` di `src/lib/server/audit/log.ts` sehingga ti
 - **Body** → contenteditable area. Tulis paragraf, atau paste/drag image untuk upload otomatis.
 - **Slug** → editable di top action bar. Auto-generate dari judul sampai kamu sentuh field-nya.
 
+### Markdown shortcuts (saat mengetik di body)
+
+Editor mengenali pola markdown di **awal baris** dan otomatis mentransformasikannya saat Anda menekan **Space** (atau **Enter** untuk `---`):
+
+| Ketik di awal baris       | Ditekan | Hasil           |
+| ------------------------- | ------- | --------------- |
+| `#`                       | Space   | Heading 1       |
+| `##`                      | Space   | Heading 2       |
+| `###`                     | Space   | Heading 3       |
+| `####`                    | Space   | Heading 4       |
+| `>`                       | Space   | Blockquote      |
+| `-` atau `*`              | Space   | Bullet list     |
+| `1.`                      | Space   | Numbered list   |
+| `---`                     | Enter   | Horizontal rule |
+
+Catatan: shortcut hanya aktif kalau pola benar-benar berada di awal baris dan baris masih kosong (selain pola itu). Misalnya `## ` di tengah paragraf tidak akan diubah.
+
 ### Side toolbar (always visible)
 
 Toolbar format ada di sebelah kiri area body, sticky di posisi atas saat kamu scroll. **Tidak perlu seleksi text dulu** — tinggal klik tombol, format langsung diterapkan ke posisi cursor / seleksi yang aktif.
