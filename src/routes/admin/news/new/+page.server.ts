@@ -56,11 +56,15 @@ export const actions: Actions = {
 				resourceId: created.id,
 				details: { slug: created.slug }
 			});
+			// Move the user to the edit URL so subsequent saves go to the same
+			// resource (and the URL is bookmarkable). The editor handles the
+			// transition gracefully — no full reload; it shows a "saved" banner.
+			throw redirect(303, `/admin/news/${created.id}?created=1`);
 		} catch (err) {
+			// `redirect()` throws — re-throw to let SvelteKit handle it.
+			if (err && typeof err === 'object' && 'status' in err && 'location' in err) throw err;
 			console.error('[admin/news/new]', err);
 			return fail(500, { values: raw, message: 'Gagal menyimpan ke database.' });
 		}
-
-		throw redirect(303, '/admin/news');
 	}
 };

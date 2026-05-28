@@ -70,11 +70,13 @@ export const actions: Actions = {
 				resourceId: id,
 				details: { fields: Object.keys(parsed.data as object) }
 			});
+			// Stay on the edit page; surface the freshly-saved record so the
+			// editor can refresh its values, dismiss the autosave-restore banner,
+			// and show a "saved" toast.
+			return { ok: true, savedAt: new Date().toISOString(), item: updated };
 		} catch (err) {
 			console.error(`[admin/news/${id}]`, err);
 			return fail(500, { values: raw, message: 'Gagal menyimpan perubahan.' });
 		}
-
-		throw redirect(303, '/admin/news');
 	}
 };

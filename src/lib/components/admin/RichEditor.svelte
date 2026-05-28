@@ -74,6 +74,8 @@
 	let contentHtml = $state(initialContent);
 
 	let saving = $state(false);
+	let savedToast = $state<string | null>(null);
+	let savedToastTimer: ReturnType<typeof setTimeout> | null = null;
 	let coverUploading = $state(false);
 	let coverError = $state<string | null>(null);
 
@@ -458,6 +460,12 @@
 		lastSavedAt = null;
 	}
 
+	function flashSaved(message: string) {
+		savedToast = message;
+		if (savedToastTimer) clearTimeout(savedToastTimer);
+		savedToastTimer = setTimeout(() => (savedToast = null), 2800);
+	}
+
 	function loadDraft(): { savedAt: Date; data: DraftPayload } | null {
 		if (typeof localStorage === 'undefined') return null;
 		try {
@@ -527,6 +535,16 @@
 	// ---------- Lifecycle ----------
 
 	onMount(() => {
+		// Show toast if we just got redirected here from /admin/news/new.
+		if (typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			if (url.searchParams.get('created') === '1') {
+				flashSaved('Berita baru dipublikasikan');
+				url.searchParams.delete('created');
+				history.replaceState(history.state, '', url.toString());
+			}
+		}
+
 		// Try to recover an unsaved draft.
 		const draft = loadDraft();
 		if (draft) restoreBanner = draft;
@@ -540,6 +558,7 @@
 			document.removeEventListener('selectionchange', refreshActiveStates);
 			if (autosaveTimer) clearTimeout(autosaveTimer);
 			if (savedFlashTimer) clearTimeout(savedFlashTimer);
+			if (savedToastTimer) clearTimeout(savedToastTimer);
 		};
 	});
 
@@ -569,6 +588,14 @@
 	});
 </script>
 
+<!-- Saved toast -->
+{#if savedToast}
+	<div class="saved-toast" role="status" aria-live="polite">
+		<span class="check">✓</span>
+		<span>{savedToast}</span>
+	</div>
+{/if}
+
 <!-- Restore-draft banner -->
 {#if restoreBanner}
 	<div class="restore-banner">
@@ -596,10 +623,17 @@
 		captureBody();
 		saving = true;
 		return async ({ result, update }) => {
-			await update();
+			// We `update` first so any `fail()` form values come through.
+			// On `success` we clear the draft and show a toast — no navigation.
+			// On `redirect` (used after CREATE only) we let SvelteKit follow it
+			// so the URL becomes /admin/news/<id> with the saved query flag.
+			await update({ reset: false });
 			saving = false;
-			// Server actions throw redirect on success.
-			if (result.type === 'redirect') clearDraft();
+
+			if (result.type === 'success' || result.type === 'redirect') {
+				clearDraft();
+				flashSaved('Tersimpan');
+			}
 		};
 	}}
 >
@@ -876,6 +910,49 @@
 		border: 1px solid rgba(56, 189, 248, 0.3);
 		color: #e0f2fe;
 		margin-bottom: 1rem;
+	}
+
+	.saved-toast {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 1rem;
+		border-radius: 999px;
+		background: rgba(2, 6, 23, 0.95);
+		border: 1px solid rgba(52, 211, 153, 0.4);
+		color: #6ee7b7;
+		font-size: 0.875rem;
+		font-weight: 600;
+		z-index: 50;
+		box-shadow: 0 12px 30px -10px rgba(2, 6, 23, 0.7);
+		animation: toast-in 220ms ease-out;
+	}
+
+	.saved-toast .check {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.125rem;
+		height: 1.125rem;
+		border-radius: 50%;
+		background: #34d399;
+		color: #022c22;
+		font-size: 0.75rem;
+		font-weight: 800;
+	}
+
+	@keyframes toast-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.rb-text {
