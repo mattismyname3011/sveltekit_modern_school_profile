@@ -498,9 +498,9 @@ Logging dipisah ke fungsi `audit()` di `src/lib/server/audit/log.ts` sehingga ti
 - **Body** → contenteditable area. Tulis paragraf, atau paste/drag image untuk upload otomatis.
 - **Slug** → editable di top action bar. Auto-generate dari judul sampai kamu sentuh field-nya.
 
-### Bubble toolbar (selection-driven)
+### Side toolbar (always visible)
 
-Saat kamu **menyeleksi teks di body**, sebuah bubble toolbar muncul tepat di atas seleksi dengan tombol:
+Toolbar format ada di sebelah kiri area body, sticky di posisi atas saat kamu scroll. **Tidak perlu seleksi text dulu** — tinggal klik tombol, format langsung diterapkan ke posisi cursor / seleksi yang aktif.
 
 | Tombol | Fungsi |
 | ------ | ------ |
@@ -512,7 +512,30 @@ Saat kamu **menyeleksi teks di body**, sebuah bubble toolbar muncul tepat di ata
 | 📷 | Insert image (file picker; juga: paste atau drag-drop) |
 | ✕ | Clear formatting |
 
-Tombol active state otomatis ter-highlight kalau seleksi sudah dalam format itu (mis. seleksi di dalam `<h2>` → tombol H2 highlight; klik lagi untuk kembali ke paragraph).
+State aktif tombol auto-update mengikuti posisi cursor (mis. cursor di dalam `<h2>` → tombol H2 highlight). Klik tombol yang sudah aktif untuk toggle off.
+
+Di mobile (< 720px) toolbar otomatis pindah ke atas sebagai bar horizontal, masih sticky.
+
+### Autosave draft
+
+Setiap perubahan apa pun (title, slug, kategori, tanggal, excerpt, cover image, body content) **debounced 800ms** lalu disimpan ke `localStorage` sebagai draft. Status autosave muncul di action bar atas:
+
+| Status         | Tampilan |
+| -------------- | -------- |
+| Sedang menyimpan | titik kuning berkedip + "Menyimpan…" |
+| Tersimpan      | titik hijau + "Draft disimpan" (lalu fade ke abu-abu) |
+| Idle           | titik abu + "Draft · 30 detik lalu" (relative time) |
+| Gagal          | titik merah + "Gagal autosave" |
+
+Saat kamu kembali ke halaman edit / new (mis. browser crash, accidental close, refresh), banner "Ada draft tersimpan dari X menit lalu. Pulihkan?" muncul di atas. Pilih **Pulihkan draft** untuk load isinya kembali, atau **Buang** untuk hapus draft dan mulai dari record asli.
+
+Draft otomatis dihapus saat publish/save berhasil (server action redirect).
+
+Storage key:
+- `news-draft:new` untuk halaman create
+- `news-draft:<id>` untuk halaman edit (per-post)
+
+Jadi kamu bisa punya beberapa draft aktif untuk post yang berbeda secara bersamaan.
 
 ### Image upload
 
