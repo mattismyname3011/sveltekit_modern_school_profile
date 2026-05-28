@@ -189,10 +189,10 @@
 				bold: document.queryCommandState('bold'),
 				italic: document.queryCommandState('italic'),
 				underline: document.queryCommandState('underline'),
-				h1: queryBlock('H1'),
-				h2: queryBlock('H2'),
-				h3: queryBlock('H3'),
-				quote: queryBlock('BLOCKQUOTE'),
+				h1: bodyEl ? selectionMatchesTag(bodyEl, 'h1') : false,
+				h2: bodyEl ? selectionMatchesTag(bodyEl, 'h2') : false,
+				h3: bodyEl ? selectionMatchesTag(bodyEl, 'h3') : false,
+				quote: bodyEl ? selectionMatchesTag(bodyEl, 'blockquote') : false,
 				ul: document.queryCommandState('insertUnorderedList'),
 				ol: document.queryCommandState('insertOrderedList')
 			};
@@ -222,17 +222,14 @@
 		remember(bodyEl);
 	}
 
-	function applyBlock(tag: 'h1' | 'h2' | 'h3' | 'p' | 'blockquote') {
+	function applyBlock(tag: BlockTag) {
 		if (!bodyEl) return;
 		commitBefore();
 		restore(bodyEl);
-		const upper = tag.toUpperCase();
-		const isCurrent =
-			(upper === 'H1' && activeStates.h1) ||
-			(upper === 'H2' && activeStates.h2) ||
-			(upper === 'H3' && activeStates.h3) ||
-			(upper === 'BLOCKQUOTE' && activeStates.quote);
-		document.execCommand('formatBlock', false, isCurrent ? '<p>' : `<${tag}>`);
+		// Custom block-toggle: replaces every selected block with the target
+		// tag, or back to <p> if every block already has the tag. Avoids the
+		// nested-heading bug from execCommand('formatBlock').
+		setBlockTag(bodyEl, tag);
 		captureBody();
 		refreshActiveStates();
 		remember(bodyEl);
@@ -259,7 +256,10 @@
 		commitBefore();
 		restore(bodyEl);
 		document.execCommand('removeFormat');
-		document.execCommand('formatBlock', false, '<p>');
+		// Force every selected block back to <p> via our custom replacer
+		// (formatBlock + nested headings = same stacking issue).
+		setBlockTag(bodyEl, 'p');
+		flattenNested(bodyEl);
 		captureBody();
 		refreshActiveStates();
 		remember(bodyEl);
@@ -278,6 +278,8 @@
 			bodyEl.innerHTML = '<p><br></p>';
 			caretToEnd(bodyEl);
 		}
+		// Safety net against any nested-heading leak (paste, drag, etc.)
+		flattenNested(bodyEl);
 		contentHtml = bodyEl.innerHTML;
 		// Debounced snapshot for typing — only after structural commits stop firing.
 		scheduleTypingCommit();
@@ -426,12 +428,13 @@
 
 			commitBefore();
 
-			// Replace the prefix-only block with an empty block of the new type.
+			// Empty the prefix-only block and place the caret in it BEFORE
+			// switching block type — keeps the caret inside the new element.
 			block.textContent = '';
 			caretToStart(block);
 
 			if (sc.action.kind === 'block') {
-				document.execCommand('formatBlock', false, `<${sc.action.tag}>`);
+				setBlockTag(bodyEl, sc.action.tag);
 			} else {
 				document.execCommand(
 					sc.action.ordered ? 'insertOrderedList' : 'insertUnorderedList'
