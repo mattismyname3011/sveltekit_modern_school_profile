@@ -429,7 +429,11 @@
 		const id = setInterval(() => (nowTick = (nowTick + 1) & 0xfff), 30_000);
 		return () => clearInterval(id);
 	});
-	const relativeText = $derived((nowTick, formatRelativeTime(lastSavedAt)));
+	const relativeText = $derived.by(() => {
+		// Touch nowTick so this re-derives every interval tick.
+		nowTick;
+		return formatRelativeTime(lastSavedAt);
+	});
 </script>
 
 <!-- Restore-draft banner -->
@@ -523,7 +527,7 @@
 
 	<!-- Editor body with side toolbar -->
 	<div class="editor-shell">
-		<aside class="side-toolbar" aria-label="Format toolbar" onmousedown={(e) => e.preventDefault()}>
+		<div class="side-toolbar" role="toolbar" tabindex="-1" aria-label="Format toolbar" onmousedown={(e) => e.preventDefault()}>
 			<button
 				type="button"
 				class="tb"
@@ -637,7 +641,7 @@
 			>
 				✕
 			</button>
-		</aside>
+		</div>
 
 		<article class="post-canvas">
 			<!-- Cover area -->
