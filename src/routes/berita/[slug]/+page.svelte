@@ -3,6 +3,9 @@
 	import FloatingNavbar from '$lib/components/FloatingNavbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
+	import TableOfContents from '$lib/components/news/TableOfContents.svelte';
+	import ImageLightbox from '$lib/components/news/ImageLightbox.svelte';
+	import ReadingProgress from '$lib/components/news/ReadingProgress.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import { onMount } from 'svelte';
 
@@ -48,13 +51,12 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
+<ReadingProgress />
 <FloatingNavbar />
 
 <main class="post overflow-x-clip">
-	<!-- Hero with cover image -->
 	<article>
 		<header class="post-header">
-			<!-- Breadcrumb -->
 			<nav class="breadcrumb" aria-label="Breadcrumb">
 				<a href="/">Beranda</a>
 				<span class="sep">›</span>
@@ -69,30 +71,48 @@
 				<span class="date">{post.date}</span>
 			</div>
 
-			<h1
-				class="post-title"
-				use:reveal={{ from: 'up', delay: 120 }}
-			>
+			<h1 class="post-title" use:reveal={{ from: 'up', delay: 120 }}>
 				{post.title}
 			</h1>
 
-			<p
-				class="post-lede"
-				use:reveal={{ from: 'up', delay: 180 }}
-			>
+			<p class="post-lede" use:reveal={{ from: 'up', delay: 180 }}>
 				{post.excerpt}
 			</p>
 
-			<!-- Cover image with organic mask -->
-			<div
-				class="post-hero"
-				use:reveal={{ from: 'scale', delay: 240 }}
-			>
+			<!-- Reading meta strip -->
+			<div class="reading-strip" use:reveal={{ from: 'up', delay: 220 }}>
+				<span class="rs-item" title="Estimasi waktu membaca">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<circle cx="12" cy="12" r="10" />
+						<polyline points="12 6 12 12 16 14" />
+					</svg>
+					<strong>{post.readingMinutes}</strong> menit baca
+				</span>
+				<span class="rs-sep" aria-hidden="true">·</span>
+				<span class="rs-item" title="Jumlah kata">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<path d="M4 6h16M4 12h16M4 18h10" />
+					</svg>
+					{post.wordCount.toLocaleString('id')} kata
+				</span>
+				{#if post.views > 0}
+					<span class="rs-sep" aria-hidden="true">·</span>
+					<span class="rs-item" title="Jumlah kunjungan">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
+							<circle cx="12" cy="12" r="3" />
+						</svg>
+						{post.views.toLocaleString('id')} dibaca
+					</span>
+				{/if}
+			</div>
+
+			<div class="post-hero" use:reveal={{ from: 'scale', delay: 280 }}>
 				<img src={post.image} alt={post.title} />
 			</div>
 		</header>
 
-		<!-- Article body -->
+		<!-- Body layout: share rail · content · TOC -->
 		<div class="post-body">
 			<aside class="post-share" aria-label="Share">
 				<div class="share-label">Bagikan</div>
@@ -160,6 +180,13 @@
 					<a href="/berita" class="back-to-list">← Kembali ke daftar berita</a>
 				</div>
 			</div>
+
+			<!-- TOC sidebar — only when there are 2+ headings -->
+			{#if post.toc.length >= 2}
+				<aside class="post-toc" aria-label="Table of contents">
+					<TableOfContents items={post.toc} />
+				</aside>
+			{/if}
 		</div>
 	</article>
 
@@ -185,6 +212,7 @@
 	{/if}
 </main>
 
+<ImageLightbox />
 <Footer />
 
 <style>
@@ -269,7 +297,7 @@
 		font-size: 1.125rem;
 		line-height: 1.7;
 		color: #475569;
-		margin: 0 0 2.5rem;
+		margin: 0 0 1.75rem;
 		max-width: 60ch;
 	}
 
@@ -279,7 +307,35 @@
 		}
 	}
 
-	/* Cover image — organic curve to match landing page mask */
+	.reading-strip {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		flex-wrap: wrap;
+		font-size: 0.8125rem;
+		color: #64748b;
+		margin-bottom: 2.5rem;
+	}
+
+	.rs-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+	}
+
+	.rs-item svg {
+		color: #0b2e4f;
+	}
+
+	.rs-item strong {
+		color: #0b2e4f;
+		font-weight: 700;
+	}
+
+	.rs-sep {
+		color: #cbd5e1;
+	}
+
 	.post-hero {
 		border-top-left-radius: 8rem;
 		border-bottom-right-radius: 8rem;
@@ -304,7 +360,7 @@
 		display: block;
 	}
 
-	/* Body layout: share rail + content column */
+	/* Body layout: share rail + content column + TOC */
 	.post-body {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
@@ -315,12 +371,22 @@
 		position: relative;
 	}
 
+	/* Tablet: share rail + content (no TOC yet) */
 	@media (min-width: 1024px) {
 		.post-body {
 			max-width: 920px;
 			grid-template-columns: 4rem minmax(0, 1fr);
 			gap: 2.5rem;
 			padding: 3.5rem 2rem 6rem;
+		}
+	}
+
+	/* Desktop: share rail + content + TOC */
+	@media (min-width: 1200px) {
+		.post-body {
+			max-width: 1180px;
+			grid-template-columns: 4rem minmax(0, 720px) 14rem;
+			gap: 3rem;
 		}
 	}
 
@@ -398,6 +464,13 @@
 		}
 	}
 
+	/* Headings get scroll-margin so anchor jumps land below the navbar. */
+	.post-content :global(.md-content h2),
+	.post-content :global(.md-content h3),
+	.post-content :global(.md-content h4) {
+		scroll-margin-top: 6.5rem;
+	}
+
 	.empty {
 		color: #94a3b8;
 		font-style: italic;
@@ -421,6 +494,20 @@
 		color: #e11d48;
 	}
 
+	/* TOC sidebar — only desktop */
+	.post-toc {
+		display: none;
+	}
+
+	@media (min-width: 1200px) {
+		.post-toc {
+			display: block;
+			position: sticky;
+			top: 7rem;
+			align-self: start;
+		}
+	}
+
 	/* Related */
 	.related-section {
 		padding: 4rem 0 6rem;
@@ -438,15 +525,4 @@
 	.card-wrap :global(a) {
 		width: 100% !important;
 	}
-
-	/* Wrap the article inside a "post" container so global .post .md-content
-	   light-theme rules from layout.css kick in. */
 </style>
-
-<!--
-	The .post wrapper class is added by the parent <main> via the
-	`md-content` light-theme override defined in layout.css. We reach into
-	that styling by ensuring the rendered HTML lives under a `.post .md-content`
-	selector chain — accomplished by the wrapping `.post-content > .md-content`
-	above plus the global stylesheet.
--->

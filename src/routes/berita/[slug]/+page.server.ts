@@ -1,11 +1,11 @@
 import { error } from '@sveltejs/kit';
-import { and, desc, eq, ne } from 'drizzle-orm';
+import { and, desc, eq, ne, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { newsRepo } from '$lib/server/repositories/news';
-import { renderContent } from '$lib/server/markdown';
+import { processContent } from '$lib/server/markdown';
 import { recordPageView } from '$lib/server/analytics/track';
 import { db } from '$lib/db';
-import { news } from '$lib/db/schema';
+import { news, pageViews } from '$lib/db/schema';
 
 export const load: PageServerLoad = async (event) => {
 	const post = await newsRepo.findBySlug(event.params.slug);
@@ -15,6 +15,15 @@ export const load: PageServerLoad = async (event) => {
 	recordPageView(event, `/berita/${post.slug}`).catch((err) =>
 		console.error('[analytics]', err)
 	);
+
+	// Process body: sanitize + add heading ids + extract TOC + reading time.
+	const { html: contentHtml, toc, wordCount, readingMinutes } = processContent(post.content);
+
+	// Lifetime view count (for the badge under the title).
+	const [{ views }] = await db
+		.select({ views: sql<number>`count(*)::int` })
+		.from(pageViews)
+		.where(eq(pageViews.path, `/berita/${post.slug}`));
 
 	// Related posts: same category first, then any other recent posts to fill 3.
 	const sameCat = await db
@@ -32,7 +41,7 @@ export const load: PageServerLoad = async (event) => {
 			.from(news)
 			.where(ne(news.id, post.id))
 			.orderBy(desc(news.createdAt))
-			.limit(need + sameCat.length); // overshoot, then dedupe below
+			.limit(need + sameCat.length);
 
 		const seen = new Set([post.id, ...sameCat.map((s) => s.id)]);
 		for (const f of filler) {
@@ -52,7 +61,11 @@ export const load: PageServerLoad = async (event) => {
 			date: post.date,
 			image: post.image,
 			excerpt: post.excerpt,
-			contentHtml: renderContent(post.content)
+			contentHtml,
+			toc,
+			wordCount,
+			readingMinutes,
+			views
 		},
 		related: related.slice(0, 3).map((r) => ({
 			id: r.id,
