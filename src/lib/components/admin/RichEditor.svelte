@@ -37,6 +37,7 @@
 		restoreSelection,
 		type Snapshot
 	} from './editor/history';
+	import { flattenNested, setBlockTag, selectionMatchesTag, type BlockTag } from './editor/blocks';
 
 	type FormState = {
 		values?: Record<string, unknown>;
