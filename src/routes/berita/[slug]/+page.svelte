@@ -112,47 +112,4 @@
 		color: #94a3b8;
 		font-style: italic;
 	}
-
-	/* Public-facing markdown content uses a light theme override. */
-	:global(.post .md-content) {
-		color: #1f2937;
-		font-size: 1.0625rem;
-		line-height: 1.75;
-	}
-
-	:global(.post .md-content h1),
-	:global(.post .md-content h2),
-	:global(.post .md-content h3) {
-		color: #0b2e4f;
-	}
-
-	:global(.post .md-content a) {
-		color: #0b2e4f;
-		text-decoration: underline;
-		text-decoration-color: #e11d48;
-	}
-
-	:global(.post .md-content blockquote) {
-		border-left-color: #e11d48;
-		background: #fff7f9;
-		color: #475569;
-	}
-
-	:global(.post .md-content code) {
-		background: #f1f5f9;
-	}
-
-	:global(.post .md-content pre) {
-		background: #0b2e4f;
-		border-color: #0b2e4f;
-		color: #f1f5f9;
-	}
-
-	:global(.post .md-content pre code) {
-		color: #f1f5f9;
-	}
-
-	:global(.post .md-content table th) {
-		background: #f8fafc;
-	}
 </style>

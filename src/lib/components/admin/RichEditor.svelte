@@ -157,6 +157,139 @@
 		exec('removeFormat');
 	}
 
+	// ---------- Markdown shortcuts ----------
+	//
+	// When the user types a markdown prefix at the start of a line and
+	// presses space, transform that line into the corresponding block.
+	//
+	// Examples:
+	//   "# "        → H1
+	//   "## "       → H2
+	//   "### "      → H3
+	//   "#### "     → H4
+	//   "- " / "* " → Bullet list
+	//   "1. "       → Numbered list
+	//   "> "        → Blockquote
+	//   "---" + Enter → Horizontal rule
+	//
+	// We only act when the cursor is at the END of the prefix and the prefix
+	// occupies the entire line so far. Inline marks like `**bold**` are
+	// handled separately on space too.
+
+	function getCurrentBlock(): HTMLElement | null {
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0) return null;
+		let node: Node | null = sel.getRangeAt(0).startContainer;
+		while (node && node !== bodyEl) {
+			if (
+				node.nodeType === 1 &&
+				/^(P|H1|H2|H3|H4|H5|H6|LI|BLOCKQUOTE|DIV)$/.test((node as Element).tagName)
+			) {
+				return node as HTMLElement;
+			}
+			node = node.parentNode;
+		}
+		return null;
+	}
+
+	function getLineTextBeforeCursor(): { text: string; block: HTMLElement | null } {
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0) return { text: '', block: null };
+		const range = sel.getRangeAt(0);
+		const block = getCurrentBlock();
+		if (!block) return { text: '', block: null };
+		const pre = range.cloneRange();
+		pre.selectNodeContents(block);
+		pre.setEnd(range.endContainer, range.endOffset);
+		return { text: pre.toString(), block };
+	}
+
+	function clearBlockText(block: HTMLElement) {
+		// Delete every node in the block; will be replaced with a fresh empty space.
+		while (block.firstChild) block.removeChild(block.firstChild);
+	}
+
+	function moveCaretToStartOf(el: HTMLElement) {
+		const range = document.createRange();
+		range.selectNodeContents(el);
+		range.collapse(true);
+		const sel = window.getSelection();
+		if (!sel) return;
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+
+	type ShortcutAction =
+		| { kind: 'block'; tag: 'h1' | 'h2' | 'h3' | 'h4' | 'blockquote' }
+		| { kind: 'list'; ordered: boolean };
+
+	const SPACE_SHORTCUTS: { match: RegExp; action: ShortcutAction }[] = [
+		{ match: /^####$/, action: { kind: 'block', tag: 'h4' } },
+		{ match: /^###$/, action: { kind: 'block', tag: 'h3' } },
+		{ match: /^##$/, action: { kind: 'block', tag: 'h2' } },
+		{ match: /^#$/, action: { kind: 'block', tag: 'h1' } },
+		{ match: /^>$/, action: { kind: 'block', tag: 'blockquote' } },
+		{ match: /^[-*]$/, action: { kind: 'list', ordered: false } },
+		{ match: /^1\.$/, action: { kind: 'list', ordered: true } }
+	];
+
+	/**
+	 * Trigger before the keystroke is added. We only handle plain ASCII
+	 * shortcuts at the start of a line, where `text` (already typed before
+	 * the space) matches one of our patterns AND there's nothing else on
+	 * the line yet.
+	 */
+	function tryMarkdownShortcut(): boolean {
+		const { text, block } = getLineTextBeforeCursor();
+		if (!block) return false;
+		// Only when prefix occupies the whole line so far.
+		if (text !== block.textContent) return false;
+
+		for (const sc of SPACE_SHORTCUTS) {
+			if (sc.match.test(text)) {
+				clearBlockText(block);
+				moveCaretToStartOf(block);
+
+				if (sc.action.kind === 'block') {
+					document.execCommand('formatBlock', false, `<${sc.action.tag}>`);
+				} else if (sc.action.kind === 'list') {
+					document.execCommand(
+						sc.action.ordered ? 'insertOrderedList' : 'insertUnorderedList'
+					);
+				}
+				captureBody();
+				refreshActiveStates();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Handle Enter on a line that contains exactly `---` to insert an <hr>.
+	 */
+	function tryHrShortcut(): boolean {
+		const { text, block } = getLineTextBeforeCursor();
+		if (!block) return false;
+		if (text !== block.textContent) return false;
+		if (!/^---$/.test(text)) return false;
+
+		clearBlockText(block);
+		// Replace the empty paragraph with an <hr> + a fresh empty paragraph.
+		document.execCommand('insertHTML', false, '<hr><p><br></p>');
+		captureBody();
+		refreshActiveStates();
+		return true;
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key === ' ') {
+			if (tryMarkdownShortcut()) e.preventDefault();
+		} else if (e.key === 'Enter') {
+			if (tryHrShortcut()) e.preventDefault();
+		}
+	}
+
 	// ---------- Body capture (HTML → state) ----------
 
 	function captureBody() {
@@ -718,6 +851,7 @@
 				aria-label="Isi berita"
 				data-placeholder="Mulai menulis di sini. Pakai toolbar di samping kiri untuk format teks. Drag-drop atau paste image untuk menambahkannya."
 				oninput={captureBody}
+				onkeydown={onKeyDown}
 				onpaste={onPaste}
 				ondragover={(e) => e.preventDefault()}
 				ondrop={onDrop}

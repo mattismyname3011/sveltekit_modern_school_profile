@@ -170,3 +170,214 @@ body {
 	html { scroll-behavior: auto; }
 	.anim-float { animation: none; }
 }
+
+/* ==========================================================
+   Rich content (.md-content)
+   --------------------------------------------------------
+   Used by both the admin editor body (dark background, light text)
+   and the public news detail page (light background, dark text).
+   Tailwind preflight strips list-style/margin/padding from <ul>, <ol>,
+   <h*>, <blockquote>, etc. — restore them here so the content renders
+   consistently in BOTH places.
+   ========================================================== */
+
+.md-content {
+	line-height: 1.75;
+	font-size: 1.0625rem;
+	word-wrap: break-word;
+}
+
+.md-content h1,
+.md-content h2,
+.md-content h3,
+.md-content h4 {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	margin: 1.5em 0 0.5em;
+	line-height: 1.25;
+}
+
+.md-content h1 { font-size: 1.75em; }
+.md-content h2 { font-size: 1.4em; }
+.md-content h3 { font-size: 1.2em; }
+.md-content h4 { font-size: 1.05em; }
+
+.md-content p {
+	margin: 0.875em 0;
+}
+
+.md-content a {
+	text-decoration: underline;
+}
+
+.md-content strong { font-weight: 700; }
+.md-content em     { font-style: italic; }
+.md-content u      { text-decoration: underline; }
+.md-content s      { text-decoration: line-through; }
+
+.md-content ul,
+.md-content ol {
+	padding-left: 1.5em;
+	margin: 0.875em 0;
+}
+
+.md-content ul        { list-style: disc outside; }
+.md-content ul ul     { list-style: circle outside; }
+.md-content ul ul ul  { list-style: square outside; }
+.md-content ol        { list-style: decimal outside; }
+
+.md-content li {
+	margin: 0.25em 0;
+}
+.md-content li::marker {
+	font-weight: 600;
+}
+
+.md-content blockquote {
+	border-left: 3px solid;
+	padding: 0.25em 1em;
+	margin: 1em 0;
+	border-radius: 0 0.375em 0.375em 0;
+}
+
+.md-content code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.875em;
+	padding: 0.0625em 0.375em;
+	border-radius: 0.25em;
+}
+
+.md-content pre {
+	padding: 0.875em 1em;
+	border-radius: 0.5em;
+	overflow-x: auto;
+	margin: 1em 0;
+}
+
+.md-content pre code {
+	background: transparent;
+	padding: 0;
+}
+
+.md-content img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+	border-radius: 0.625rem;
+}
+
+.md-content figure {
+	margin: 1.25em 0;
+}
+
+.md-content figcaption {
+	font-size: 0.8125em;
+	text-align: center;
+	margin-top: 0.5em;
+	opacity: 0.75;
+}
+
+.md-content hr {
+	border: 0;
+	border-top: 1px solid currentColor;
+	opacity: 0.2;
+	margin: 1.5em 0;
+}
+
+.md-content table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1em 0;
+	font-size: 0.95em;
+}
+
+.md-content th,
+.md-content td {
+	padding: 0.5em 0.75em;
+	border: 1px solid;
+	border-color: currentColor;
+	border-opacity: 0.2;
+	text-align: left;
+}
+
+/* ----- Theme: dark (admin editor body) ----- */
+.body-edit.md-content,
+.md-content.dark {
+	color: #e2e8f0;
+}
+
+.body-edit.md-content h1,
+.body-edit.md-content h2,
+.body-edit.md-content h3,
+.body-edit.md-content h4 {
+	color: #f8fafc;
+}
+
+.body-edit.md-content a {
+	color: #38bdf8;
+}
+
+.body-edit.md-content blockquote {
+	border-left-color: #38bdf8;
+	background: rgba(56, 189, 248, 0.06);
+	color: #cbd5e1;
+}
+
+.body-edit.md-content code {
+	background: rgba(148, 163, 184, 0.18);
+	color: #e2e8f0;
+}
+
+.body-edit.md-content pre {
+	background: rgba(2, 6, 23, 0.85);
+	border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.body-edit.md-content th,
+.body-edit.md-content td {
+	border-color: rgba(148, 163, 184, 0.25);
+}
+
+.body-edit.md-content th {
+	background: rgba(15, 23, 42, 0.5);
+}
+
+/* ----- Theme: light (public detail page) ----- */
+.post .md-content {
+	color: #1f2937;
+}
+
+.post .md-content h1,
+.post .md-content h2,
+.post .md-content h3,
+.post .md-content h4 {
+	color: var(--color-primary, #0b2e4f);
+}
+
+.post .md-content a {
+	color: var(--color-primary, #0b2e4f);
+	text-decoration-color: var(--color-accent, #e11d48);
+}
+
+.post .md-content blockquote {
+	border-left-color: var(--color-accent, #e11d48);
+	background: #fff7f9;
+	color: #475569;
+}
+
+.post .md-content code {
+	background: #f1f5f9;
+}
+
+.post .md-content pre {
+	background: var(--color-primary, #0b2e4f);
+	color: #f1f5f9;
+}
+
+.post .md-content pre code {
+	color: #f1f5f9;
+}
+
+.post .md-content th {
+	background: #f8fafc;
+}
