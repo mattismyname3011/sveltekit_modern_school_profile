@@ -31,6 +31,12 @@
 		remember,
 		restore
 	} from './editor/selection';
+	import {
+		captureSelection,
+		EditorHistory,
+		restoreSelection,
+		type Snapshot
+	} from './editor/history';
 
 	type FormState = {
 		values?: Record<string, unknown>;
@@ -101,6 +107,75 @@
 		ol: false
 	});
 
+	// ---------- Undo / redo ----------
+
+	const editorHistory = new EditorHistory();
+	let canUndo = $state(false);
+	let canRedo = $state(false);
+
+	let typingCommitTimer: ReturnType<typeof setTimeout> | null = null;
+	let suppressNextSnapshot = $state(false);
+
+	function snapshot(): Snapshot {
+		return {
+			html: bodyEl ? bodyEl.innerHTML : '',
+			sel: bodyEl ? captureSelection(bodyEl) : null
+		};
+	}
+
+	function refreshHistoryButtons() {
+		canUndo = editorHistory.canUndo;
+		canRedo = editorHistory.canRedo;
+	}
+
+	/** Take a snapshot BEFORE a structural change. */
+	function commitBefore() {
+		if (!bodyEl || suppressNextSnapshot) return;
+		// Cancel any debounced typing-commit so we don't double-push.
+		if (typingCommitTimer) {
+			clearTimeout(typingCommitTimer);
+			typingCommitTimer = null;
+		}
+		editorHistory.push(snapshot());
+		refreshHistoryButtons();
+	}
+
+	/** Schedule a snapshot AFTER typing has settled (debounced). */
+	function scheduleTypingCommit() {
+		if (suppressNextSnapshot) return;
+		if (typingCommitTimer) clearTimeout(typingCommitTimer);
+		typingCommitTimer = setTimeout(() => {
+			if (!bodyEl) return;
+			editorHistory.push(snapshot());
+			refreshHistoryButtons();
+		}, 600);
+	}
+
+	function applySnapshot(snap: Snapshot | null) {
+		if (!snap || !bodyEl) return;
+		suppressNextSnapshot = true;
+		bodyEl.innerHTML = snap.html;
+		normalizeBlocks(bodyEl);
+		restoreSelection(bodyEl, snap.sel);
+		bodyEl.focus();
+		contentHtml = bodyEl.innerHTML;
+		refreshActiveStates();
+		refreshHistoryButtons();
+		// Re-enable snapshot capture next tick so the input event triggered
+		// by the DOM swap doesn't re-push it.
+		queueMicrotask(() => (suppressNextSnapshot = false));
+	}
+
+	function doUndo() {
+		const snap = editorHistory.undo();
+		if (snap) applySnapshot(snap);
+	}
+
+	function doRedo() {
+		const snap = editorHistory.redo();
+		if (snap) applySnapshot(snap);
+	}
+
 	function err(name: string): string | null {
 		return form?.fieldErrors?.[name]?.[0] ?? null;
 	}
@@ -138,6 +213,7 @@
 
 	function exec(cmd: string, value?: string) {
 		if (!bodyEl) return;
+		commitBefore();
 		restore(bodyEl);
 		document.execCommand(cmd, false, value);
 		captureBody();
@@ -147,6 +223,7 @@
 
 	function applyBlock(tag: 'h1' | 'h2' | 'h3' | 'p' | 'blockquote') {
 		if (!bodyEl) return;
+		commitBefore();
 		restore(bodyEl);
 		const upper = tag.toUpperCase();
 		const isCurrent =
@@ -162,7 +239,6 @@
 
 	function makeLink() {
 		if (!bodyEl) return;
-		restore(bodyEl);
 		const sel = window.getSelection();
 		if (!sel || sel.isCollapsed) {
 			alert('Pilih teks dulu untuk dijadikan link.');
@@ -170,6 +246,8 @@
 		}
 		const url = window.prompt('URL link:', 'https://');
 		if (!url) return;
+		commitBefore();
+		restore(bodyEl);
 		document.execCommand('createLink', false, url);
 		captureBody();
 		remember(bodyEl);
@@ -177,9 +255,9 @@
 
 	function clearFormatting() {
 		if (!bodyEl) return;
+		commitBefore();
 		restore(bodyEl);
 		document.execCommand('removeFormat');
-		// Also unwrap headings/blockquote — execCommand removeFormat keeps blocks.
 		document.execCommand('formatBlock', false, '<p>');
 		captureBody();
 		refreshActiveStates();
@@ -200,6 +278,8 @@
 			caretToEnd(bodyEl);
 		}
 		contentHtml = bodyEl.innerHTML;
+		// Debounced snapshot for typing — only after structural commits stop firing.
+		scheduleTypingCommit();
 	}
 
 	function onPaste(e: ClipboardEvent) {
@@ -219,6 +299,7 @@
 		const text = e.clipboardData?.getData('text/plain');
 		if (text !== undefined) {
 			e.preventDefault();
+			commitBefore();
 			document.execCommand('insertText', false, text);
 		}
 	}
@@ -249,6 +330,7 @@
 			alert('Upload gagal.');
 			return;
 		}
+		commitBefore();
 		restore(bodyEl);
 		const alt = file.name.replace(/\.[^.]+$/, '');
 		const html = `<figure class="md-figure"><img src="${url}" alt="${escapeAttr(alt)}" loading="lazy" /><figcaption>${escapeAttr(alt)}</figcaption></figure><p><br></p>`;
@@ -341,6 +423,8 @@
 		for (const sc of SHORTCUTS) {
 			if (!sc.match.test(text)) continue;
 
+			commitBefore();
+
 			// Replace the prefix-only block with an empty block of the new type.
 			block.textContent = '';
 			caretToStart(block);
@@ -367,6 +451,7 @@
 		if (!block) return false;
 		if (text !== (block.textContent ?? '')) return false;
 		if (!/^---$/.test(text)) return false;
+		commitBefore();
 		block.textContent = '';
 		caretToStart(block);
 		document.execCommand('insertHTML', false, '<hr><p><br></p>');
@@ -387,6 +472,7 @@
 		if (!isCaretAtEndOf(block)) return false;
 
 		e.preventDefault();
+		commitBefore();
 		// Insert a new <p> after the heading and place the caret in it.
 		const p = document.createElement('p');
 		p.innerHTML = '<br>';
@@ -399,6 +485,22 @@
 	}
 
 	function onKeyDown(e: KeyboardEvent) {
+		// Custom undo/redo — replace browser native so structural changes
+		// (markdown shortcuts, format commands) are reversible too.
+		if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+			const k = e.key.toLowerCase();
+			if (k === 'z' && !e.shiftKey) {
+				e.preventDefault();
+				doUndo();
+				return;
+			}
+			if (k === 'y' || (k === 'z' && e.shiftKey)) {
+				e.preventDefault();
+				doRedo();
+				return;
+			}
+		}
+
 		if (e.key === ' ') {
 			if (tryMarkdownShortcut()) e.preventDefault();
 		} else if (e.key === 'Enter') {
@@ -546,6 +648,10 @@
 		if (bodyEl) {
 			bodyEl.innerHTML = d.content || '<p><br></p>';
 			normalizeBlocks(bodyEl);
+			// Reset history baseline to the restored state — Ctrl+Z shouldn't
+			// "undo" the restore itself.
+			editorHistory.reset(snapshot());
+			refreshHistoryButtons();
 		}
 		restoreBanner = null;
 		queueMicrotask(() => (suppressAutosave = false));
@@ -570,6 +676,10 @@
 		if (bodyEl) {
 			if (!bodyEl.innerHTML.trim()) bodyEl.innerHTML = '<p><br></p>';
 			normalizeBlocks(bodyEl);
+
+			// Seed history with the initial state so Ctrl+Z reaches "blank slate".
+			editorHistory.reset(snapshot());
+			refreshHistoryButtons();
 		}
 
 		if (typeof window !== 'undefined') {
@@ -596,6 +706,7 @@
 			if (autosaveTimer) clearTimeout(autosaveTimer);
 			if (savedFlashTimer) clearTimeout(savedFlashTimer);
 			if (savedToastTimer) clearTimeout(savedToastTimer);
+			if (typingCommitTimer) clearTimeout(typingCommitTimer);
 		};
 	});
 
@@ -725,6 +836,29 @@
 			aria-label="Format toolbar"
 			onmousedown={(e) => e.preventDefault()}
 		>
+			<button
+				type="button"
+				class="tb"
+				disabled={!canUndo}
+				onclick={doUndo}
+				title="Undo (Ctrl+Z)"
+				aria-label="Undo"
+			>
+				↶
+			</button>
+			<button
+				type="button"
+				class="tb"
+				disabled={!canRedo}
+				onclick={doRedo}
+				title="Redo (Ctrl+Y)"
+				aria-label="Redo"
+			>
+				↷
+			</button>
+
+			<span class="tb-sep" aria-hidden="true"></span>
+
 			<button
 				type="button"
 				class="tb"
@@ -1172,6 +1306,16 @@
 	.tb:hover {
 		background: rgba(56, 189, 248, 0.12);
 		color: #f1f5f9;
+	}
+
+	.tb:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
+	.tb:disabled:hover {
+		background: transparent;
+		color: #cbd5e1;
 	}
 
 	.tb.active {
