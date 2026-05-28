@@ -616,3 +616,53 @@ Menampilkan:
 - **Top pages**: 10 URL publik teratas (semua path, bukan cuma berita)
 
 Query SQL pakai `count(DISTINCT visitor_hash)` agar unique visitors akurat untuk window apa pun. Index `(path, created_at)` dan `(visitor_hash, created_at)` di tabel sudah dipasang sehingga query tetap cepat saat tabel jutaan row.
+
+## Public news pages
+
+### `/berita` — archive
+
+Daftar berita publik dengan tema yang sama seperti landing page (FloatingNavbar di atas, Footer di bawah, organic mask, accent rose, navy primary).
+
+Fitur:
+
+- **Hero header** dengan breadcrumb dan search input
+- **Category chips** auto-populate dari nilai distinct di DB
+- **Featured card** untuk berita teratas pada halaman 1 (organic mask, ukuran besar, accent ribbon)
+- **Grid 3 kolom** memakai `NewsCard.svelte` yang sama dengan homepage (konsistensi visual)
+- **Pagination** 9 item per halaman
+- **Empty state** ramah saat filter tidak match
+- **Reveal-on-scroll** animation (sama action `reveal` yang dipakai di landing)
+
+Query string yang didukung: `?page=2`, `?kategori=Prestasi`, `?q=tim`. Filter bisa dikombinasikan.
+
+### `/berita/[slug]` — detail
+
+Layout artikel dengan typography setara berita media nasional:
+
+- Breadcrumb di paling atas
+- Category pill rose + tanggal
+- Judul raksasa (`clamp(2rem, 5vw, 3.5rem)`) dengan letter-spacing rapat
+- Lede paragraph
+- Cover image dengan **organic mask** (sama dengan landing)
+- **Share rail kiri** (sticky di desktop, horizontal di mobile): WhatsApp, Twitter/X, Facebook, copy-link
+- Body content rendered dari HTML editor (sanitized) dengan styling konsisten dengan editor
+- **Related posts** (3 berita: kategori sama dulu, lalu fallback ke berita terbaru)
+
+OG meta tags lengkap (`og:title`, `og:description`, `og:image`, `og:type`, `twitter:card`) untuk preview link di social media.
+
+## Editor stay-on-page
+
+Setelah klik **Save changes** di `/admin/news/:id`:
+
+- Halaman **tidak redirect** ke daftar
+- Server return JSON state success (`{ ok: true, savedAt, item }`)
+- Editor refresh internal state via `{#key item.id + item.updatedAt}` untuk re-mount
+- **Toast "Tersimpan"** muncul di pojok kanan-bawah (auto-dismiss 2.8 detik)
+- Local storage draft di-clear
+
+Untuk **create** (`/admin/news/new`), server tetap redirect ke `/admin/news/:id?created=1` setelah simpan, supaya:
+1. URL bisa di-bookmark
+2. Editor punya konteks `id` untuk save berikutnya
+3. Banner "Berita baru dipublikasikan" muncul di tujuan
+
+Hasil: bekerja seperti WordPress / Notion — tetap di halaman editor setelah save, free untuk lanjut edit.
