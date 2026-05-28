@@ -666,3 +666,60 @@ Untuk **create** (`/admin/news/new`), server tetap redirect ke `/admin/news/:id?
 3. Banner "Berita baru dipublikasikan" muncul di tujuan
 
 Hasil: bekerja seperti WordPress / Notion — tetap di halaman editor setelah save, free untuk lanjut edit.
+
+## Reader-friendly news features
+
+Halaman detail (`/berita/[slug]`) sekarang punya:
+
+### 1. Reading time + word count
+
+Di bawah lede, ada strip metadata:
+
+> 🕐 **5** menit baca · 📝 1.247 kata · 👁 234 dibaca
+
+- Reading time: berdasarkan ~200 kata/menit (kecepatan baca rata-rata Bahasa Indonesia), dibulatkan ke atas, minimal 1 menit
+- Word count: dihitung server-side dari plain text (HTML tags di-strip)
+- View count: lifetime visit dari tabel `page_views` (privacy-friendly hash, tidak ada IP raw)
+
+### 2. Reading progress bar
+
+Top-of-page bar yang mengikuti scroll progress di area konten artikel. Gradient `primary → accent` dengan glow halus. Tetap fixed di top, sticky di atas FloatingNavbar (z-index 60).
+
+### 3. Table of Contents (TOC) sidebar
+
+Sticky di sebelah kanan konten (desktop ≥ 1200px) dengan:
+
+- Auto-extract dari `<h2>`, `<h3>`, `<h4>` di body content
+- Indent level 3 dan level 4 untuk hierarki visual
+- **Active state** scroll-spy: section yang sedang dibaca highlight rose accent
+- Smooth scroll dengan offset 92px (biar landing tepat di bawah navbar)
+- URL hash auto-update saat klik (deep link friendly)
+- Border kiri abu-abu yang berubah accent rose untuk item active
+- Hanya muncul kalau artikel punya **2+ headings** (kalau cuma 1 atau 0, sembunyi otomatis — tidak masuk akal show TOC)
+
+Heading ID dibuat server-side dengan slugify ASCII (max 80 char) + dedupe counter (`-2`, `-3`, dst). Aman untuk URL fragment.
+
+### 4. Image lightbox
+
+Klik gambar mana pun di body artikel → buka full-screen overlay dengan:
+
+- Backdrop dark transparan + blur
+- Image fit contain (preserve aspect ratio)
+- Tombol close di pojok
+- Tutup dengan: klik backdrop, tombol ✕, atau tekan **Escape**
+- Cursor `zoom-in` di image (affordance), `zoom-out` di backdrop
+
+### 5. Anchor scroll behavior
+
+Headings dapat `scroll-margin-top: 6.5rem` agar saat user mengakses link `#section-id` (dari TOC, share, atau external), heading tidak ketutupan FloatingNavbar di atas.
+
+### Server-side processing pipeline
+
+Konten body diolah **sekali** server-side via `processContent()` di `src/lib/server/markdown.ts`:
+
+1. Sanitize whitelist tag/atribut/scheme (defense in depth)
+2. Inject `id` ke setiap h2/h3/h4 (regex pass)
+3. Build TOC tree
+4. Hitung word count + reading time
+
+Hasilnya di-cache via SvelteKit's `+page.server.ts` — dijalankan saat halaman di-request, tidak ada parsing client-side, tidak butuh JS untuk render TOC tampil. JS hanya untuk scroll-spy active state, smooth scroll, lightbox, dan progress bar.
