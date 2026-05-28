@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { programsRepo } from '$lib/server/repositories/programs';
 import { newsRepo } from '$lib/server/repositories/news';
 import { eventsRepo } from '$lib/server/repositories/events';
+import { recordPageView } from '$lib/server/analytics/track';
 
 /**
  * Loads homepage data directly from the repositories.
@@ -11,7 +12,10 @@ import { eventsRepo } from '$lib/server/repositories/events';
  * round-trip would just add latency and bypass the rate limiter for ourselves.
  * Public consumers (browser fetch, mobile app, etc.) still go through /api/*.
  */
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async (event) => {
+	// Fire-and-forget — never block render on analytics.
+	recordPageView(event, '/').catch((err) => console.error('[analytics]', err));
+
 	const [programsResult, newsResult, eventsResult] = await Promise.all([
 		programsRepo.list({ limit: 12, offset: 0 }),
 		newsRepo.list({ limit: 8, offset: 0 }),
@@ -32,6 +36,7 @@ export const load: PageServerLoad = async () => {
 			category: n.category,
 			date: n.date,
 			title: n.title,
+			slug: n.slug,
 			excerpt: n.excerpt,
 			image: n.image
 		})),

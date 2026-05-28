@@ -39,6 +39,15 @@ export const newsRepo = {
 			.then((rows) => rows[0] ?? null);
 	},
 
+	findBySlug(slug: string) {
+		return db
+			.select()
+			.from(news)
+			.where(eq(news.slug, slug))
+			.limit(1)
+			.then((rows) => rows[0] ?? null);
+	},
+
 	async create(input: CreateNewsInput) {
 		const [row] = await db.insert(news).values(input).returning();
 		return row;

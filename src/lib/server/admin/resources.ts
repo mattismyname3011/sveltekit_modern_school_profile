@@ -7,16 +7,17 @@
  *   - the repository (re-used from the API layer)
  *
  * Adding a new resource = register it here. The admin pages auto-pick it up.
+ *
+ * Note: `news` is intentionally NOT in this registry — it has a custom
+ * editor with markdown live preview at /admin/news/*.
  */
 import type { ZodSchema } from 'zod';
 import { programsRepo } from '$lib/server/repositories/programs';
-import { newsRepo } from '$lib/server/repositories/news';
 import { eventsRepo } from '$lib/server/repositories/events';
 import {
 	createProgramSchema,
 	updateProgramSchema
 } from '$lib/server/api/schemas/programs';
-import { createNewsSchema, updateNewsSchema } from '$lib/server/api/schemas/news';
 import { createEventSchema, updateEventSchema } from '$lib/server/api/schemas/events';
 
 export type FieldKind = 'text' | 'textarea' | 'url' | 'longtext';
@@ -74,21 +75,6 @@ const programsResource: AdminResource = {
 	]
 };
 
-const newsResource: AdminResource = {
-	slug: 'news',
-	label: 'News',
-	plural: 'News',
-	repo: newsRepo as unknown as RepoLike,
-	createSchema: createNewsSchema,
-	updateSchema: updateNewsSchema,
-	fields: [
-		{ name: 'category', label: 'Category', kind: 'text', required: true, listColumn: true },
-		{ name: 'date', label: 'Date label', kind: 'text', required: true, listColumn: true, hint: 'e.g. "12 Mei 2026"' },
-		{ name: 'title', label: 'Title', kind: 'text', required: true, listColumn: true },
-		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
-		{ name: 'image', label: 'Image URL', kind: 'url', required: true }
-	]
-};
 
 const eventsResource: AdminResource = {
 	slug: 'events',
@@ -111,7 +97,6 @@ const eventsResource: AdminResource = {
 
 export const ADMIN_RESOURCES: Record<string, AdminResource> = {
 	programs: programsResource,
-	news: newsResource,
 	events: eventsResource
 };
 

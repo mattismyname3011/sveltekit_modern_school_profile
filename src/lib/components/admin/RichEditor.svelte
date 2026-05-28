@@ -1,0 +1,1127 @@
+<script lang="ts">
+	/**
+	 * Inline contenteditable rich-text editor.
+	 *
+	 * Layout:
+	 *   ┌─────────────── Action bar (sticky top) ───────────────┐
+	 *   │ Cancel · /berita/[slug] · autosave-status · Preview  │
+	 *   │                                                · Save │
+	 *   ├──────┬────────────────────────────────────────────────┤
+	 *   │ Side │  Post canvas (looks like the public detail    │
+	 *   │ Tool │  page; everything is editable in place)       │
+	 *   │ bar  │                                                │
+	 *   └──────┴────────────────────────────────────────────────┘
+	 *
+	 * Side toolbar is always visible; no need to select text first.
+	 *
+	 * Autosave: on every change we debounce-save the full draft to
+	 * localStorage. On mount we check for a more recent local draft and
+	 * offer to restore it. Successful publish clears the draft.
+	 */
+	import { onMount } from 'svelte';
+	import { enhance } from '$app/forms';
+
+	type FormState = {
+		values?: Record<string, unknown>;
+		message?: string;
+		fieldErrors?: Record<string, string[] | undefined>;
+	};
+
+	type Props = {
+		initial?: Record<string, unknown> | null;
+		form?: FormState | null;
+		submitLabel: string;
+		cancelHref: string;
+		previewSlug?: string | null;
+	};
+
+	let { initial = null, form = null, submitLabel, cancelHref, previewSlug = null }: Props =
+		$props();
+
+	function pick(name: string, fallback = ''): string {
+		const v = form?.values?.[name] ?? initial?.[name];
+		if (v === null || v === undefined) return fallback;
+		return String(v);
+	}
+
+	// ---------- Editable state ----------
+	let title = $state(pick('title'));
+	let category = $state(pick('category', 'Berita'));
+	let date = $state(pick('date'));
+	let excerpt = $state(pick('excerpt'));
+	let image = $state(pick('image'));
+
+	// Slug — auto-generated until user manually edits.
+	const initialSlug = pick('slug');
+	let slug = $state(initialSlug);
+	let slugTouched = $state(initialSlug.length > 0);
+
+	$effect(() => {
+		if (!slugTouched && title) {
+			slug = title
+				.normalize('NFKD')
+				.replace(/[\u0300-\u036f]/g, '')
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, '-')
+				.replace(/^-+|-+$/g, '')
+				.slice(0, 120);
+		}
+	});
+
+	// Body — captured from contenteditable on input.
+	const initialContent = pick('content');
+	let bodyEl = $state<HTMLElement>();
+	let contentHtml = $state(initialContent);
+
+	let saving = $state(false);
+	let coverUploading = $state(false);
+	let coverError = $state<string | null>(null);
+
+	let activeStates = $state({
+		bold: false,
+		italic: false,
+		underline: false,
+		h2: false,
+		h3: false,
+		quote: false,
+		ul: false,
+		ol: false
+	});
+
+	function err(name: string): string | null {
+		return form?.fieldErrors?.[name]?.[0] ?? null;
+	}
+
+	// ---------- Format command helpers ----------
+
+	function refreshActiveStates() {
+		try {
+			activeStates = {
+				bold: document.queryCommandState('bold'),
+				italic: document.queryCommandState('italic'),
+				underline: document.queryCommandState('underline'),
+				h2: queryBlock('H2'),
+				h3: queryBlock('H3'),
+				quote: queryBlock('BLOCKQUOTE'),
+				ul: document.queryCommandState('insertUnorderedList'),
+				ol: document.queryCommandState('insertOrderedList')
+			};
+		} catch {
+			// queryCommandState can throw in some setups; safe to ignore.
+		}
+	}
+
+	function queryBlock(tag: string) {
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0) return false;
+		let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
+		while (node && node !== bodyEl) {
+			if (node.nodeType === 1 && (node as Element).tagName === tag) return true;
+			node = node.parentNode;
+		}
+		return false;
+	}
+
+	function exec(cmd: string, value?: string) {
+		bodyEl?.focus();
+		document.execCommand(cmd, false, value);
+		captureBody();
+		refreshActiveStates();
+	}
+
+	function applyBlock(tag: 'h2' | 'h3' | 'p' | 'blockquote') {
+		bodyEl?.focus();
+		const upper = tag.toUpperCase();
+		const isCurrent =
+			(upper === 'H2' && activeStates.h2) ||
+			(upper === 'H3' && activeStates.h3) ||
+			(upper === 'BLOCKQUOTE' && activeStates.quote);
+		document.execCommand('formatBlock', false, isCurrent ? 'P' : `<${tag}>`);
+		captureBody();
+		refreshActiveStates();
+	}
+
+	function makeLink() {
+		bodyEl?.focus();
+		const sel = window.getSelection();
+		if (!sel || sel.isCollapsed) {
+			alert('Pilih teks dulu untuk dijadikan link.');
+			return;
+		}
+		const url = window.prompt('URL link:', 'https://');
+		if (!url) return;
+		exec('createLink', url);
+	}
+
+	function clearFormatting() {
+		exec('removeFormat');
+	}
+
+	// ---------- Body capture (HTML → state) ----------
+
+	function captureBody() {
+		if (!bodyEl) return;
+		contentHtml = bodyEl.innerHTML;
+	}
+
+	function onPaste(e: ClipboardEvent) {
+		// Image paste → upload
+		const items = e.clipboardData?.items ?? [];
+		for (const item of items) {
+			if (item.kind === 'file' && item.type.startsWith('image/')) {
+				const file = item.getAsFile();
+				if (file) {
+					e.preventDefault();
+					handleInlineImage(file);
+					return;
+				}
+			}
+		}
+		// Text paste → strip rich formatting we don't support.
+		const text = e.clipboardData?.getData('text/plain');
+		if (text !== undefined) {
+			e.preventDefault();
+			document.execCommand('insertText', false, text);
+		}
+	}
+
+	async function onDrop(e: DragEvent) {
+		const file = e.dataTransfer?.files?.[0];
+		if (file && file.type.startsWith('image/')) {
+			e.preventDefault();
+			await handleInlineImage(file);
+		}
+	}
+
+	// ---------- Image upload ----------
+
+	async function uploadImage(file: File): Promise<string | null> {
+		const fd = new FormData();
+		fd.append('file', file);
+		const r = await fetch('/api/uploads', { method: 'POST', body: fd });
+		const j = await r.json();
+		if (!r.ok || !j.ok) return null;
+		return new URL(j.data.url, location.origin).toString();
+	}
+
+	async function handleInlineImage(file: File) {
+		const url = await uploadImage(file);
+		if (!url) {
+			alert('Upload gagal.');
+			return;
+		}
+		bodyEl?.focus();
+		const alt = file.name.replace(/\.[^.]+$/, '');
+		const html = `<figure class="md-figure"><img src="${url}" alt="${escapeAttr(alt)}" loading="lazy" /><figcaption>${escapeAttr(alt)}</figcaption></figure><p></p>`;
+		document.execCommand('insertHTML', false, html);
+		captureBody();
+	}
+
+	function escapeAttr(s: string): string {
+		return s
+			.replace(/&/g, '&amp;')
+			.replace(/"/g, '&quot;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+	}
+
+	function pickInlineImage() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (file) handleInlineImage(file);
+		};
+		input.click();
+	}
+
+	async function handleCoverUpload(file: File) {
+		coverUploading = true;
+		coverError = null;
+		try {
+			const url = await uploadImage(file);
+			if (!url) {
+				coverError = 'Upload gagal.';
+				return;
+			}
+			image = url;
+		} finally {
+			coverUploading = false;
+		}
+	}
+
+	function pickCover() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (file) handleCoverUpload(file);
+		};
+		input.click();
+	}
+
+	// ---------- Autosave to localStorage ----------
+
+	const draftKey = $derived(initial && initial.id ? `news-draft:${initial.id}` : 'news-draft:new');
+
+	type DraftPayload = {
+		title: string;
+		slug: string;
+		category: string;
+		date: string;
+		excerpt: string;
+		image: string;
+		content: string;
+		savedAt: string;
+	};
+
+	let autosaveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+	let lastSavedAt = $state<Date | null>(null);
+	let restoreBanner = $state<{ savedAt: Date; data: DraftPayload } | null>(null);
+	let suppressAutosave = $state(true); // true on mount; flips false after first user-driven change
+
+	let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+	let savedFlashTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function persistDraft() {
+		if (typeof localStorage === 'undefined') return;
+		const data: DraftPayload = {
+			title,
+			slug,
+			category,
+			date,
+			excerpt,
+			image,
+			content: contentHtml,
+			savedAt: new Date().toISOString()
+		};
+		try {
+			localStorage.setItem(draftKey, JSON.stringify(data));
+			autosaveStatus = 'saved';
+			lastSavedAt = new Date();
+			if (savedFlashTimer) clearTimeout(savedFlashTimer);
+			savedFlashTimer = setTimeout(() => {
+				if (autosaveStatus === 'saved') autosaveStatus = 'idle';
+			}, 2500);
+		} catch (e) {
+			console.error('[autosave]', e);
+			autosaveStatus = 'error';
+		}
+	}
+
+	function scheduleAutosave() {
+		if (suppressAutosave) return;
+		autosaveStatus = 'saving';
+		if (autosaveTimer) clearTimeout(autosaveTimer);
+		autosaveTimer = setTimeout(persistDraft, 800);
+	}
+
+	function clearDraft() {
+		if (typeof localStorage === 'undefined') return;
+		localStorage.removeItem(draftKey);
+		autosaveStatus = 'idle';
+		lastSavedAt = null;
+	}
+
+	function loadDraft(): { savedAt: Date; data: DraftPayload } | null {
+		if (typeof localStorage === 'undefined') return null;
+		try {
+			const raw = localStorage.getItem(draftKey);
+			if (!raw) return null;
+			const data = JSON.parse(raw) as DraftPayload;
+			const savedAt = new Date(data.savedAt);
+			// Skip if draft matches what's already on screen (no real diff to restore).
+			if (
+				data.title === pick('title') &&
+				data.content === pick('content') &&
+				data.excerpt === pick('excerpt') &&
+				data.image === pick('image') &&
+				data.slug === pick('slug')
+			) {
+				return null;
+			}
+			return { savedAt, data };
+		} catch {
+			return null;
+		}
+	}
+
+	function applyDraft() {
+		if (!restoreBanner) return;
+		const d = restoreBanner.data;
+		suppressAutosave = true;
+		title = d.title;
+		slug = d.slug;
+		slugTouched = true;
+		category = d.category;
+		date = d.date;
+		excerpt = d.excerpt;
+		image = d.image;
+		contentHtml = d.content;
+		if (bodyEl) bodyEl.innerHTML = d.content;
+		restoreBanner = null;
+		// Re-enable autosave next tick so the apply itself isn't re-saved immediately.
+		queueMicrotask(() => (suppressAutosave = false));
+	}
+
+	function discardDraft() {
+		clearDraft();
+		restoreBanner = null;
+	}
+
+	// Reactive autosave trigger — whenever any tracked field changes.
+	$effect(() => {
+		// Touch every editable field so Svelte tracks them all.
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		title;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		slug;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		category;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		date;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		excerpt;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		image;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		contentHtml;
+		scheduleAutosave();
+	});
+
+	// ---------- Lifecycle ----------
+
+	onMount(() => {
+		// Try to recover an unsaved draft.
+		const draft = loadDraft();
+		if (draft) restoreBanner = draft;
+
+		// Wait one tick before enabling autosave so the initial $effect run
+		// (triggered by the first paint) doesn't write a fresh draft.
+		queueMicrotask(() => (suppressAutosave = false));
+
+		document.addEventListener('selectionchange', refreshActiveStates);
+		return () => {
+			document.removeEventListener('selectionchange', refreshActiveStates);
+			if (autosaveTimer) clearTimeout(autosaveTimer);
+			if (savedFlashTimer) clearTimeout(savedFlashTimer);
+		};
+	});
+
+	// ---------- UI helpers ----------
+
+	function formatRelativeTime(d: Date | null): string {
+		if (!d) return '';
+		const sec = Math.max(0, Math.round((Date.now() - d.getTime()) / 1000));
+		if (sec < 5) return 'baru saja';
+		if (sec < 60) return `${sec} detik lalu`;
+		const min = Math.round(sec / 60);
+		if (min < 60) return `${min} menit lalu`;
+		const hr = Math.round(min / 60);
+		return `${hr} jam lalu`;
+	}
+
+	// Force re-render of relative time every 30s while editing.
+	let nowTick = $state(0);
+	$effect(() => {
+		const id = setInterval(() => (nowTick = (nowTick + 1) & 0xfff), 30_000);
+		return () => clearInterval(id);
+	});
+	const relativeText = $derived((nowTick, formatRelativeTime(lastSavedAt)));
+</script>
+
+<!-- Restore-draft banner -->
+{#if restoreBanner}
+	<div class="restore-banner">
+		<div class="rb-text">
+			Ada draft tersimpan dari <strong>{formatRelativeTime(restoreBanner.savedAt)}</strong>.
+			Pulihkan?
+		</div>
+		<div class="rb-actions">
+			<button type="button" class="adm-btn adm-btn-primary" onclick={applyDraft}>
+				Pulihkan draft
+			</button>
+			<button type="button" class="adm-btn" onclick={discardDraft}>Buang</button>
+		</div>
+	</div>
+{/if}
+
+{#if form?.message}
+	<div class="adm-flash adm-flash-error">{form.message}</div>
+{/if}
+
+<form
+	method="POST"
+	class="re-form"
+	use:enhance={() => {
+		captureBody();
+		saving = true;
+		return async ({ result, update }) => {
+			await update();
+			saving = false;
+			// Server actions throw redirect on success.
+			if (result.type === 'redirect') clearDraft();
+		};
+	}}
+>
+	<!-- Hidden inputs that get sent to the server -->
+	<input type="hidden" name="title" value={title} />
+	<input type="hidden" name="slug" value={slug} />
+	<input type="hidden" name="category" value={category} />
+	<input type="hidden" name="date" value={date} />
+	<input type="hidden" name="excerpt" value={excerpt} />
+	<input type="hidden" name="image" value={image} />
+	<input type="hidden" name="content" value={contentHtml} />
+
+	<!-- Sticky action bar -->
+	<div class="actionbar">
+		<a href={cancelHref} class="adm-btn">← Batal</a>
+
+		<div class="ab-meta">
+			<span class="slug-prefix">/berita/</span>
+			<input
+				type="text"
+				class="slug-input"
+				placeholder="slug-url"
+				bind:value={slug}
+				oninput={() => (slugTouched = true)}
+				maxlength="120"
+			/>
+			{#if err('slug')}<span class="adm-flash adm-flash-error inline">{err('slug')}</span>{/if}
+		</div>
+
+		<!-- Autosave status -->
+		<div class="autosave" data-status={autosaveStatus}>
+			{#if autosaveStatus === 'saving'}
+				<span class="dot saving"></span>
+				<span>Menyimpan…</span>
+			{:else if autosaveStatus === 'saved'}
+				<span class="dot saved"></span>
+				<span>Draft disimpan</span>
+			{:else if autosaveStatus === 'error'}
+				<span class="dot error"></span>
+				<span>Gagal autosave</span>
+			{:else if lastSavedAt}
+				<span class="dot idle"></span>
+				<span>Draft · {relativeText}</span>
+			{/if}
+		</div>
+
+		<div class="ab-actions">
+			{#if previewSlug}
+				<a class="adm-btn" href={`/berita/${previewSlug}`} target="_blank" rel="noopener">
+					Preview ↗
+				</a>
+			{/if}
+			<button type="submit" class="adm-btn adm-btn-primary" disabled={saving}>
+				{saving ? 'Menyimpan…' : submitLabel}
+			</button>
+		</div>
+	</div>
+
+	<!-- Editor body with side toolbar -->
+	<div class="editor-shell">
+		<aside class="side-toolbar" aria-label="Format toolbar" onmousedown={(e) => e.preventDefault()}>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.bold}
+				onclick={() => exec('bold')}
+				title="Bold (Ctrl+B)"
+				aria-label="Bold"
+			>
+				<strong>B</strong>
+			</button>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.italic}
+				onclick={() => exec('italic')}
+				title="Italic (Ctrl+I)"
+				aria-label="Italic"
+			>
+				<em>I</em>
+			</button>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.underline}
+				onclick={() => exec('underline')}
+				title="Underline (Ctrl+U)"
+				aria-label="Underline"
+			>
+				<u>U</u>
+			</button>
+
+			<span class="tb-sep" aria-hidden="true"></span>
+
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.h2}
+				onclick={() => applyBlock('h2')}
+				title="Heading 2"
+				aria-label="Heading 2"
+			>
+				<span class="tb-text">H2</span>
+			</button>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.h3}
+				onclick={() => applyBlock('h3')}
+				title="Heading 3"
+				aria-label="Heading 3"
+			>
+				<span class="tb-text">H3</span>
+			</button>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.quote}
+				onclick={() => applyBlock('blockquote')}
+				title="Quote"
+				aria-label="Blockquote"
+			>
+				❝
+			</button>
+
+			<span class="tb-sep" aria-hidden="true"></span>
+
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.ul}
+				onclick={() => exec('insertUnorderedList')}
+				title="Bullet list"
+				aria-label="Bullet list"
+			>
+				•
+			</button>
+			<button
+				type="button"
+				class="tb"
+				class:active={activeStates.ol}
+				onclick={() => exec('insertOrderedList')}
+				title="Numbered list"
+				aria-label="Numbered list"
+			>
+				1.
+			</button>
+
+			<span class="tb-sep" aria-hidden="true"></span>
+
+			<button type="button" class="tb" onclick={makeLink} title="Insert link" aria-label="Insert link">
+				🔗
+			</button>
+			<button
+				type="button"
+				class="tb"
+				onclick={pickInlineImage}
+				title="Insert image"
+				aria-label="Insert image"
+			>
+				📷
+			</button>
+
+			<span class="tb-sep" aria-hidden="true"></span>
+
+			<button
+				type="button"
+				class="tb"
+				onclick={clearFormatting}
+				title="Clear formatting"
+				aria-label="Clear formatting"
+			>
+				✕
+			</button>
+		</aside>
+
+		<article class="post-canvas">
+			<!-- Cover area -->
+			{#if image}
+				<div class="cover">
+					<img src={image} alt="Cover" />
+					<div class="cover-actions">
+						<button type="button" class="ghost-btn" onclick={pickCover} disabled={coverUploading}>
+							{coverUploading ? '⏳ Uploading…' : 'Ganti cover'}
+						</button>
+						<button type="button" class="ghost-btn" onclick={() => (image = '')}>
+							Hapus cover
+						</button>
+					</div>
+				</div>
+			{:else}
+				<button
+					type="button"
+					class="cover-empty"
+					onclick={pickCover}
+					disabled={coverUploading}
+				>
+					{coverUploading ? '⏳ Uploading…' : '+ Tambah cover image'}
+				</button>
+			{/if}
+			{#if coverError}<div class="field-error">{coverError}</div>{/if}
+			{#if err('image')}<div class="field-error">{err('image')}</div>{/if}
+
+			<div class="meta-row">
+				<input
+					type="text"
+					class="meta-cat"
+					placeholder="Kategori"
+					bind:value={category}
+					maxlength="60"
+				/>
+				<span class="dot-sep">·</span>
+				<input
+					type="text"
+					class="meta-date"
+					placeholder="12 Mei 2026"
+					bind:value={date}
+					maxlength="40"
+				/>
+			</div>
+			{#if err('category')}<div class="field-error">{err('category')}</div>{/if}
+			{#if err('date')}<div class="field-error">{err('date')}</div>{/if}
+
+			<input
+				type="text"
+				class="title-input"
+				placeholder="Judul berita…"
+				bind:value={title}
+				maxlength="200"
+			/>
+			{#if err('title')}<div class="field-error">{err('title')}</div>{/if}
+
+			<textarea
+				class="excerpt-input"
+				placeholder="Ringkasan singkat (muncul di kartu homepage)…"
+				bind:value={excerpt}
+				rows="2"
+				maxlength="500"
+			></textarea>
+			{#if err('excerpt')}<div class="field-error">{err('excerpt')}</div>{/if}
+
+			<div
+				bind:this={bodyEl}
+				class="body-edit md-content"
+				contenteditable="true"
+				role="textbox"
+				tabindex="0"
+				aria-multiline="true"
+				aria-label="Isi berita"
+				data-placeholder="Mulai menulis di sini. Pakai toolbar di samping kiri untuk format teks. Drag-drop atau paste image untuk menambahkannya."
+				oninput={captureBody}
+				onpaste={onPaste}
+				ondragover={(e) => e.preventDefault()}
+				ondrop={onDrop}
+			>
+				{@html initialContent}
+			</div>
+			{#if err('content')}<div class="field-error">{err('content')}</div>{/if}
+		</article>
+	</div>
+</form>
+
+<style>
+	.restore-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		padding: 0.875rem 1rem;
+		border-radius: 0.625rem;
+		background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(99, 102, 241, 0.1));
+		border: 1px solid rgba(56, 189, 248, 0.3);
+		color: #e0f2fe;
+		margin-bottom: 1rem;
+	}
+
+	.rb-text {
+		font-size: 0.875rem;
+	}
+
+	.rb-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.re-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	/* ---------- Sticky action bar ---------- */
+	.actionbar {
+		position: sticky;
+		top: 0;
+		z-index: 20;
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		padding: 0.75rem 1.25rem;
+		margin: -2.5rem -3rem 1rem;
+		background: rgba(2, 6, 23, 0.85);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+		flex-wrap: wrap;
+	}
+
+	@media (max-width: 1024px) {
+		.actionbar {
+			margin: -1.25rem -1.25rem 1rem;
+		}
+	}
+
+	.ab-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		flex: 1;
+		min-width: 12rem;
+	}
+
+	.slug-prefix {
+		color: #64748b;
+		font-size: 0.8125rem;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	}
+
+	.slug-input {
+		flex: 1;
+		min-width: 8rem;
+		padding: 0.375rem 0.625rem;
+		border-radius: 0.375rem;
+		background: rgba(15, 23, 42, 0.6);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		color: #f1f5f9;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.8125rem;
+		outline: none;
+	}
+
+	.slug-input:focus {
+		border-color: rgba(56, 189, 248, 0.5);
+	}
+
+	.adm-flash.inline {
+		margin: 0;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.75rem;
+	}
+
+	.ab-actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	/* Autosave status pill */
+	.autosave {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.75rem;
+		color: #94a3b8;
+		font-weight: 500;
+		min-height: 1.5rem;
+	}
+
+	.autosave .dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: #64748b;
+	}
+
+	.autosave .dot.saved {
+		background: #34d399;
+		box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+	}
+
+	.autosave .dot.saving {
+		background: #fbbf24;
+		animation: pulse 1.2s ease-in-out infinite;
+	}
+
+	.autosave .dot.error {
+		background: #fb7185;
+	}
+
+	.autosave .dot.idle {
+		background: #475569;
+	}
+
+	@keyframes pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.35; }
+	}
+
+	/* ---------- Editor layout: side toolbar + canvas ---------- */
+	.editor-shell {
+		display: grid;
+		grid-template-columns: 2.75rem 1fr;
+		gap: 1.25rem;
+		max-width: calc(720px + 2.75rem + 1.25rem);
+		margin: 0 auto;
+		padding: 0 0 4rem;
+	}
+
+	@media (max-width: 720px) {
+		.editor-shell {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.side-toolbar {
+		position: sticky;
+		top: 5rem;
+		align-self: start;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		padding: 0.375rem;
+		background: rgba(15, 23, 42, 0.55);
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		border-radius: 0.625rem;
+		backdrop-filter: blur(8px);
+	}
+
+	@media (max-width: 720px) {
+		.side-toolbar {
+			position: sticky;
+			top: 4rem;
+			z-index: 15;
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+	}
+
+	.tb {
+		background: transparent;
+		border: 0;
+		color: #cbd5e1;
+		padding: 0;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.375rem;
+		font-size: 0.875rem;
+		font-weight: 700;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: background-color 120ms ease, color 120ms ease;
+	}
+
+	.tb:hover {
+		background: rgba(56, 189, 248, 0.12);
+		color: #f1f5f9;
+	}
+
+	.tb.active {
+		background: rgba(56, 189, 248, 0.2);
+		color: #38bdf8;
+	}
+
+	.tb-text {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.6875rem;
+	}
+
+	.tb-sep {
+		display: block;
+		height: 1px;
+		background: rgba(148, 163, 184, 0.18);
+		margin: 0.25rem 0.125rem;
+	}
+
+	@media (max-width: 720px) {
+		.tb-sep {
+			width: 1px;
+			height: 1.25rem;
+			margin: 0 0.125rem;
+		}
+	}
+
+	/* ---------- Post canvas ---------- */
+	.post-canvas {
+		max-width: 720px;
+		color: #e2e8f0;
+	}
+
+	.cover {
+		position: relative;
+		border-radius: 1rem;
+		overflow: hidden;
+		aspect-ratio: 16/9;
+		margin-bottom: 1.5rem;
+		background: rgba(15, 23, 42, 0.5);
+	}
+
+	.cover img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.cover-actions {
+		position: absolute;
+		bottom: 0.625rem;
+		right: 0.625rem;
+		display: flex;
+		gap: 0.375rem;
+	}
+
+	.ghost-btn {
+		padding: 0.375rem 0.625rem;
+		border-radius: 0.375rem;
+		background: rgba(2, 6, 23, 0.75);
+		border: 1px solid rgba(148, 163, 184, 0.25);
+		color: #f1f5f9;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+		backdrop-filter: blur(8px);
+	}
+
+	.ghost-btn:hover:not(:disabled) {
+		border-color: rgba(56, 189, 248, 0.5);
+	}
+
+	.ghost-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.cover-empty {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16/9;
+		margin-bottom: 1.5rem;
+		border: 2px dashed rgba(148, 163, 184, 0.3);
+		border-radius: 1rem;
+		background: transparent;
+		color: #64748b;
+		font-size: 0.95rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 150ms ease;
+	}
+
+	.cover-empty:hover:not(:disabled) {
+		border-color: rgba(56, 189, 248, 0.5);
+		color: #38bdf8;
+		background: rgba(56, 189, 248, 0.04);
+	}
+
+	.meta-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.875rem;
+	}
+
+	.meta-cat,
+	.meta-date {
+		padding: 0.125rem 0.25rem;
+		border: 0;
+		background: transparent;
+		color: #e11d48;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		outline: none;
+		font-family: inherit;
+	}
+
+	.meta-cat {
+		min-width: 8rem;
+	}
+
+	.meta-date {
+		color: #94a3b8;
+		min-width: 8rem;
+	}
+
+	.meta-cat:focus,
+	.meta-date:focus {
+		background: rgba(56, 189, 248, 0.06);
+		border-radius: 0.25rem;
+	}
+
+	.dot-sep {
+		color: #475569;
+		font-weight: 700;
+	}
+
+	.title-input {
+		display: block;
+		width: 100%;
+		padding: 0;
+		margin: 0 0 1rem;
+		border: 0;
+		background: transparent;
+		color: #f8fafc;
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: clamp(1.875rem, 4vw, 2.75rem);
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+		outline: none;
+		resize: none;
+	}
+
+	.title-input::placeholder {
+		color: #475569;
+	}
+
+	.excerpt-input {
+		display: block;
+		width: 100%;
+		padding: 0;
+		margin: 0 0 2.25rem;
+		border: 0;
+		background: transparent;
+		color: #cbd5e1;
+		font-family: inherit;
+		font-size: 1.125rem;
+		line-height: 1.7;
+		outline: none;
+		resize: none;
+	}
+
+	.excerpt-input::placeholder {
+		color: #475569;
+	}
+
+	.body-edit {
+		min-height: 16rem;
+		outline: none;
+		font-size: 1.0625rem;
+		line-height: 1.75;
+		color: #e2e8f0;
+	}
+
+	.body-edit:empty::before {
+		content: attr(data-placeholder);
+		color: #475569;
+		font-style: italic;
+	}
+
+	.body-edit:focus {
+		outline: none;
+	}
+
+	.field-error {
+		color: #fda4af;
+		font-size: 0.75rem;
+		margin: 0.5rem 0;
+	}
+</style>

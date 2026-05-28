@@ -98,46 +98,57 @@ const newsSeed: (typeof news.$inferInsert)[] = [
 		category: 'Prestasi',
 		date: '12 Mei 2026',
 		title: 'Tim Robotik Raih Juara 2 Tingkat Provinsi',
+		slug: 'tim-robotik-raih-juara-2-tingkat-provinsi',
 		excerpt:
 			'Lima siswa SMP 1 Anggana berhasil membawa pulang trofi setelah final ketat di Samarinda. Mereka mengalahkan 24 sekolah lainnya.',
 		image:
-			'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop'
+			'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop',
+		content:
+			'<h2>Perjalanan menuju juara</h2><p>Tim <strong>Robotik SMP 1 Anggana</strong> mengikuti kompetisi tingkat provinsi yang berlangsung selama 3 hari di Samarinda. Tahun ini, mereka mempersiapkan robot line-follower yang lebih akurat dengan tambahan sensor IR.</p><blockquote><p>"Kami latihan tiap sore selama dua bulan terakhir." — Andi, kapten tim</p></blockquote><h3>Apa selanjutnya?</h3><ul><li>Persiapan untuk tingkat nasional di Jakarta</li><li>Rekrutmen anggota baru kelas VII</li><li>Workshop terbuka untuk siswa lain</li></ul><p>Selamat untuk para siswa hebat ini!</p>'
 	},
 	{
 		category: 'Akademik',
 		date: '8 Mei 2026',
 		title: 'Kurikulum STEAM Diluncurkan Tahun Ini',
+		slug: 'kurikulum-steam-diluncurkan-tahun-ini',
 		excerpt:
 			'Kurikulum baru memadukan Science, Technology, Engineering, Arts, dan Mathematics dengan proyek lintas mata pelajaran.',
 		image:
-			'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop'
+			'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1400&auto=format&fit=crop',
+		content: null
 	},
 	{
 		category: 'Kegiatan',
 		date: '4 Mei 2026',
 		title: 'Bakti Sosial Siswa di Desa Sungai Mariam',
+		slug: 'bakti-sosial-siswa-di-desa-sungai-mariam',
 		excerpt:
 			'Pengabdian masyarakat sebagai bagian dari pendidikan karakter, melibatkan 120 siswa kelas IX dalam tiga hari kegiatan.',
 		image:
-			'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop'
+			'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop',
+		content: null
 	},
 	{
 		category: 'Olahraga',
 		date: '28 Apr 2026',
 		title: 'Tim Basket Sekolah Lolos ke Final Daerah',
+		slug: 'tim-basket-sekolah-lolos-ke-final-daerah',
 		excerpt:
 			'Setelah semifinal yang dramatis melawan SMP 5 Tenggarong, tim putra sekolah memastikan tiket ke final tingkat kabupaten.',
 		image:
-			'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop'
+			'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop',
+		content: null
 	},
 	{
 		category: 'Sekolah',
 		date: '20 Apr 2026',
 		title: 'Renovasi Lab Komputer Selesai Dilakukan',
+		slug: 'renovasi-lab-komputer-selesai-dilakukan',
 		excerpt:
 			'Fasilitas baru dengan 36 unit komputer dan jaringan fiber optik siap digunakan untuk pembelajaran semester depan.',
 		image:
-			'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop'
+			'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop',
+		content: null
 	}
 ];
 

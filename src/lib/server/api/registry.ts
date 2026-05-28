@@ -339,6 +339,15 @@ const news: ResourceDoc = {
 					description: { id: 'Judul.', en: 'Title.' }
 				},
 				{
+					name: 'slug',
+					type: 'string (3–120)',
+					required: true,
+					description: {
+						id: 'URL slug, format huruf kecil + dash. Mis. "tim-robotik-juara".',
+						en: 'URL slug, lowercase + dashes. e.g. "tim-robotik-juara".'
+					}
+				},
+				{
 					name: 'excerpt',
 					type: 'string (1–500)',
 					required: true,
@@ -348,7 +357,15 @@ const news: ResourceDoc = {
 					name: 'image',
 					type: 'string (URL https)',
 					required: true,
-					description: { id: 'URL gambar.', en: 'Image URL.' }
+					description: { id: 'URL gambar cover.', en: 'Cover image URL.' }
+				},
+				{
+					name: 'content',
+					type: 'string | null',
+					description: {
+						id: 'Konten panjang dalam markdown (opsional, max 50000 char).',
+						en: 'Long-form markdown content (optional, max 50000 chars).'
+					}
 				}
 			]
 		},

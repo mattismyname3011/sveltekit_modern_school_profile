@@ -577,4 +577,88 @@
 		border: 1px solid rgba(52, 211, 153, 0.3);
 		color: #6ee7b7;
 	}
+
+	/* ---------- WYSIWYG body styling (used inside RichEditor's contenteditable region) ---------- */
+	:global(.adm-content), :global(.body-edit) {
+		color: #e2e8f0;
+		line-height: 1.75;
+		font-size: 1.0625rem;
+	}
+
+	:global(.body-edit h1),
+	:global(.body-edit h2),
+	:global(.body-edit h3),
+	:global(.body-edit h4) {
+		color: #f8fafc;
+		font-weight: 800;
+		margin: 1.5em 0 0.5em;
+		line-height: 1.25;
+	}
+
+	:global(.body-edit h2) {
+		font-size: 1.5rem;
+	}
+	:global(.body-edit h3) {
+		font-size: 1.25rem;
+	}
+
+	:global(.body-edit p) {
+		margin: 0.875em 0;
+	}
+
+	:global(.body-edit a) {
+		color: #38bdf8;
+		text-decoration: underline;
+	}
+
+	:global(.body-edit img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: 0.625rem;
+		display: block;
+	}
+
+	:global(.body-edit figure) {
+		margin: 1.25em 0;
+	}
+
+	:global(.body-edit figcaption) {
+		color: #94a3b8;
+		font-size: 0.8125rem;
+		text-align: center;
+		margin-top: 0.5em;
+	}
+
+	:global(.body-edit blockquote) {
+		border-left: 3px solid rgba(56, 189, 248, 0.5);
+		padding: 0.25em 0.875em;
+		color: #cbd5e1;
+		margin: 1em 0;
+		background: rgba(56, 189, 248, 0.04);
+		border-radius: 0 0.375em 0.375em 0;
+	}
+
+	:global(.body-edit ul),
+	:global(.body-edit ol) {
+		padding-left: 1.5em;
+		margin: 0.75em 0;
+	}
+
+	:global(.body-edit li) {
+		margin: 0.25em 0;
+	}
+
+	:global(.body-edit code) {
+		background: rgba(148, 163, 184, 0.12);
+		padding: 0.0625em 0.375em;
+		border-radius: 0.25em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.875em;
+	}
+
+	:global(.body-edit hr) {
+		border: 0;
+		border-top: 1px solid rgba(148, 163, 184, 0.2);
+		margin: 1.5em 0;
+	}
 </style>

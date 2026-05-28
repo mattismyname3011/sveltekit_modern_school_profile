@@ -486,3 +486,93 @@ Action yang sudah ter-instrumentasi otomatis:
 | `user.activate`      | aktifkan kembali akun                 |
 
 Logging dipisah ke fungsi `audit()` di `src/lib/server/audit/log.ts` sehingga tidak mengganggu logika aksi utama (kalau insert log gagal, action tetap berhasil — error hanya di-log ke server console).
+
+## News editor (inline WYSIWYG, ala WordPress / Notion)
+
+`/admin/news/new` dan `/admin/news/:id` membuka editor full-page yang **mereplikasi tampilan halaman publik**. Tidak ada formulir terpisah — kamu klik di area mana pun lalu mengetik langsung di tempatnya:
+
+- **Cover image** klik kotak placeholder → dialog upload muncul. Setelah ada, hover untuk **Ganti cover** atau **Hapus cover**.
+- **Kategori** dan **tanggal** di atas judul → klik untuk edit di tempat.
+- **Judul** → typography raksasa, klik untuk ketik.
+- **Excerpt** → klik untuk ketik ringkasan singkat (digunakan di kartu homepage).
+- **Body** → contenteditable area. Tulis paragraf, atau paste/drag image untuk upload otomatis.
+- **Slug** → editable di top action bar. Auto-generate dari judul sampai kamu sentuh field-nya.
+
+### Bubble toolbar (selection-driven)
+
+Saat kamu **menyeleksi teks di body**, sebuah bubble toolbar muncul tepat di atas seleksi dengan tombol:
+
+| Tombol | Fungsi |
+| ------ | ------ |
+| **B** / *I* / __U__ | Bold / italic / underline (Ctrl+B/I/U juga jalan native) |
+| H2 / H3 | Heading level 2 dan 3 |
+| ❝ | Toggle blockquote |
+| • / 1. | Bullet list / numbered list |
+| 🔗 | Insert link (browser prompt URL) |
+| 📷 | Insert image (file picker; juga: paste atau drag-drop) |
+| ✕ | Clear formatting |
+
+Tombol active state otomatis ter-highlight kalau seleksi sudah dalam format itu (mis. seleksi di dalam `<h2>` → tombol H2 highlight; klik lagi untuk kembali ke paragraph).
+
+### Image upload
+
+Tiga cara, semua otomatis upload ke `/api/uploads`, dapat URL `/uploads/<sha256>.<ext>`, lalu insert sebagai `<figure><img ...><figcaption>...</figcaption></figure>`:
+
+1. **Tombol 📷** di bubble toolbar (saat ada seleksi atau cursor di body)
+2. **Paste** image dari clipboard
+3. **Drag &amp; drop** file image ke area body
+
+### Cara kerja teknis
+
+- Storage: HTML (bukan markdown lagi). Disanitasi server-side di-save **dan** di-render via `sanitize-html` dengan whitelist tag/atribut.
+- Editor pakai `contenteditable="true"` native + `document.execCommand` untuk format. Reliable cross-browser, no library dependency.
+- Sticky action bar di atas dengan tombol Cancel/Preview/Publish-Save.
+- Form action SvelteKit standar — semua field tersinkron ke hidden input saat submit, sehingga progressive enhancement tetap jalan.
+
+### Public detail
+
+`/berita/:slug` masih sama — render HTML yang sudah disanitasi server-side.
+
+### Image upload pipeline
+
+`POST /api/uploads` (admin auth, 30 req/menit, multipart/form-data):
+
+| Validasi              | Detail |
+| --------------------- | ------ |
+| Auth                  | Bearer token atau session admin (sama dengan endpoint write lain) |
+| MIME whitelist        | `image/jpeg`, `image/png`, `image/webp`, `image/gif` |
+| Magic-byte sniff      | Validasi header file 4–12 byte pertama, ngga trust client-declared MIME |
+| Size limit            | 5 MB |
+| Filename              | sha256 dari isi file → idempotent (upload yang sama 2x → URL sama, tanpa duplikat) |
+| Storage               | `static/uploads/<hash>.<ext>`, langsung di-serve di `/uploads/<hash>.<ext>` oleh SvelteKit |
+| Migrasi nanti         | Tinggal swap `src/lib/server/storage.ts` ke S3/R2; API surface sama |
+
+Audit log otomatis tercatat (`resource: 'uploads'`).
+
+## Dashboard analytics
+
+Tabel `page_views` tracking kunjungan publik dengan privacy-first:
+
+- **Tidak ada raw IP** disimpan. `visitor_hash = sha256(ip + ua + dailyKey + processSalt)`.
+- Salt baru tiap restart proses, jadi hash lama ngga bisa di-rebuild walau full DB + code bocor.
+- Bot UA otomatis di-skip (`googlebot`, `whatsapp`, `telegrambot`, dll).
+- Endpoint `/admin` dan `/api/*` ngga ditrack.
+
+Helper `recordPageView(event, path)` dipanggil **fire-and-forget** dari `+page.server.ts` halaman publik. Sudah aktif di:
+
+- `/` (homepage)
+- `/berita/:slug` (detail berita)
+
+Tambah halaman publik baru? Cukup `import { recordPageView } from '$lib/server/analytics/track';` lalu panggil di load function.
+
+### Halaman overview `/admin`
+
+Menampilkan:
+
+- 3 tile content count (programs/news/events)
+- 3 stat traffic: views hari ini, 7 hari (+ unique), 30 hari (+ unique)
+- Chart 30-hari (SVG inline, no library) dengan dua garis: views (solid) dan uniques (dashed)
+- **Top news**: 5 berita dengan kunjungan terbanyak (rank list dengan link preview)
+- **Top pages**: 10 URL publik teratas (semua path, bukan cuma berita)
+
+Query SQL pakai `count(DISTINCT visitor_hash)` agar unique visitors akurat untuk window apa pun. Index `(path, created_at)` dan `(visitor_hash, created_at)` di tabel sudah dipasang sehingga query tetap cepat saat tabel jutaan row.
