@@ -66,14 +66,17 @@
 				</div>
 
 				<!-- Search -->
-				<form class="search-form">
-					{#if data.filters.category}<input type="hidden" name="kategori" value={data.filters.category} />{/if}
+				<form method="get" action="/berita" class="search-form">
+					{#if data.filters.category}
+						<input type="hidden" name="kategori" value={data.filters.category} />
+					{/if}
 					<input
 						type="text"
 						name="q"
 						value={data.filters.q}
 						placeholder="Cari berita…"
 						class="search-input"
+						autocomplete="off"
 					/>
 					<button type="submit" class="search-btn" aria-label="Cari">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -81,6 +84,11 @@
 							<path d="m21 21-4.3-4.3" />
 						</svg>
 					</button>
+					{#if data.filters.q}
+						<a href={urlWith({ q: null, page: null })} class="search-clear" title="Hapus pencarian" aria-label="Hapus pencarian">
+							✕
+						</a>
+					{/if}
 				</form>
 			</div>
 		</div>
@@ -91,7 +99,7 @@
 		<section class="px-4 md:px-8 pb-6">
 			<div class="max-w-7xl mx-auto flex flex-wrap gap-2 items-center">
 				<a
-					href={urlWith({ kategori: null, page: null })}
+					href={urlWith({ kategori: null, page: null, q: null })}
 					class="chip"
 					class:active={!data.filters.category}
 				>
@@ -99,7 +107,7 @@
 				</a>
 				{#each data.categories as c (c)}
 					<a
-						href={urlWith({ kategori: c, page: null })}
+						href={urlWith({ kategori: c, page: null, q: null })}
 						class="chip"
 						class:active={data.filters.category === c}
 					>
@@ -214,11 +222,13 @@
 		display: flex;
 		gap: 0.375rem;
 		align-items: center;
+		position: relative;
 	}
 
 	.search-input {
 		min-width: 14rem;
 		padding: 0.625rem 0.875rem;
+		padding-right: 2.5rem;
 		border-radius: 9999px;
 		border: 1px solid #e5e7eb;
 		background: #ffffff;
@@ -231,6 +241,30 @@
 	.search-input:focus {
 		border-color: #0b2e4f;
 		box-shadow: 0 0 0 3px rgba(11, 46, 79, 0.08);
+	}
+
+	.search-clear {
+		position: absolute;
+		right: 3.25rem;
+		top: 50%;
+		transform: translateY(-50%);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 9999px;
+		background: rgba(15, 23, 42, 0.06);
+		color: #475569;
+		text-decoration: none;
+		font-size: 0.75rem;
+		line-height: 1;
+		transition: all 150ms ease;
+	}
+
+	.search-clear:hover {
+		background: #0b2e4f;
+		color: #fff;
 	}
 
 	.search-btn {
