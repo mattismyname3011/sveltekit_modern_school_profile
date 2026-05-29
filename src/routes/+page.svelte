@@ -132,7 +132,7 @@
 		viewAllLabel="Baca Selengkapnya"
 	>
 		{#each news as n}
-			<NewsCard {...n} />
+			<NewsCard {...n} href={`/berita/${n.slug}`} />
 		{/each}
 	</Carousel>
 

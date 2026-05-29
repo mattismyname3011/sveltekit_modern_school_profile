@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { theme } from '$lib/theme.svelte';
 
 	interface Article {
 		date: string;
@@ -55,6 +56,7 @@
 	let showScrollTop = $state(false);
 
 	onMount(() => {
+		theme.hydrate();
 		const onScroll = () => (showScrollTop = window.scrollY > 600);
 		window.addEventListener('scroll', onScroll, { passive: true });
 		onScroll();
@@ -63,6 +65,17 @@
 
 	function scrollTop() {
 		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function themeLabel(): string {
+		switch (theme.pref) {
+			case 'light':
+				return 'Mode terang';
+			case 'dark':
+				return 'Mode gelap';
+			default:
+				return 'Otomatis';
+		}
 	}
 </script>
 
@@ -255,6 +268,36 @@
 
 	<!-- ================ Floating action buttons ================ -->
 	<div class="fixed right-5 md:right-7 bottom-5 md:bottom-7 z-40 flex flex-col gap-3">
+		<!-- Theme toggle -->
+		<button
+			type="button"
+			onclick={() => theme.cycle()}
+			aria-label={`Tema: ${themeLabel()}. Klik untuk ganti.`}
+			title={`Tema: ${themeLabel()}`}
+			class="theme-fab w-12 h-12 rounded-full grid place-items-center
+			       shadow-xl transition-all duration-300 hover:-translate-y-0.5
+			       focus:outline-none focus-visible:ring-4"
+		>
+			{#if theme.pref === 'dark'}
+				<!-- moon -->
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+				</svg>
+			{:else if theme.pref === 'light'}
+				<!-- sun -->
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="12" cy="12" r="4" />
+					<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+				</svg>
+			{:else}
+				<!-- auto: half-disc -->
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="12" cy="12" r="9" />
+					<path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" />
+				</svg>
+			{/if}
+		</button>
+
 		<!-- Accessibility shortcut -->
 		<button
 			type="button"
@@ -290,3 +333,24 @@
 		</button>
 	</div>
 </footer>
+
+<style>
+	/* Theme toggle FAB — colored to match the brand in light mode and the
+	   dark surface in dark mode. Uses CSS variables so theme flip is
+	   instant without re-rendering. */
+	.theme-fab {
+		background: var(--color-primary, #0b2e4f);
+		color: #ffffff;
+		box-shadow: 0 14px 30px -10px rgba(11, 46, 79, 0.55);
+	}
+
+	.theme-fab:focus-visible {
+		--tw-ring-color: rgba(11, 46, 79, 0.4);
+	}
+
+	:global([data-theme='dark']) .theme-fab {
+		background: #ffffff;
+		color: #0b2e4f;
+		box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.7);
+	}
+</style>

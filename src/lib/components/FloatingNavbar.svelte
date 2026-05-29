@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { page } from '$app/state';
 
 	interface NavItem {
 		label: string;
@@ -20,6 +21,24 @@
 		],
 		brand = 'SMP 1 Anggana'
 	}: Props = $props();
+
+	/**
+	 * Hash-only links (`#tentang`) only work as in-page anchors when we're
+	 * actually on the homepage. On any other route they would resolve
+	 * against the current URL — clicking "Beranda" from `/berita/abc`
+	 * would land at `/berita/abc#beranda`, which is wrong.
+	 *
+	 * Rewrite hash hrefs to absolute `/` + hash whenever we're not on the
+	 * homepage; SvelteKit will navigate home and then scroll to the anchor.
+	 */
+	const onHome = $derived(page.url.pathname === '/');
+	function resolveHref(href: string): string {
+		if (!href.startsWith('#')) return href;
+		return onHome ? href : '/' + href;
+	}
+
+	const ctaHref = $derived(resolveHref('#kontak'));
+	const brandHref = $derived(onHome ? '#beranda' : '/');
 
 	let listEl: HTMLUListElement | null = $state(null);
 	let itemEls: HTMLAnchorElement[] = $state([]);
@@ -77,7 +96,7 @@
 	>
 		<!-- Brand -->
 		<a
-			href="#beranda"
+			href={brandHref}
 			class="flex items-center gap-2.5 shrink-0 group"
 		>
 			<span
@@ -118,7 +137,7 @@
 				<li>
 					<a
 						bind:this={itemEls[i]}
-						href={item.href}
+						href={resolveHref(item.href)}
 						onmouseenter={() => moveTo(i)}
 						onfocus={() => moveTo(i)}
 						class="relative z-10 inline-flex items-center
@@ -135,7 +154,7 @@
 
 		<!-- CTA -->
 		<a
-			href="#kontak"
+			href={ctaHref}
 			class="inline-flex items-center gap-2 shrink-0
 			       bg-primary hover:bg-primary-600 text-white
 			       text-xs md:text-sm font-semibold

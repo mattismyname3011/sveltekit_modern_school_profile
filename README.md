@@ -2,6 +2,25 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
+## 🆕 Anggota tim baru?
+
+Mulai dari **[ONBOARDING.md](ONBOARDING.md)** — setup dari nol selesai dalam ~10 menit.
+
+## 🔄 Habis pull dari teammate?
+
+Lihat **[docs/SYNC.md](docs/SYNC.md)** — checklist langkah sinkronisasi sesuai apa yang berubah (deps, env, schema DB, migration).
+
+## ⚡ Shortcut
+
+| Perintah | Kapan dipakai |
+| -------- | ------------- |
+| `npm run setup` | Pertama kali — install deps + push schema + seed data contoh + bootstrap admin |
+| `npm run sync`  | Setelah `git pull` — install deps baru + apply schema diff |
+| `npm run dev`   | Jalankan dev server |
+| `npm run check` | Type-check seluruh project |
+
+---
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!
@@ -486,3 +505,240 @@ Action yang sudah ter-instrumentasi otomatis:
 | `user.activate`      | aktifkan kembali akun                 |
 
 Logging dipisah ke fungsi `audit()` di `src/lib/server/audit/log.ts` sehingga tidak mengganggu logika aksi utama (kalau insert log gagal, action tetap berhasil — error hanya di-log ke server console).
+
+## News editor (inline WYSIWYG, ala WordPress / Notion)
+
+`/admin/news/new` dan `/admin/news/:id` membuka editor full-page yang **mereplikasi tampilan halaman publik**. Tidak ada formulir terpisah — kamu klik di area mana pun lalu mengetik langsung di tempatnya:
+
+- **Cover image** klik kotak placeholder → dialog upload muncul. Setelah ada, hover untuk **Ganti cover** atau **Hapus cover**.
+- **Kategori** dan **tanggal** di atas judul → klik untuk edit di tempat.
+- **Judul** → typography raksasa, klik untuk ketik.
+- **Excerpt** → klik untuk ketik ringkasan singkat (digunakan di kartu homepage).
+- **Body** → contenteditable area. Tulis paragraf, atau paste/drag image untuk upload otomatis.
+- **Slug** → editable di top action bar. Auto-generate dari judul sampai kamu sentuh field-nya.
+
+### Markdown shortcuts (saat mengetik di body)
+
+Editor mengenali pola markdown di **awal baris** dan otomatis mentransformasikannya saat Anda menekan **Space** (atau **Enter** untuk `---`):
+
+| Ketik di awal baris       | Ditekan | Hasil           |
+| ------------------------- | ------- | --------------- |
+| `#`                       | Space   | Heading 1       |
+| `##`                      | Space   | Heading 2       |
+| `###`                     | Space   | Heading 3       |
+| `####`                    | Space   | Heading 4       |
+| `>`                       | Space   | Blockquote      |
+| `-` atau `*`              | Space   | Bullet list     |
+| `1.`                      | Space   | Numbered list   |
+| `---`                     | Enter   | Horizontal rule |
+
+Catatan: shortcut hanya aktif kalau pola benar-benar berada di awal baris dan baris masih kosong (selain pola itu). Misalnya `## ` di tengah paragraf tidak akan diubah.
+
+### Side toolbar (always visible)
+
+Toolbar format ada di sebelah kiri area body, sticky di posisi atas saat kamu scroll. **Tidak perlu seleksi text dulu** — tinggal klik tombol, format langsung diterapkan ke posisi cursor / seleksi yang aktif.
+
+| Tombol | Fungsi |
+| ------ | ------ |
+| **B** / *I* / __U__ | Bold / italic / underline (Ctrl+B/I/U juga jalan native) |
+| H2 / H3 | Heading level 2 dan 3 |
+| ❝ | Toggle blockquote |
+| • / 1. | Bullet list / numbered list |
+| 🔗 | Insert link (browser prompt URL) |
+| 📷 | Insert image (file picker; juga: paste atau drag-drop) |
+| ✕ | Clear formatting |
+
+State aktif tombol auto-update mengikuti posisi cursor (mis. cursor di dalam `<h2>` → tombol H2 highlight). Klik tombol yang sudah aktif untuk toggle off.
+
+Di mobile (< 720px) toolbar otomatis pindah ke atas sebagai bar horizontal, masih sticky.
+
+### Autosave draft
+
+Setiap perubahan apa pun (title, slug, kategori, tanggal, excerpt, cover image, body content) **debounced 800ms** lalu disimpan ke `localStorage` sebagai draft. Status autosave muncul di action bar atas:
+
+| Status         | Tampilan |
+| -------------- | -------- |
+| Sedang menyimpan | titik kuning berkedip + "Menyimpan…" |
+| Tersimpan      | titik hijau + "Draft disimpan" (lalu fade ke abu-abu) |
+| Idle           | titik abu + "Draft · 30 detik lalu" (relative time) |
+| Gagal          | titik merah + "Gagal autosave" |
+
+Saat kamu kembali ke halaman edit / new (mis. browser crash, accidental close, refresh), banner "Ada draft tersimpan dari X menit lalu. Pulihkan?" muncul di atas. Pilih **Pulihkan draft** untuk load isinya kembali, atau **Buang** untuk hapus draft dan mulai dari record asli.
+
+Draft otomatis dihapus saat publish/save berhasil (server action redirect).
+
+Storage key:
+- `news-draft:new` untuk halaman create
+- `news-draft:<id>` untuk halaman edit (per-post)
+
+Jadi kamu bisa punya beberapa draft aktif untuk post yang berbeda secara bersamaan.
+
+### Image upload
+
+Tiga cara, semua otomatis upload ke `/api/uploads`, dapat URL `/uploads/<sha256>.<ext>`, lalu insert sebagai `<figure><img ...><figcaption>...</figcaption></figure>`:
+
+1. **Tombol 📷** di bubble toolbar (saat ada seleksi atau cursor di body)
+2. **Paste** image dari clipboard
+3. **Drag &amp; drop** file image ke area body
+
+### Cara kerja teknis
+
+- Storage: HTML (bukan markdown lagi). Disanitasi server-side di-save **dan** di-render via `sanitize-html` dengan whitelist tag/atribut.
+- Editor pakai `contenteditable="true"` native + `document.execCommand` untuk format. Reliable cross-browser, no library dependency.
+- Sticky action bar di atas dengan tombol Cancel/Preview/Publish-Save.
+- Form action SvelteKit standar — semua field tersinkron ke hidden input saat submit, sehingga progressive enhancement tetap jalan.
+
+### Public detail
+
+`/berita/:slug` masih sama — render HTML yang sudah disanitasi server-side.
+
+### Image upload pipeline
+
+`POST /api/uploads` (admin auth, 30 req/menit, multipart/form-data):
+
+| Validasi              | Detail |
+| --------------------- | ------ |
+| Auth                  | Bearer token atau session admin (sama dengan endpoint write lain) |
+| MIME whitelist        | `image/jpeg`, `image/png`, `image/webp`, `image/gif` |
+| Magic-byte sniff      | Validasi header file 4–12 byte pertama, ngga trust client-declared MIME |
+| Size limit            | 5 MB |
+| Filename              | sha256 dari isi file → idempotent (upload yang sama 2x → URL sama, tanpa duplikat) |
+| Storage               | `static/uploads/<hash>.<ext>`, langsung di-serve di `/uploads/<hash>.<ext>` oleh SvelteKit |
+| Migrasi nanti         | Tinggal swap `src/lib/server/storage.ts` ke S3/R2; API surface sama |
+
+Audit log otomatis tercatat (`resource: 'uploads'`).
+
+## Dashboard analytics
+
+Tabel `page_views` tracking kunjungan publik dengan privacy-first:
+
+- **Tidak ada raw IP** disimpan. `visitor_hash = sha256(ip + ua + dailyKey + processSalt)`.
+- Salt baru tiap restart proses, jadi hash lama ngga bisa di-rebuild walau full DB + code bocor.
+- Bot UA otomatis di-skip (`googlebot`, `whatsapp`, `telegrambot`, dll).
+- Endpoint `/admin` dan `/api/*` ngga ditrack.
+
+Helper `recordPageView(event, path)` dipanggil **fire-and-forget** dari `+page.server.ts` halaman publik. Sudah aktif di:
+
+- `/` (homepage)
+- `/berita/:slug` (detail berita)
+
+Tambah halaman publik baru? Cukup `import { recordPageView } from '$lib/server/analytics/track';` lalu panggil di load function.
+
+### Halaman overview `/admin`
+
+Menampilkan:
+
+- 3 tile content count (programs/news/events)
+- 3 stat traffic: views hari ini, 7 hari (+ unique), 30 hari (+ unique)
+- Chart 30-hari (SVG inline, no library) dengan dua garis: views (solid) dan uniques (dashed)
+- **Top news**: 5 berita dengan kunjungan terbanyak (rank list dengan link preview)
+- **Top pages**: 10 URL publik teratas (semua path, bukan cuma berita)
+
+Query SQL pakai `count(DISTINCT visitor_hash)` agar unique visitors akurat untuk window apa pun. Index `(path, created_at)` dan `(visitor_hash, created_at)` di tabel sudah dipasang sehingga query tetap cepat saat tabel jutaan row.
+
+## Public news pages
+
+### `/berita` — archive
+
+Daftar berita publik dengan tema yang sama seperti landing page (FloatingNavbar di atas, Footer di bawah, organic mask, accent rose, navy primary).
+
+Fitur:
+
+- **Hero header** dengan breadcrumb dan search input
+- **Category chips** auto-populate dari nilai distinct di DB
+- **Featured card** untuk berita teratas pada halaman 1 (organic mask, ukuran besar, accent ribbon)
+- **Grid 3 kolom** memakai `NewsCard.svelte` yang sama dengan homepage (konsistensi visual)
+- **Pagination** 9 item per halaman
+- **Empty state** ramah saat filter tidak match
+- **Reveal-on-scroll** animation (sama action `reveal` yang dipakai di landing)
+
+Query string yang didukung: `?page=2`, `?kategori=Prestasi`, `?q=tim`. Filter bisa dikombinasikan.
+
+### `/berita/[slug]` — detail
+
+Layout artikel dengan typography setara berita media nasional:
+
+- Breadcrumb di paling atas
+- Category pill rose + tanggal
+- Judul raksasa (`clamp(2rem, 5vw, 3.5rem)`) dengan letter-spacing rapat
+- Lede paragraph
+- Cover image dengan **organic mask** (sama dengan landing)
+- **Share rail kiri** (sticky di desktop, horizontal di mobile): WhatsApp, Twitter/X, Facebook, copy-link
+- Body content rendered dari HTML editor (sanitized) dengan styling konsisten dengan editor
+- **Related posts** (3 berita: kategori sama dulu, lalu fallback ke berita terbaru)
+
+OG meta tags lengkap (`og:title`, `og:description`, `og:image`, `og:type`, `twitter:card`) untuk preview link di social media.
+
+## Editor stay-on-page
+
+Setelah klik **Save changes** di `/admin/news/:id`:
+
+- Halaman **tidak redirect** ke daftar
+- Server return JSON state success (`{ ok: true, savedAt, item }`)
+- Editor refresh internal state via `{#key item.id + item.updatedAt}` untuk re-mount
+- **Toast "Tersimpan"** muncul di pojok kanan-bawah (auto-dismiss 2.8 detik)
+- Local storage draft di-clear
+
+Untuk **create** (`/admin/news/new`), server tetap redirect ke `/admin/news/:id?created=1` setelah simpan, supaya:
+1. URL bisa di-bookmark
+2. Editor punya konteks `id` untuk save berikutnya
+3. Banner "Berita baru dipublikasikan" muncul di tujuan
+
+Hasil: bekerja seperti WordPress / Notion — tetap di halaman editor setelah save, free untuk lanjut edit.
+
+## Reader-friendly news features
+
+Halaman detail (`/berita/[slug]`) sekarang punya:
+
+### 1. Reading time + word count
+
+Di bawah lede, ada strip metadata:
+
+> 🕐 **5** menit baca · 📝 1.247 kata · 👁 234 dibaca
+
+- Reading time: berdasarkan ~200 kata/menit (kecepatan baca rata-rata Bahasa Indonesia), dibulatkan ke atas, minimal 1 menit
+- Word count: dihitung server-side dari plain text (HTML tags di-strip)
+- View count: lifetime visit dari tabel `page_views` (privacy-friendly hash, tidak ada IP raw)
+
+### 2. Reading progress bar
+
+Top-of-page bar yang mengikuti scroll progress di area konten artikel. Gradient `primary → accent` dengan glow halus. Tetap fixed di top, sticky di atas FloatingNavbar (z-index 60).
+
+### 3. Table of Contents (TOC) sidebar
+
+Sticky di sebelah kanan konten (desktop ≥ 1200px) dengan:
+
+- Auto-extract dari `<h2>`, `<h3>`, `<h4>` di body content
+- Indent level 3 dan level 4 untuk hierarki visual
+- **Active state** scroll-spy: section yang sedang dibaca highlight rose accent
+- Smooth scroll dengan offset 92px (biar landing tepat di bawah navbar)
+- URL hash auto-update saat klik (deep link friendly)
+- Border kiri abu-abu yang berubah accent rose untuk item active
+- Hanya muncul kalau artikel punya **2+ headings** (kalau cuma 1 atau 0, sembunyi otomatis — tidak masuk akal show TOC)
+
+Heading ID dibuat server-side dengan slugify ASCII (max 80 char) + dedupe counter (`-2`, `-3`, dst). Aman untuk URL fragment.
+
+### 4. Image lightbox
+
+Klik gambar mana pun di body artikel → buka full-screen overlay dengan:
+
+- Backdrop dark transparan + blur
+- Image fit contain (preserve aspect ratio)
+- Tombol close di pojok
+- Tutup dengan: klik backdrop, tombol ✕, atau tekan **Escape**
+- Cursor `zoom-in` di image (affordance), `zoom-out` di backdrop
+
+### 5. Anchor scroll behavior
+
+Headings dapat `scroll-margin-top: 6.5rem` agar saat user mengakses link `#section-id` (dari TOC, share, atau external), heading tidak ketutupan FloatingNavbar di atas.
+
+### Server-side processing pipeline
+
+Konten body diolah **sekali** server-side via `processContent()` di `src/lib/server/markdown.ts`:
+
+1. Sanitize whitelist tag/atribut/scheme (defense in depth)
+2. Inject `id` ke setiap h2/h3/h4 (regex pass)
+3. Build TOC tree
+4. Hitung word count + reading time
+
+Hasilnya di-cache via SvelteKit's `+page.server.ts` — dijalankan saat halaman di-request, tidak ada parsing client-side, tidak butuh JS untuk render TOC tampil. JS hanya untuk scroll-spy active state, smooth scroll, lightbox, dan progress bar.
