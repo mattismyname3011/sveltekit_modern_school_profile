@@ -73,7 +73,7 @@ export function sanitizeForStorage(html: string): string {
 // TOC + reading-time pipeline
 // ---------------------------------------------------------------------
 
-export type TocItem = { level: 2 | 3 | 4; text: string; id: string };
+export type TocItem = { level: 1 | 2 | 3 | 4; text: string; id: string };
 export type ReadingMeta = {
 	html: string;
 	toc: TocItem[];
@@ -126,9 +126,9 @@ export function processContent(rawHtml: string | null | undefined): ReadingMeta 
 	const taken = new Set<string>();
 	const toc: TocItem[] = [];
 
-	// Replace heading tags h2/h3/h4 with the same tag + id.
+	// Replace heading tags h1/h2/h3/h4 with the same tag + id.
 	const html = sanitized.replace(
-		/<h([234])([^>]*)>([\s\S]*?)<\/h\1>/gi,
+		/<h([1234])([^>]*)>([\s\S]*?)<\/h\1>/gi,
 		(_match, level, attrs, inner) => {
 			const text = stripTags(inner);
 			if (!text) return _match;
@@ -142,7 +142,7 @@ export function processContent(rawHtml: string | null | undefined): ReadingMeta 
 				id = slugify(text, taken);
 				attrs = `${attrs} id="${id}"`;
 			}
-			toc.push({ level: Number(level) as 2 | 3 | 4, text, id });
+			toc.push({ level: Number(level) as 1 | 2 | 3 | 4, text, id });
 			return `<h${level}${attrs}>${inner}</h${level}>`;
 		}
 	);

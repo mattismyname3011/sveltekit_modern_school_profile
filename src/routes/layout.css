@@ -381,3 +381,131 @@ body {
 .post .md-content th {
 	background: #f8fafc;
 }
+
+/* ==========================================================
+   Dark mode for the public reading experience.
+   --------------------------------------------------------
+   Scoped to elements inside `<main class="post">` (news detail
+   page) so the landing page stays the brand light theme.
+   Triggered when <html data-theme="dark"> is set.
+   ========================================================== */
+
+[data-theme='dark'] body {
+	background: #05070d;
+	color: #cbd5e1;
+}
+
+[data-theme='dark'] .post {
+	background: #05070d;
+	color: #cbd5e1;
+}
+
+[data-theme='dark'] .post .breadcrumb {
+	color: #94a3b8;
+}
+[data-theme='dark'] .post .breadcrumb a:hover { color: #38bdf8; }
+[data-theme='dark'] .post .breadcrumb .sep { color: #475569; }
+[data-theme='dark'] .post .breadcrumb .current { color: #f8fafc; }
+
+[data-theme='dark'] .post .cat-pill {
+	background: rgba(225, 29, 72, 0.18);
+	border-color: rgba(225, 29, 72, 0.35);
+	color: #fda4af;
+}
+
+[data-theme='dark'] .post .dot { color: #475569; }
+[data-theme='dark'] .post .date { color: #94a3b8; }
+
+[data-theme='dark'] .post .post-title { color: #f8fafc; }
+[data-theme='dark'] .post .post-lede  { color: #cbd5e1; }
+
+[data-theme='dark'] .post .reading-strip { color: #94a3b8; }
+[data-theme='dark'] .post .rs-item svg   { color: #38bdf8; }
+[data-theme='dark'] .post .rs-item strong { color: #f1f5f9; }
+[data-theme='dark'] .post .rs-sep { color: #334155; }
+
+[data-theme='dark'] .post .post-hero {
+	background: #0f172a;
+	box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.65);
+}
+
+[data-theme='dark'] .post .share-btn {
+	background: #0f172a;
+	border-color: #1e293b;
+	color: #e2e8f0;
+}
+[data-theme='dark'] .post .share-btn:hover {
+	background: #1e293b;
+	border-color: #38bdf8;
+	color: #f8fafc;
+}
+
+[data-theme='dark'] .post .share-label { color: #64748b; }
+
+[data-theme='dark'] .post .post-end { border-top-color: #1e293b; }
+[data-theme='dark'] .post .back-to-list { color: #f1f5f9; }
+[data-theme='dark'] .post .back-to-list:hover { color: #fda4af; }
+
+/* TOC */
+[data-theme='dark'] .post .toc-label { color: #94a3b8; }
+[data-theme='dark'] .post .toc-list { border-left-color: #1e293b; }
+[data-theme='dark'] .post .toc-list a { color: #94a3b8; }
+[data-theme='dark'] .post .toc-list a:hover { color: #f1f5f9; }
+[data-theme='dark'] .post .toc-list li.active a {
+	color: #f8fafc;
+	border-left-color: #fb7185;
+}
+
+/* Related section */
+[data-theme='dark'] .related-section { background: #0a0e1a; }
+[data-theme='dark'] .related-section h2 { color: #f8fafc; }
+
+/* News card on related rail — note: keep landing page cards in light theme;
+   we only flip when `[data-theme='dark']` is set. The card root has 
+   class="rounded-3xl ... bg-slate-100" from Tailwind, so we narrow the
+   override to inside .related-section to avoid leaking into landing. */
+
+/* MD content — dark theme overrides for `.post .md-content` (defined as light
+   above). Use `[data-theme='dark']` selector to flip. */
+[data-theme='dark'] .post .md-content {
+	color: #e2e8f0;
+}
+[data-theme='dark'] .post .md-content h1,
+[data-theme='dark'] .post .md-content h2,
+[data-theme='dark'] .post .md-content h3,
+[data-theme='dark'] .post .md-content h4 {
+	color: #f8fafc;
+}
+[data-theme='dark'] .post .md-content a {
+	color: #38bdf8;
+	text-decoration-color: #fb7185;
+}
+[data-theme='dark'] .post .md-content blockquote {
+	border-left-color: #fb7185;
+	background: rgba(251, 113, 133, 0.08);
+	color: #cbd5e1;
+}
+[data-theme='dark'] .post .md-content code {
+	background: rgba(148, 163, 184, 0.16);
+	color: #e2e8f0;
+}
+[data-theme='dark'] .post .md-content pre {
+	background: #020617;
+	color: #cbd5e1;
+	border: 1px solid #1e293b;
+}
+[data-theme='dark'] .post .md-content pre code {
+	color: #cbd5e1;
+}
+[data-theme='dark'] .post .md-content th,
+[data-theme='dark'] .post .md-content td {
+	border-color: #1e293b;
+}
+[data-theme='dark'] .post .md-content th { background: #0f172a; }
+
+/* Reading-progress bar already uses fixed colors; raise contrast in dark. */
+[data-theme='dark'] .post + * .progress .bar,
+[data-theme='dark'] .progress .bar {
+	background: linear-gradient(90deg, #38bdf8, #fb7185);
+	box-shadow: 0 0 12px rgba(251, 113, 133, 0.45);
+}

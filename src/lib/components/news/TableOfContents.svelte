@@ -15,7 +15,7 @@
 	onMount(() => {
 		const root = document.querySelector(rootSelector);
 		if (!root) return;
-		const headings = Array.from(root.querySelectorAll<HTMLElement>('h2, h3, h4')).filter(
+		const headings = Array.from(root.querySelectorAll<HTMLElement>('h1, h2, h3, h4')).filter(
 			(h) => h.id
 		);
 		if (headings.length === 0) return;
@@ -98,6 +98,7 @@
 		margin: 0;
 	}
 
+	.toc-list li.lvl-2 a { padding-left: 0.875rem; }
 	.toc-list li.lvl-3 a { padding-left: 1.75rem; }
 	.toc-list li.lvl-4 a { padding-left: 2.5rem; }
 
@@ -110,6 +111,11 @@
 		transition: color 150ms ease, background-color 150ms ease;
 		border-left: 2px solid transparent;
 		margin-left: -2px;
+	}
+
+	.toc-list li.lvl-1 a {
+		font-weight: 700;
+		color: #475569;
 	}
 
 	.toc-list a:hover {
