@@ -14,7 +14,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/lib/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "setup": "npm install && npm run db:push && npm run db:seed",
+    "sync": "npm install && npm run db:push"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^7.0.1",

@@ -2,6 +2,25 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
+## 🆕 Anggota tim baru?
+
+Mulai dari **[ONBOARDING.md](ONBOARDING.md)** — setup dari nol selesai dalam ~10 menit.
+
+## 🔄 Habis pull dari teammate?
+
+Lihat **[docs/SYNC.md](docs/SYNC.md)** — checklist langkah sinkronisasi sesuai apa yang berubah (deps, env, schema DB, migration).
+
+## ⚡ Shortcut
+
+| Perintah | Kapan dipakai |
+| -------- | ------------- |
+| `npm run setup` | Pertama kali — install deps + push schema + seed data contoh + bootstrap admin |
+| `npm run sync`  | Setelah `git pull` — install deps baru + apply schema diff |
+| `npm run dev`   | Jalankan dev server |
+| `npm run check` | Type-check seluruh project |
+
+---
+
 ## Creating a project
 
 If you're seeing this, you've probably already done this step. Congrats!
