@@ -6,7 +6,6 @@
 	import TableOfContents from '$lib/components/news/TableOfContents.svelte';
 	import ImageLightbox from '$lib/components/news/ImageLightbox.svelte';
 	import ReadingProgress from '$lib/components/news/ReadingProgress.svelte';
-	import ThemeToggle from '$lib/components/news/ThemeToggle.svelte';
 	import { reveal } from '$lib/actions/reveal';
 	import { onMount } from 'svelte';
 
@@ -214,7 +213,6 @@
 </main>
 
 <ImageLightbox />
-<ThemeToggle />
 <Footer />
 
 <style>

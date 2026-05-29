@@ -383,26 +383,75 @@ body {
 }
 
 /* ==========================================================
-   Dark mode for the public reading experience.
+   Dark mode (site-wide)
    --------------------------------------------------------
-   Scoped to elements inside `<main class="post">` (news detail
-   page) so the landing page stays the brand light theme.
-   Triggered when <html data-theme="dark"> is set.
+   Triggered when <html data-theme="dark"> is set (anti-FOUC
+   inline script in app.html, plus user toggle from Footer FAB).
+   Applies across landing, news listing, news detail, etc.
    ========================================================== */
 
+/* Body + global surfaces */
 [data-theme='dark'] body {
 	background: #05070d;
 	color: #cbd5e1;
 }
 
-[data-theme='dark'] .post {
-	background: #05070d;
-	color: #cbd5e1;
+[data-theme='dark'] ::selection {
+	background: #fb7185;
+	color: #0f172a;
 }
 
-[data-theme='dark'] .post .breadcrumb {
-	color: #94a3b8;
+/* Brand surfaces explicitly painted in landing/listing — flip them. */
+[data-theme='dark'] .bg-surface,
+[data-theme='dark'] .bg-surface-2 {
+	background: #05070d;
 }
+
+/* Tailwind utility overrides we use heavily on light surfaces. */
+[data-theme='dark'] .bg-white {
+	background-color: #0f172a !important;
+	color: #e2e8f0;
+}
+[data-theme='dark'] .bg-slate-50 {
+	background-color: #0a0e1a !important;
+}
+[data-theme='dark'] .bg-slate-100 {
+	background-color: #0f172a !important;
+}
+[data-theme='dark'] .text-slate-600,
+[data-theme='dark'] .text-slate-700,
+[data-theme='dark'] .text-slate-800 {
+	color: #cbd5e1 !important;
+}
+[data-theme='dark'] .text-slate-500 {
+	color: #94a3b8 !important;
+}
+[data-theme='dark'] .text-primary {
+	color: #f8fafc !important;
+}
+[data-theme='dark'] .border-slate-100,
+[data-theme='dark'] .border-slate-200,
+[data-theme='dark'] .border-slate-300 {
+	border-color: #1e293b !important;
+}
+
+/* Floating navbar */
+[data-theme='dark'] nav.fixed {
+	background: rgba(8, 12, 22, 0.85);
+	border-color: rgba(148, 163, 184, 0.15);
+}
+
+/* News card hover/active borders */
+[data-theme='dark'] .shadow-slate-200\/50,
+[data-theme='dark'] .shadow-slate-200\/60 {
+	box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Footer keeps its dark navy gradient — no override needed. */
+
+/* News detail page (`<main class="post">`) — already uses tokens above
+   plus a few specifics: */
+[data-theme='dark'] .post .breadcrumb { color: #94a3b8; }
 [data-theme='dark'] .post .breadcrumb a:hover { color: #38bdf8; }
 [data-theme='dark'] .post .breadcrumb .sep { color: #475569; }
 [data-theme='dark'] .post .breadcrumb .current { color: #f8fafc; }
@@ -415,7 +464,6 @@ body {
 
 [data-theme='dark'] .post .dot { color: #475569; }
 [data-theme='dark'] .post .date { color: #94a3b8; }
-
 [data-theme='dark'] .post .post-title { color: #f8fafc; }
 [data-theme='dark'] .post .post-lede  { color: #cbd5e1; }
 
@@ -439,7 +487,6 @@ body {
 	border-color: #38bdf8;
 	color: #f8fafc;
 }
-
 [data-theme='dark'] .post .share-label { color: #64748b; }
 
 [data-theme='dark'] .post .post-end { border-top-color: #1e293b; }
@@ -456,17 +503,11 @@ body {
 	border-left-color: #fb7185;
 }
 
-/* Related section */
+/* Related section background — already set via .bg-* override above, but
+   give it an explicit hue so it sits a bit deeper than the body. */
 [data-theme='dark'] .related-section { background: #0a0e1a; }
-[data-theme='dark'] .related-section h2 { color: #f8fafc; }
 
-/* News card on related rail — note: keep landing page cards in light theme;
-   we only flip when `[data-theme='dark']` is set. The card root has 
-   class="rounded-3xl ... bg-slate-100" from Tailwind, so we narrow the
-   override to inside .related-section to avoid leaking into landing. */
-
-/* MD content — dark theme overrides for `.post .md-content` (defined as light
-   above). Use `[data-theme='dark']` selector to flip. */
+/* MD content — flip the public-facing light theme defined earlier. */
 [data-theme='dark'] .post .md-content {
 	color: #e2e8f0;
 }
@@ -494,18 +535,21 @@ body {
 	color: #cbd5e1;
 	border: 1px solid #1e293b;
 }
-[data-theme='dark'] .post .md-content pre code {
-	color: #cbd5e1;
-}
+[data-theme='dark'] .post .md-content pre code { color: #cbd5e1; }
 [data-theme='dark'] .post .md-content th,
 [data-theme='dark'] .post .md-content td {
 	border-color: #1e293b;
 }
 [data-theme='dark'] .post .md-content th { background: #0f172a; }
 
-/* Reading-progress bar already uses fixed colors; raise contrast in dark. */
-[data-theme='dark'] .post + * .progress .bar,
+/* Reading-progress bar */
 [data-theme='dark'] .progress .bar {
 	background: linear-gradient(90deg, #38bdf8, #fb7185);
 	box-shadow: 0 0 12px rgba(251, 113, 133, 0.45);
+}
+
+/* Smooth color transition when toggling theme. */
+html, body, .post, .related-section, .bg-white, .bg-slate-50, .bg-slate-100,
+.bg-surface, .bg-surface-2 {
+	transition: background-color 200ms ease, color 200ms ease;
 }
