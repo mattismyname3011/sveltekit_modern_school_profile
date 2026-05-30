@@ -1,6 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => {
 	const allowedHosts = (process.env.VITE_ALLOWED_HOSTS ?? '')
@@ -10,6 +10,10 @@ export default defineConfig(() => {
 
 	return {
 		plugins: [tailwindcss(), sveltekit()],
-		server: allowedHosts.length > 0 ? { allowedHosts } : undefined
+		server: allowedHosts.length > 0 ? { allowedHosts } : undefined,
+		test: {
+			environment: 'node',
+			include: ['src/**/*.test.ts']
+		}
 	};
 });

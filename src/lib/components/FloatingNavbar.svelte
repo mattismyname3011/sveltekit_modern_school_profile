@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-	import { page } from '$app/state';
+	import { onMount, tick } from "svelte";
+	import { page } from "$app/state";
 
 	interface NavItem {
 		label: string;
@@ -13,13 +13,13 @@
 
 	let {
 		items = [
-			{ label: 'Beranda', href: '#beranda' },
-			{ label: 'Tentang', href: '#tentang' },
-			{ label: 'Program', href: '#program' },
-			{ label: 'Berita', href: '#berita' },
-			{ label: 'Kontak', href: '#kontak' }
+			{ label: "Beranda", href: "/" },
+			{ label: "Tentang", href: "/#tentang" },
+			{ label: "Program", href: "/programs" },
+			{ label: "Berita", href: "/#berita" },
+			{ label: "Kontak", href: "/#kontak" },
 		],
-		brand = 'SMP 1 Anggana'
+		brand = "SMP 1 Anggana",
 	}: Props = $props();
 
 	/**
@@ -31,14 +31,14 @@
 	 * Rewrite hash hrefs to absolute `/` + hash whenever we're not on the
 	 * homepage; SvelteKit will navigate home and then scroll to the anchor.
 	 */
-	const onHome = $derived(page.url.pathname === '/');
+	const onHome = $derived(page.url.pathname === "/");
 	function resolveHref(href: string): string {
-		if (!href.startsWith('#')) return href;
-		return onHome ? href : '/' + href;
+		if (!href.startsWith("#")) return href;
+		return onHome ? href : "/" + href;
 	}
 
-	const ctaHref = $derived(resolveHref('#kontak'));
-	const brandHref = $derived(onHome ? '#beranda' : '/');
+	const ctaHref = $derived(resolveHref("#kontak"));
+	const brandHref = $derived(onHome ? "#beranda" : "/");
 
 	let listEl: HTMLUListElement | null = $state(null);
 	let itemEls: HTMLAnchorElement[] = $state([]);
@@ -50,11 +50,12 @@
 	let reducedMotion = $state(false);
 
 	onMount(() => {
-		const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
 		reducedMotion = mq.matches;
-		const onChange = (e: MediaQueryListEvent) => (reducedMotion = e.matches);
-		mq.addEventListener('change', onChange);
-		return () => mq.removeEventListener('change', onChange);
+		const onChange = (e: MediaQueryListEvent) =>
+			(reducedMotion = e.matches);
+		mq.addEventListener("change", onChange);
+		return () => mq.removeEventListener("change", onChange);
 	});
 
 	async function moveTo(i: number) {
@@ -68,7 +69,7 @@
 			w: it.width,
 			h: it.height,
 			visible: true,
-			instant: wasHidden
+			instant: wasHidden,
 		};
 	}
 	function leave() {
@@ -77,8 +78,8 @@
 
 	const transition = $derived(
 		reducedMotion || pill.instant
-			? 'opacity 0.18s linear'
-			: 'transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out'
+			? "opacity 0.18s linear"
+			: "transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out",
 	);
 </script>
 
@@ -95,17 +96,16 @@
 		       shadow-xl shadow-slate-300/40"
 	>
 		<!-- Brand -->
-		<a
-			href={brandHref}
-			class="flex items-center gap-2.5 shrink-0 group"
-		>
+		<a href={brandHref} class="flex items-center gap-2.5 shrink-0 group">
 			<span
 				class="w-8 h-8 rounded-xl bg-primary text-white grid place-items-center
 				       font-bold text-sm transition-transform duration-300 group-hover:rotate-6"
 			>
 				S1
 			</span>
-			<span class="hidden sm:block font-bold text-primary tracking-tight text-sm md:text-base">
+			<span
+				class="hidden sm:block font-bold text-primary tracking-tight text-sm md:text-base"
+			>
 				{brand}
 			</span>
 		</a>
@@ -164,7 +164,15 @@
 			       hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
 		>
 			Daftar
-			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+			<svg
+				width="14"
+				height="14"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.5"
+				stroke-linecap="round"
+			>
 				<path d="M5 12h14M13 5l7 7-7 7" />
 			</svg>
 		</a>

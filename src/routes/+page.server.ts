@@ -27,10 +27,14 @@ export const load: PageServerLoad = async (event) => {
 	// some components want shorter names like dateD/dateM/loc.)
 	return {
 		programs: programsResult.rows.map((p) => ({
+			id: p.id,
 			tag: p.tag,
 			title: p.title,
 			excerpt: p.excerpt,
-			image: p.image
+			image: p.image,
+			audience: p.audience,
+			schedule: p.schedule,
+			location: p.location
 		})),
 		news: newsResult.rows.map((n) => ({
 			category: n.category,

@@ -66,6 +66,42 @@ const programsResource: AdminResource = {
 		{ name: 'tag', label: 'Tag', kind: 'text', required: true, listColumn: true },
 		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
 		{ name: 'image', label: 'Image URL', kind: 'url', required: true },
+		{ name: 'audience', label: 'Audience', kind: 'text', hint: 'e.g. Kelas VII sampai IX.' },
+		{ name: 'schedule', label: 'Schedule', kind: 'text', hint: 'e.g. Rabu, 15.30 WITA.' },
+		{ name: 'location', label: 'Location', kind: 'text', listColumn: true },
+		{ name: 'mentor', label: 'Mentor', kind: 'text', hint: 'Teacher or coach in charge.' },
+		{ name: 'capacity', label: 'Capacity', kind: 'text', hint: 'Optional participant limit.' },
+		{ name: 'contact', label: 'Contact', kind: 'text', hint: 'Contact person or channel.' },
+		{
+			name: 'registration',
+			label: 'Registration notes',
+			kind: 'textarea',
+			hint: 'Short note about how students join.'
+		},
+		{
+			name: 'highlights',
+			label: 'Highlights',
+			kind: 'textarea',
+			hint: 'One item per line. Shown as compact facts.'
+		},
+		{
+			name: 'outcomes',
+			label: 'Outcomes',
+			kind: 'textarea',
+			hint: 'One item per line. What students will practice or produce.'
+		},
+		{
+			name: 'activities',
+			label: 'Activities',
+			kind: 'textarea',
+			hint: 'One item per line. Regular activities in the program.'
+		},
+		{
+			name: 'requirements',
+			label: 'Requirements',
+			kind: 'textarea',
+			hint: 'One item per line. Preparation, equipment, or eligibility.'
+		},
 		{
 			name: 'post',
 			label: 'Long content',

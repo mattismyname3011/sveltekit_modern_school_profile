@@ -2,7 +2,9 @@ import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp } from
 
 /**
  * programs
- * id, title, tag, excerpt, image, post, created_at, updated_at
+ * id, title, tag, excerpt, image, post, audience, schedule, location,
+ * mentor, capacity, contact, registration, highlights, outcomes, activities,
+ * requirements, created_at, updated_at
  */
 export const programs = pgTable('programs', {
 	id: serial('id').primaryKey(),
@@ -11,6 +13,17 @@ export const programs = pgTable('programs', {
 	excerpt: text('excerpt').notNull(),
 	image: text('image').notNull(),
 	post: text('post'),
+	audience: text('audience'),
+	schedule: text('schedule'),
+	location: text('location'),
+	mentor: text('mentor'),
+	capacity: text('capacity'),
+	contact: text('contact'),
+	registration: text('registration'),
+	highlights: text('highlights'),
+	outcomes: text('outcomes'),
+	activities: text('activities'),
+	requirements: text('requirements'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
