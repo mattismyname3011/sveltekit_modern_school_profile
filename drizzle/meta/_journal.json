@@ -22,6 +22,20 @@
       "when": 1779845900561,
       "tag": "0002_smiling_human_robot",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780097307884,
+      "tag": "0003_empty_gunslinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780146893927,
+      "tag": "0004_striped_nuke",
+      "breakpoints": true
     }
   ]
 }

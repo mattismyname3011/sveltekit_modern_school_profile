@@ -55,7 +55,18 @@ export const programsRepo = {
 				tag: input.tag,
 				excerpt: input.excerpt,
 				image: input.image,
-				post: input.post ?? null
+				post: input.post ?? null,
+				audience: input.audience ?? null,
+				schedule: input.schedule ?? null,
+				location: input.location ?? null,
+				mentor: input.mentor ?? null,
+				capacity: input.capacity ?? null,
+				contact: input.contact ?? null,
+				registration: input.registration ?? null,
+				highlights: input.highlights ?? null,
+				outcomes: input.outcomes ?? null,
+				activities: input.activities ?? null,
+				requirements: input.requirements ?? null
 			})
 			.returning();
 		return row;

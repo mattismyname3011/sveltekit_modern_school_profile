@@ -107,6 +107,17 @@ const programs: ResourceDoc = {
 							excerpt: 'Pembelajaran berbasis eksperimen ...',
 							image: 'https://example.com/img.jpg',
 							post: null,
+							audience: 'Kelas VII sampai IX',
+							schedule: 'Selasa, 15.00 sampai 16.30 WITA',
+							location: 'Laboratorium IPA',
+							mentor: 'Tim guru IPA',
+							capacity: '24 siswa per siklus',
+							contact: 'Wali kelas atau guru IPA',
+							registration: 'Pendaftaran dibuka di awal semester melalui wali kelas.',
+							highlights: 'Praktik eksperimen mingguan\nPencatatan data dan laporan singkat',
+							outcomes: 'Siswa memahami langkah kerja ilmiah',
+							activities: 'Eksperimen IPA\nDiskusi hasil pengamatan',
+							requirements: 'Mengikuti aturan keselamatan laboratorium',
 							createdAt: '2026-05-01T08:00:00.000Z',
 							updatedAt: '2026-05-01T08:00:00.000Z'
 						}
@@ -139,6 +150,17 @@ const programs: ResourceDoc = {
 					excerpt: '...',
 					image: 'https://example.com/img.jpg',
 					post: null,
+					audience: 'Kelas VII sampai IX',
+					schedule: 'Selasa, 15.00 sampai 16.30 WITA',
+					location: 'Laboratorium IPA',
+					mentor: 'Tim guru IPA',
+					capacity: '24 siswa per siklus',
+					contact: 'Wali kelas atau guru IPA',
+					registration: 'Pendaftaran dibuka di awal semester melalui wali kelas.',
+					highlights: 'Praktik eksperimen mingguan\nPencatatan data dan laporan singkat',
+					outcomes: 'Siswa memahami langkah kerja ilmiah',
+					activities: 'Eksperimen IPA\nDiskusi hasil pengamatan',
+					requirements: 'Mengikuti aturan keselamatan laboratorium',
 					createdAt: '2026-05-01T08:00:00.000Z',
 					updatedAt: '2026-05-01T08:00:00.000Z'
 				}
@@ -183,6 +205,61 @@ const programs: ResourceDoc = {
 						id: 'Konten panjang opsional, max 20000 char.',
 						en: 'Optional long-form content, max 20000 chars.'
 					}
+				},
+				{
+					name: 'audience',
+					type: 'string | null',
+					description: { id: 'Peserta sasaran.', en: 'Target participants.' }
+				},
+				{
+					name: 'schedule',
+					type: 'string | null',
+					description: { id: 'Jadwal kegiatan.', en: 'Program schedule.' }
+				},
+				{
+					name: 'location',
+					type: 'string | null',
+					description: { id: 'Lokasi kegiatan.', en: 'Program location.' }
+				},
+				{
+					name: 'mentor',
+					type: 'string | null',
+					description: { id: 'Pembina atau penanggung jawab.', en: 'Mentor or owner.' }
+				},
+				{
+					name: 'capacity',
+					type: 'string | null',
+					description: { id: 'Kapasitas peserta.', en: 'Participant capacity.' }
+				},
+				{
+					name: 'contact',
+					type: 'string | null',
+					description: { id: 'Kontak pendaftaran.', en: 'Registration contact.' }
+				},
+				{
+					name: 'registration',
+					type: 'string | null',
+					description: { id: 'Catatan cara bergabung.', en: 'How to join notes.' }
+				},
+				{
+					name: 'highlights',
+					type: 'string | null',
+					description: { id: 'Sorotan, satu item per baris.', en: 'Highlights, one item per line.' }
+				},
+				{
+					name: 'outcomes',
+					type: 'string | null',
+					description: { id: 'Hasil belajar, satu item per baris.', en: 'Outcomes, one item per line.' }
+				},
+				{
+					name: 'activities',
+					type: 'string | null',
+					description: { id: 'Kegiatan rutin, satu item per baris.', en: 'Activities, one item per line.' }
+				},
+				{
+					name: 'requirements',
+					type: 'string | null',
+					description: { id: 'Persyaratan, satu item per baris.', en: 'Requirements, one item per line.' }
 				}
 			],
 			responseExample: { ok: true, data: { id: 7, title: '...', tag: '...' } }
@@ -223,7 +300,18 @@ const programs: ResourceDoc = {
 					type: 'string (URL https)',
 					description: { id: 'Opsional.', en: 'Optional.' }
 				},
-				{ name: 'post', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } }
+				{ name: 'post', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'audience', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'schedule', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'location', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'mentor', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'capacity', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'contact', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'registration', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'highlights', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'outcomes', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'activities', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } },
+				{ name: 'requirements', type: 'string | null', description: { id: 'Opsional.', en: 'Optional.' } }
 			]
 		},
 		{
@@ -339,6 +427,15 @@ const news: ResourceDoc = {
 					description: { id: 'Judul.', en: 'Title.' }
 				},
 				{
+					name: 'slug',
+					type: 'string (3–120)',
+					required: true,
+					description: {
+						id: 'URL slug, format huruf kecil + dash. Mis. "tim-robotik-juara".',
+						en: 'URL slug, lowercase + dashes. e.g. "tim-robotik-juara".'
+					}
+				},
+				{
 					name: 'excerpt',
 					type: 'string (1–500)',
 					required: true,
@@ -348,7 +445,15 @@ const news: ResourceDoc = {
 					name: 'image',
 					type: 'string (URL https)',
 					required: true,
-					description: { id: 'URL gambar.', en: 'Image URL.' }
+					description: { id: 'URL gambar cover.', en: 'Cover image URL.' }
+				},
+				{
+					name: 'content',
+					type: 'string | null',
+					description: {
+						id: 'Konten panjang dalam markdown (opsional, max 50000 char).',
+						en: 'Long-form markdown content (optional, max 50000 chars).'
+					}
 				}
 			]
 		},

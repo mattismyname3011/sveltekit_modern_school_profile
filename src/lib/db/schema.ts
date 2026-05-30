@@ -2,7 +2,9 @@ import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp } from
 
 /**
  * programs
- * id, title, tag, excerpt, image, post, created_at, updated_at
+ * id, title, tag, excerpt, image, post, audience, schedule, location,
+ * mentor, capacity, contact, registration, highlights, outcomes, activities,
+ * requirements, created_at, updated_at
  */
 export const programs = pgTable('programs', {
 	id: serial('id').primaryKey(),
@@ -11,25 +13,38 @@ export const programs = pgTable('programs', {
 	excerpt: text('excerpt').notNull(),
 	image: text('image').notNull(),
 	post: text('post'),
+	audience: text('audience'),
+	schedule: text('schedule'),
+	location: text('location'),
+	mentor: text('mentor'),
+	capacity: text('capacity'),
+	contact: text('contact'),
+	registration: text('registration'),
+	highlights: text('highlights'),
+	outcomes: text('outcomes'),
+	activities: text('activities'),
+	requirements: text('requirements'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
 
 /**
  * news
- * id, category, date, title, excerpt, image, created_at, updated_at
+ * id, category, date, title, slug, excerpt, image, content, created_at, updated_at
  *
- * `date` is stored as text so we can keep the human-friendly format
- * (e.g. "12 Mei 2026"). Switch to `timestamp` / `date` later if you
- * want range queries.
+ * `slug` powers the public detail URL `/berita/:slug`. Unique, lowercase,
+ * dash-separated. `content` is markdown rendered server-side for the
+ * detail view; the homepage card still uses `excerpt`.
  */
 export const news = pgTable('news', {
 	id: serial('id').primaryKey(),
 	category: text('category').notNull(),
 	date: text('date').notNull(),
 	title: text('title').notNull(),
+	slug: text('slug').notNull().unique(),
 	excerpt: text('excerpt').notNull(),
 	image: text('image').notNull(),
+	content: text('content'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
@@ -133,3 +148,30 @@ export type NewSession = typeof sessions.$inferInsert;
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
+
+/**
+ * page_views — privacy-friendly analytics for public pages.
+ *
+ * - `visitor_hash` is sha256(ip + ua + dailySalt). Same visitor on the same
+ *   day → same hash. Different day or different visitor → different hash.
+ *   Raw IP is never stored.
+ * - Index by (created_at) and (path, created_at) covers the common queries.
+ */
+export const pageViews = pgTable(
+	'page_views',
+	{
+		id: serial('id').primaryKey(),
+		path: text('path').notNull(),
+		visitorHash: text('visitor_hash').notNull(),
+		referer: text('referer'),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(t) => ({
+		byTime: index('page_views_time_idx').on(t.createdAt),
+		byPath: index('page_views_path_idx').on(t.path, t.createdAt),
+		byVisitor: index('page_views_visitor_idx').on(t.visitorHash, t.createdAt)
+	})
+);
+
+export type PageView = typeof pageViews.$inferSelect;
+export type NewPageView = typeof pageViews.$inferInsert;

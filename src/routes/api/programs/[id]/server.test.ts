@@ -14,6 +14,20 @@ vi.mock('$lib/server/api/rate-limit', () => ({
 
 const findById = vi.mocked(programsRepo.findById);
 
+const emptyProgramDetails = {
+	audience: null,
+	schedule: null,
+	location: null,
+	mentor: null,
+	capacity: null,
+	contact: null,
+	registration: null,
+	highlights: null,
+	outcomes: null,
+	activities: null,
+	requirements: null
+};
+
 function eventFor(id: string): Parameters<typeof GET>[0] {
 	return {
 		params: { id },
@@ -35,6 +49,7 @@ describe('GET /api/programs/[id]', () => {
 			excerpt: 'Belajar komputasi lewat praktik.',
 			image: 'https://example.com/program.jpg',
 			post: null,
+			...emptyProgramDetails,
 			createdAt: new Date('2026-01-01T00:00:00.000Z'),
 			updatedAt: new Date('2026-01-01T00:00:00.000Z')
 		});

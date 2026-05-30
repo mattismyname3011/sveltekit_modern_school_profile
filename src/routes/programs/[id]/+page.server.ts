@@ -14,5 +14,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		error(404, 'Program tidak ditemukan.');
 	}
 
-	return { program };
+	// Fetch up to 4 programs to find 3 related ones (excluding current one)
+	const { rows: allPrograms } = await programsRepo.list({ limit: 4, offset: 0 });
+	const relatedPrograms = allPrograms.filter((p) => p.id !== id).slice(0, 3);
+
+	return { program, relatedPrograms };
 };

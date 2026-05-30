@@ -4,4 +4,7 @@ export interface ProgramPreview {
 	title: string;
 	excerpt: string;
 	image: string;
+	audience?: string | null;
+	schedule?: string | null;
+	location?: string | null;
 }

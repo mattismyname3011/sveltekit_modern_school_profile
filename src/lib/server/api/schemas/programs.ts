@@ -33,7 +33,18 @@ export const createProgramSchema = z.object({
 	tag: trimmedString(60),
 	excerpt: trimmedString(500),
 	image: httpsUrl,
-	post: optionalText(20_000)
+	post: optionalText(20_000),
+	audience: optionalText(180),
+	schedule: optionalText(180),
+	location: optionalText(180),
+	mentor: optionalText(180),
+	capacity: optionalText(120),
+	contact: optionalText(180),
+	registration: optionalText(300),
+	highlights: optionalText(1_200),
+	outcomes: optionalText(1_500),
+	activities: optionalText(1_500),
+	requirements: optionalText(1_200)
 });
 
 /** Same fields as create, all optional, but at least one must be provided. */

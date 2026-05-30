@@ -4,7 +4,7 @@
 
 <div
 	use:reveal
-	class="mx-auto max-w-[1180px] rounded-[1.75rem] border border-[oklch(84%_0.021_238)] bg-[oklch(97%_0.008_238)] p-[clamp(1.5rem,4vw,3rem)] text-[oklch(23%_0.071_246)] shadow-[0_18px_54px_oklch(38%_0.08_244_/_0.1)]"
+	class="programs-empty mx-auto max-w-[1180px] rounded-[1.75rem] border border-[oklch(84%_0.021_238)] bg-[oklch(97%_0.008_238)] p-[clamp(1.5rem,4vw,3rem)] text-[oklch(23%_0.071_246)] shadow-[0_18px_54px_oklch(38%_0.08_244_/_0.1)]"
 >
 	<p class="mb-4 mt-0 text-[0.78rem] font-extrabold uppercase tracking-[0.14em] text-[oklch(51%_0.18_18)]">
 		Program sedang disiapkan

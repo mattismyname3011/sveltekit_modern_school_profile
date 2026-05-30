@@ -2,111 +2,217 @@
 	import { reveal } from '$lib/actions/reveal';
 	import FloatingNavbar from '$lib/components/FloatingNavbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import ProgramCard from '$lib/components/programs/ProgramCard.svelte';
 	import type { PageData } from './$types';
+
+	type DetailItem = {
+		label: string;
+		value: string;
+	};
+
+	type ListSection = {
+		title: string;
+		items: string[];
+	};
 
 	let { data }: { data: PageData } = $props();
 	const program = $derived(data.program);
+	const relatedPrograms = $derived(data.relatedPrograms ?? []);
+
+	const toList = (value: string | null | undefined) =>
+		(value ?? '')
+			.split(/\r?\n/)
+			.map((item) => item.trim())
+			.filter(Boolean);
+
+	const bodyText = $derived(program.post?.trim() ? program.post : program.excerpt);
 	const paragraphs = $derived(
-		(program.post ?? program.excerpt)
+		bodyText
 			.split(/\n{2,}/)
 			.map((paragraph) => paragraph.trim())
 			.filter(Boolean)
 	);
+	const primaryFacts = $derived(
+		[
+			{ label: 'Jadwal', value: program.schedule },
+			{ label: 'Lokasi', value: program.location },
+			{ label: 'Peserta', value: program.audience }
+		].filter((item): item is DetailItem => Boolean(item.value))
+	);
 
-	const detailPageClass =
-		"relative min-h-screen text-[oklch(22%_0.045_244)] [overflow-x:clip] [background:radial-gradient(circle_at_9%_13%,oklch(84%_0.055_54_/_0.34),transparent_30rem),radial-gradient(circle_at_90%_4%,oklch(72%_0.13_18_/_0.12),transparent_25rem),linear-gradient(135deg,oklch(97%_0.009_238),oklch(92%_0.02_244))] [padding:clamp(7rem,12vw,10rem)_clamp(1rem,4vw,4rem)_clamp(4rem,7vw,7rem)] max-[860px]:pt-[6.25rem]";
-	const ambientBaseClass =
-		'pointer-events-none absolute z-0 rounded-full [filter:blur(54px)]';
-	const ambientOneClass =
-		'top-[-9rem] left-[-8rem] h-[28rem] w-[28rem] bg-[oklch(23%_0.071_246_/_0.08)]';
-	const ambientTwoClass =
-		'right-[-10rem] bottom-[16rem] h-[24rem] w-[24rem] bg-[oklch(49%_0.18_18_/_0.08)]';
-	const wordBandClass =
-		'absolute left-[-1rem] z-0 select-none whitespace-nowrap uppercase text-[oklch(18%_0.04_244_/_0.04)] top-[clamp(5.5rem,11vw,8rem)] text-[clamp(5.2rem,14vw,12rem)] font-[850] leading-[0.85]';
-	const heroClass =
-		'relative z-[1] mx-auto grid max-w-[1280px] items-center gap-[clamp(1.5rem,5vw,4.5rem)] [grid-template-columns:minmax(0,0.92fr)_minmax(20rem,0.78fr)] max-[860px]:grid-cols-1';
-	const imagePanelClass =
-		'relative min-h-[clamp(26rem,62vw,44rem)] overflow-hidden [border-radius:9rem_1.75rem_9rem_1.75rem] bg-[oklch(18%_0.04_244)] [box-shadow:0_30px_90px_oklch(38%_0.08_244_/_0.24)] max-[860px]:min-h-[20rem] max-[860px]:rounded-[2rem]';
-	const imageClass = 'absolute inset-0 h-full w-full object-cover';
-	const imageShadeClass =
-		'absolute inset-0 [background:linear-gradient(180deg,transparent_38%,oklch(16%_0.04_244_/_0.82)_100%),linear-gradient(90deg,oklch(16%_0.04_244_/_0.28),transparent_70%)]';
-	const imageCaptionClass =
-		'absolute bottom-[clamp(1.25rem,4vw,2.25rem)] left-[clamp(1.25rem,4vw,2.25rem)] right-[clamp(1.25rem,4vw,2.25rem)] flex flex-wrap items-center justify-between gap-4 text-[oklch(97%_0.008_238)]';
-	const imageCaptionTagClass =
-		'rounded-full border border-[oklch(92%_0.014_238_/_0.42)] bg-[oklch(97%_0.008_238_/_0.15)] px-[0.72rem] py-[0.42rem] text-[0.74rem] font-extrabold uppercase tracking-[0.08em]';
-	const imageCaptionTitleClass = 'text-[clamp(1.25rem,3vw,2.25rem)] leading-none';
-	const storyClass = 'py-[clamp(0.25rem,2vw,1rem)] pb-[clamp(0.5rem,2vw,2rem)]';
-	const backLinkClass =
-		'mb-[clamp(1.5rem,4vw,2.5rem)] inline-flex items-center gap-[0.55rem] font-extrabold text-[oklch(35%_0.08_246)] no-underline [transition:color_0.25s_cubic-bezier(0.22,1,0.36,1),transform_0.25s_cubic-bezier(0.22,1,0.36,1)] hover:-translate-x-[3px] hover:text-[oklch(49%_0.18_18)] hover:outline-none focus-visible:-translate-x-[3px] focus-visible:text-[oklch(49%_0.18_18)] focus-visible:outline-none';
-	const programMetaClass =
-		'mb-[1.1rem] flex flex-wrap gap-2 text-[0.74rem] font-[850] uppercase tracking-[0.08em] text-[oklch(35%_0.076_246)]';
-	const programMetaPillClass =
-		'rounded-full border border-[oklch(78%_0.048_238)] bg-[oklch(98%_0.007_238_/_0.7)] px-[0.66rem] py-[0.42rem]';
-	const titleClass =
-		'm-0 max-w-[11ch] text-[clamp(3rem,7vw,7.2rem)] font-[850] leading-[0.92] tracking-[0] text-[oklch(23%_0.071_246)]';
-	const excerptClass =
-		'mb-0 max-w-[42rem] text-[clamp(1.08rem,1.5vw,1.32rem)] font-[650] leading-[1.65] text-[oklch(36%_0.052_246)] [margin-top:clamp(1.25rem,3vw,2rem)]';
-	const bodyCopyClass =
-		'max-w-[68ch] text-base leading-[1.82] text-[oklch(33%_0.035_246)] [margin-top:clamp(1.75rem,4vw,3rem)] [&_p]:m-0 [&_p+p]:mt-[1.1rem] [&_p:first-child::first-letter]:float-left [&_p:first-child::first-letter]:mr-2 [&_p:first-child::first-letter]:mt-[0.08rem] [&_p:first-child::first-letter]:text-[3.65rem] [&_p:first-child::first-letter]:font-[850] [&_p:first-child::first-letter]:leading-[0.86] [&_p:first-child::first-letter]:text-[oklch(23%_0.071_246)]';
-	const closingPanelClass =
-		'relative z-[1] mx-auto mt-[clamp(3rem,7vw,6rem)] grid max-w-[1280px] items-end gap-[clamp(1.5rem,4vw,3rem)] overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,oklch(23%_0.071_246),oklch(18%_0.055_246))] p-[clamp(1.5rem,4vw,3rem)] text-[oklch(97%_0.008_238)] [box-shadow:0_26px_80px_oklch(38%_0.08_244_/_0.22)] [grid-template-columns:minmax(0,1fr)_auto] after:absolute after:right-[-7rem] after:top-[-7rem] after:h-[20rem] after:w-[20rem] after:rounded-full after:bg-[oklch(49%_0.18_18_/_0.18)] after:content-[""] after:[filter:blur(24px)] max-[860px]:grid-cols-1 max-[860px]:rounded-[2rem]';
-	const closingEyebrowClass =
-		'relative z-[1] mb-[0.85rem] mt-0 uppercase text-[0.78rem] font-extrabold tracking-[0.14em] text-[oklch(74%_0.18_54)]';
-	const closingTitleClass =
-		'relative z-[1] m-0 max-w-[18ch] text-[clamp(2rem,4vw,4.25rem)] font-[850] leading-none';
-	const contactLinkClass =
-		'relative z-[1] inline-flex min-h-12 items-center justify-center rounded-full bg-[oklch(97%_0.008_238)] px-5 py-[0.85rem] font-extrabold text-[oklch(23%_0.071_246)] no-underline [transition:transform_0.25s_cubic-bezier(0.22,1,0.36,1),background_0.25s_cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:bg-[oklch(74%_0.18_54)] hover:outline-none focus-visible:-translate-y-0.5 focus-visible:bg-[oklch(74%_0.18_54)] focus-visible:outline-none';
+	const quickFacts = $derived(
+		[
+			{ label: 'Pembina', value: program.mentor },
+			{ label: 'Kapasitas', value: program.capacity },
+			{ label: 'Kontak', value: program.contact }
+		].filter((item): item is DetailItem => Boolean(item.value))
+	);
+
+	const highlightList = $derived(toList(program.highlights));
+	const listSections = $derived(
+		[
+			{ title: 'Yang dilatih', items: toList(program.outcomes) },
+			{ title: 'Kegiatan rutin', items: toList(program.activities) },
+			{ title: 'Perlu disiapkan', items: toList(program.requirements) }
+		].filter((section): section is ListSection => section.items.length > 0)
+	);
 </script>
 
 <svelte:head>
-	<title>{program.title} | Program Sekolah</title>
+	<title>{program.title} | Program SMP 1 Anggana</title>
 	<meta name="description" content={program.excerpt} />
 </svelte:head>
 
 <FloatingNavbar />
 
-<main class={detailPageClass}>
-	<div aria-hidden="true" class={`${ambientBaseClass} ${ambientOneClass}`}></div>
-	<div aria-hidden="true" class={`${ambientBaseClass} ${ambientTwoClass}`}></div>
-	<div aria-hidden="true" class={wordBandClass}>DETAIL · PROGRAM · DETAIL</div>
+<main class="min-h-screen overflow-x-clip bg-[linear-gradient(135deg,oklch(97%_0.009_238)_0%,oklch(92%_0.02_244)_54%,oklch(98%_0.01_18)_100%)] text-[oklch(22%_0.045_244)] [html[data-theme='dark']_&]:bg-[oklch(11%_0.026_246)] [html[data-theme='dark']_&]:text-[oklch(92%_0.014_238)]">
+	<section class="px-[clamp(1rem,4vw,4rem)] pb-[clamp(2.5rem,5vw,4.5rem)] pt-[clamp(6.5rem,10vw,9rem)]">
+		<div class="mx-auto max-w-[1180px]">
+			<nav
+				class="mb-[clamp(1.25rem,3vw,2rem)] flex flex-wrap items-center gap-2 text-[0.82rem] font-semibold text-[oklch(46%_0.034_244)] [html[data-theme='dark']_&]:text-[oklch(76%_0.018_238)]"
+				aria-label="Breadcrumb"
+			>
+				<a class="text-inherit no-underline transition-colors duration-200 hover:text-[oklch(24%_0.06_244)]" href="/">Beranda</a>
+				<span aria-hidden="true">/</span>
+				<a class="text-inherit no-underline transition-colors duration-200 hover:text-[oklch(24%_0.06_244)]" href="/programs">Program</a>
+				<span aria-hidden="true">/</span>
+				<span aria-current="page">{program.tag}</span>
+			</nav>
 
-	<section class={heroClass}>
-		<div use:reveal={{ from: 'left' }} class={imagePanelClass}>
-			<img class={imageClass} src={program.image} alt={program.title} />
-			<div class={imageShadeClass}></div>
-			<div class={imageCaptionClass}>
-				<span class={imageCaptionTagClass}>{program.tag}</span>
-				<strong class={imageCaptionTitleClass}>SMP 1 Anggana</strong>
+			<div class="grid items-end gap-[clamp(1.5rem,4vw,3rem)] [grid-template-columns:minmax(0,0.84fr)_minmax(18rem,0.56fr)] max-[900px]:grid-cols-1">
+				<div use:reveal={{ from: 'up', delay: 60 }}>
+					<div class="flex flex-wrap items-center gap-3 text-[0.82rem] font-semibold text-[oklch(45%_0.036_244)] [html[data-theme='dark']_&]:text-[oklch(78%_0.018_238)]">
+						<span class="rounded-full border border-[oklch(82%_0.036_28)] bg-[oklch(98%_0.012_28)] px-3 py-1 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[oklch(45%_0.09_28)] [html[data-theme='dark']_&]:border-[oklch(60%_0.09_28_/_0.42)] [html[data-theme='dark']_&]:bg-[oklch(20%_0.04_28_/_0.42)] [html[data-theme='dark']_&]:text-[oklch(82%_0.12_45)]">{program.tag}</span>
+						{#if program.mentor}
+							<span>{program.mentor}</span>
+						{/if}
+					</div>
+
+					<h1 class="mt-5 max-w-[12ch] font-display text-[clamp(2.45rem,6vw,5.1rem)] font-[850] leading-[0.98] tracking-[0] text-[oklch(22%_0.06_244)] [text-wrap:balance] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">
+						{program.title}
+					</h1>
+					<p class="mt-6 max-w-[64ch] text-[clamp(1rem,1.5vw,1.16rem)] font-[450] leading-[1.75] text-[oklch(38%_0.036_244)] [html[data-theme='dark']_&]:text-[oklch(81%_0.023_238)]">
+						{program.excerpt}
+					</p>
+
+					{#if primaryFacts.length > 0}
+						<dl class="mt-8 grid max-w-[52rem] gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))]">
+							{#each primaryFacts as item}
+								<div class="border-t border-[oklch(78%_0.025_244)] pt-3 [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.16)]">
+									<dt class="text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[oklch(48%_0.035_244)] [html[data-theme='dark']_&]:text-[oklch(76%_0.018_238)]">{item.label}</dt>
+									<dd class="m-0 mt-1 text-[0.98rem] font-[800] leading-[1.36] text-[oklch(24%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(94%_0.012_238)]">{item.value}</dd>
+								</div>
+							{/each}
+						</dl>
+					{/if}
+
+					{#if highlightList.length > 0}
+						<ul class="mt-7 flex list-none flex-wrap gap-2 p-0">
+							{#each highlightList as item}
+								<li class="rounded-full bg-[oklch(99%_0.006_238_/_0.78)] px-3.5 py-2 text-[0.86rem] font-semibold text-[oklch(27%_0.05_244)] shadow-[inset_0_0_0_1px_oklch(83%_0.025_244)] [html[data-theme='dark']_&]:bg-[oklch(17%_0.032_244)] [html[data-theme='dark']_&]:text-[oklch(88%_0.015_238)] [html[data-theme='dark']_&]:shadow-[inset_0_0_0_1px_oklch(88%_0.018_238_/_0.16)]">
+									{item}
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+
+				<figure
+					class="m-0 overflow-hidden rounded-[1.25rem] border border-[oklch(86%_0.02_244)] bg-[oklch(93%_0.012_238)] shadow-[0_24px_70px_-48px_oklch(22%_0.06_244_/_0.45)] [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)] [html[data-theme='dark']_&]:bg-[oklch(17%_0.032_244)]"
+					use:reveal={{ from: 'scale', delay: 140 }}
+				>
+					<img class="block aspect-[4/3] w-full object-cover" src={program.image} alt={`Suasana program ${program.title}`} />
+				</figure>
 			</div>
 		</div>
-
-		<article use:reveal={{ from: 'right', delay: 120 }} class={storyClass}>
-			<a class={backLinkClass} href="/programs" aria-label="Kembali ke daftar program">
-				<span aria-hidden="true">←</span>
-				Semua program
-			</a>
-			<div class={programMetaClass}>
-				<span class={programMetaPillClass}>{program.tag}</span>
-				<span class={programMetaPillClass}>ID {program.id}</span>
-			</div>
-			<h1 class={titleClass}>{program.title}</h1>
-			<p class={excerptClass}>{program.excerpt}</p>
-
-			<div class={bodyCopyClass}>
-				{#each paragraphs as paragraph}
-					<p>{paragraph}</p>
-				{/each}
-			</div>
-		</article>
 	</section>
 
-	<section use:reveal class={closingPanelClass} aria-label="Langkah berikutnya">
-		<div>
-			<p class={closingEyebrowClass}>Langkah Berikutnya</p>
-			<h2 class={closingTitleClass}>Temukan bagaimana program ini hidup di kelas dan kegiatan sekolah.</h2>
+	<section class="px-[clamp(1rem,4vw,4rem)] pb-[clamp(3.5rem,7vw,7rem)]">
+		<div class="mx-auto grid max-w-[1180px] gap-[clamp(2rem,5vw,4rem)] border-t border-[oklch(82%_0.021_238)] pt-[clamp(2rem,5vw,4rem)] [grid-template-columns:minmax(0,0.74fr)_minmax(17rem,0.26fr)] max-[960px]:grid-cols-1 [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)]">
+			<article use:reveal>
+				<h2 class="m-0 text-[clamp(1.55rem,3vw,2.35rem)] font-[800] leading-[1.12] tracking-[0] text-[oklch(23%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">
+					Apa yang dipelajari
+				</h2>
+
+				<div class="mt-6 max-w-[72ch] text-[1rem] leading-[1.82] text-[oklch(34%_0.035_244)] [html[data-theme='dark']_&]:text-[oklch(82%_0.024_238)]">
+					{#each paragraphs as paragraph}
+						<p class="mt-5 first:mt-0">{paragraph}</p>
+					{/each}
+				</div>
+
+				{#if listSections.length > 0}
+					<div class="mt-[clamp(2rem,5vw,3.5rem)] grid gap-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))]">
+						{#each listSections as section}
+							<section class="border-t border-[oklch(82%_0.021_238)] pt-5 [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)]">
+								<h3 class="m-0 text-[1.05rem] font-[800] text-[oklch(23%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">{section.title}</h3>
+								<ul class="mt-4 grid list-none gap-3 p-0">
+									{#each section.items as item}
+										<li class="grid gap-3 text-[0.96rem] leading-[1.58] text-[oklch(37%_0.035_244)] [grid-template-columns:0.55rem_1fr] [html[data-theme='dark']_&]:text-[oklch(82%_0.024_238)]">
+											<span class="mt-[0.58rem] h-1.5 w-1.5 rounded-full bg-[oklch(50%_0.095_28)]" aria-hidden="true"></span>
+											<span>{item}</span>
+										</li>
+									{/each}
+								</ul>
+							</section>
+						{/each}
+					</div>
+				{/if}
+			</article>
+
+			<aside class="min-w-0" use:reveal={{ from: 'right', delay: 90 }}>
+				<div class="sticky top-24 space-y-5">
+					{#if quickFacts.length > 0}
+						<section class="rounded-[1rem] border border-[oklch(84%_0.021_238)] bg-[oklch(99%_0.006_238)] p-5 [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)] [html[data-theme='dark']_&]:bg-[oklch(16%_0.03_244)]">
+							<h2 class="m-0 text-[1rem] font-[800] text-[oklch(23%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">Detail singkat</h2>
+							<dl class="mt-5 grid gap-4">
+								{#each quickFacts as item}
+									<div>
+										<dt class="text-[0.78rem] font-semibold text-[oklch(48%_0.035_244)] [html[data-theme='dark']_&]:text-[oklch(76%_0.018_238)]">{item.label}</dt>
+										<dd class="m-0 mt-1 text-[0.96rem] font-[750] leading-[1.42] text-[oklch(25%_0.052_244)] [html[data-theme='dark']_&]:text-[oklch(94%_0.012_238)]">{item.value}</dd>
+									</div>
+								{/each}
+							</dl>
+						</section>
+					{/if}
+
+					<section class="rounded-[1rem] border border-[oklch(84%_0.021_238)] bg-[oklch(99%_0.006_238)] p-5 [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)] [html[data-theme='dark']_&]:bg-[oklch(16%_0.03_244)]">
+						<h2 class="m-0 text-[1rem] font-[800] text-[oklch(23%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">Cara bergabung</h2>
+						<p class="mt-3 text-[0.95rem] leading-[1.68] text-[oklch(38%_0.035_244)] [html[data-theme='dark']_&]:text-[oklch(82%_0.024_238)]">
+							{program.registration ?? 'Hubungi wali kelas atau pembina program untuk jadwal pendaftaran terbaru.'}
+						</p>
+						<a
+							href="/#kontak"
+							class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[oklch(23%_0.071_246)] px-4 py-2.5 text-[0.9rem] font-[750] text-[oklch(97%_0.008_238)] no-underline transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px focus-visible:-translate-y-px motion-reduce:transition-none"
+						>
+							Hubungi sekolah
+						</a>
+					</section>
+				</div>
+			</aside>
 		</div>
-		<a href="/#kontak" class={contactLinkClass}>Hubungi sekolah</a>
 	</section>
+
+	{#if relatedPrograms.length > 0}
+		<section class="px-[clamp(1rem,4vw,4rem)] pb-[clamp(4rem,7vw,7rem)]" use:reveal>
+			<div class="mx-auto max-w-[1180px] border-t border-[oklch(82%_0.021_238)] pt-[clamp(2rem,5vw,3.25rem)] [html[data-theme='dark']_&]:border-[oklch(88%_0.018_238_/_0.14)]">
+				<div class="flex items-end justify-between gap-5 max-[760px]:items-start max-[760px]:flex-col">
+					<div>
+						<h2 class="m-0 text-[clamp(1.45rem,3vw,2.1rem)] font-[800] leading-[1.15] tracking-[0] text-[oklch(23%_0.058_244)] [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]">Program terkait</h2>
+						<p class="mt-2 max-w-[42rem] text-[0.96rem] leading-[1.65] text-[oklch(42%_0.036_244)] [html[data-theme='dark']_&]:text-[oklch(80%_0.023_238)]">
+							Beberapa pilihan lain yang masih dekat dengan minat siswa.
+						</p>
+					</div>
+					<a class="text-[0.9rem] font-[750] text-[oklch(23%_0.058_244)] no-underline hover:underline [html[data-theme='dark']_&]:text-[oklch(96%_0.012_238)]" href="/programs">Lihat semua program</a>
+				</div>
+
+				<div class="mt-7 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr))]">
+					{#each relatedPrograms as rel, i}
+						<ProgramCard program={rel} index={i} />
+					{/each}
+				</div>
+			</div>
+		</section>
+	{/if}
 </main>
 
 <Footer />

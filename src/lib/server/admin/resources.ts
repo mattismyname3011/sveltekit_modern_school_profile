@@ -7,16 +7,17 @@
  *   - the repository (re-used from the API layer)
  *
  * Adding a new resource = register it here. The admin pages auto-pick it up.
+ *
+ * Note: `news` is intentionally NOT in this registry — it has a custom
+ * editor with markdown live preview at /admin/news/*.
  */
 import type { ZodSchema } from 'zod';
 import { programsRepo } from '$lib/server/repositories/programs';
-import { newsRepo } from '$lib/server/repositories/news';
 import { eventsRepo } from '$lib/server/repositories/events';
 import {
 	createProgramSchema,
 	updateProgramSchema
 } from '$lib/server/api/schemas/programs';
-import { createNewsSchema, updateNewsSchema } from '$lib/server/api/schemas/news';
 import { createEventSchema, updateEventSchema } from '$lib/server/api/schemas/events';
 
 export type FieldKind = 'text' | 'textarea' | 'url' | 'longtext';
@@ -65,6 +66,42 @@ const programsResource: AdminResource = {
 		{ name: 'tag', label: 'Tag', kind: 'text', required: true, listColumn: true },
 		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
 		{ name: 'image', label: 'Image URL', kind: 'url', required: true },
+		{ name: 'audience', label: 'Audience', kind: 'text', hint: 'e.g. Kelas VII sampai IX.' },
+		{ name: 'schedule', label: 'Schedule', kind: 'text', hint: 'e.g. Rabu, 15.30 WITA.' },
+		{ name: 'location', label: 'Location', kind: 'text', listColumn: true },
+		{ name: 'mentor', label: 'Mentor', kind: 'text', hint: 'Teacher or coach in charge.' },
+		{ name: 'capacity', label: 'Capacity', kind: 'text', hint: 'Optional participant limit.' },
+		{ name: 'contact', label: 'Contact', kind: 'text', hint: 'Contact person or channel.' },
+		{
+			name: 'registration',
+			label: 'Registration notes',
+			kind: 'textarea',
+			hint: 'Short note about how students join.'
+		},
+		{
+			name: 'highlights',
+			label: 'Highlights',
+			kind: 'textarea',
+			hint: 'One item per line. Shown as compact facts.'
+		},
+		{
+			name: 'outcomes',
+			label: 'Outcomes',
+			kind: 'textarea',
+			hint: 'One item per line. What students will practice or produce.'
+		},
+		{
+			name: 'activities',
+			label: 'Activities',
+			kind: 'textarea',
+			hint: 'One item per line. Regular activities in the program.'
+		},
+		{
+			name: 'requirements',
+			label: 'Requirements',
+			kind: 'textarea',
+			hint: 'One item per line. Preparation, equipment, or eligibility.'
+		},
 		{
 			name: 'post',
 			label: 'Long content',
@@ -74,21 +111,6 @@ const programsResource: AdminResource = {
 	]
 };
 
-const newsResource: AdminResource = {
-	slug: 'news',
-	label: 'News',
-	plural: 'News',
-	repo: newsRepo as unknown as RepoLike,
-	createSchema: createNewsSchema,
-	updateSchema: updateNewsSchema,
-	fields: [
-		{ name: 'category', label: 'Category', kind: 'text', required: true, listColumn: true },
-		{ name: 'date', label: 'Date label', kind: 'text', required: true, listColumn: true, hint: 'e.g. "12 Mei 2026"' },
-		{ name: 'title', label: 'Title', kind: 'text', required: true, listColumn: true },
-		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
-		{ name: 'image', label: 'Image URL', kind: 'url', required: true }
-	]
-};
 
 const eventsResource: AdminResource = {
 	slug: 'events',
@@ -111,7 +133,6 @@ const eventsResource: AdminResource = {
 
 export const ADMIN_RESOURCES: Record<string, AdminResource> = {
 	programs: programsResource,
-	news: newsResource,
 	events: eventsResource
 };
 

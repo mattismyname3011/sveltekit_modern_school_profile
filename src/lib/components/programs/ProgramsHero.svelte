@@ -11,7 +11,7 @@
 </script>
 
 <section
-	class="relative overflow-hidden [padding:clamp(7rem,12vw,10rem)_clamp(1rem,4vw,4rem)_clamp(3rem,7vw,6rem)] max-[760px]:pt-[6.25rem]"
+	class="programs-hero relative overflow-hidden [padding:clamp(7rem,12vw,10rem)_clamp(1rem,4vw,4rem)_clamp(3rem,7vw,6rem)] max-[760px]:pt-[6.25rem]"
 >
 	<div
 		aria-hidden="true"
@@ -33,7 +33,7 @@
 	>
 		<div
 			use:reveal={{ from: 'left' }}
-			class="flex min-h-[clamp(24rem,42vw,34rem)] max-w-[880px] flex-col justify-end pb-[clamp(0rem,3vw,3rem)] max-[900px]:min-h-auto"
+			class="programs-hero-copy flex min-h-[clamp(24rem,42vw,34rem)] max-w-[880px] flex-col justify-end pb-[clamp(0rem,3vw,3rem)] max-[900px]:min-h-auto"
 		>
 			<div class="mb-[clamp(1.25rem,3vw,2rem)] flex flex-wrap items-center gap-3">
 				<p class="m-0 text-[0.78rem] font-extrabold uppercase tracking-[0.14em] text-[oklch(51%_0.18_18)]">

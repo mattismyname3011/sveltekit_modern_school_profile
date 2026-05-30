@@ -20,7 +20,7 @@
 <FloatingNavbar />
 
 <main
-	class="min-h-screen [overflow-x:clip] bg-[linear-gradient(135deg,oklch(97%_0.009_238)_0%,oklch(92%_0.02_244)_52%,oklch(98%_0.01_18)_100%)] text-[oklch(22%_0.045_244)]"
+	class="programs-page min-h-screen [overflow-x:clip] bg-[linear-gradient(135deg,oklch(97%_0.009_238)_0%,oklch(92%_0.02_244)_52%,oklch(98%_0.01_18)_100%)] text-[oklch(22%_0.045_244)]"
 >
 	<ProgramsHero programs={allPrograms} />
 	<ProgramsList programs={allPrograms} />

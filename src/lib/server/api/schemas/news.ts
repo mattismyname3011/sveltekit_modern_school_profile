@@ -10,13 +10,24 @@ const httpsUrl = z
 	.max(2048)
 	.refine((u) => /^https?:\/\//i.test(u), 'URL must start with http(s)://');
 
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const slugSchema = z
+	.string()
+	.trim()
+	.toLowerCase()
+	.min(3, 'Slug minimal 3 karakter.')
+	.max(120, 'Slug maksimal 120 karakter.')
+	.regex(slugRegex, 'Slug hanya boleh huruf kecil, angka, dan tanda hubung.');
+
 export const createNewsSchema = z.object({
 	category: trimmedString(60),
-	/** Human-friendly date string, e.g. "12 Mei 2026". */
 	date: trimmedString(40),
 	title: trimmedString(200),
+	slug: slugSchema,
 	excerpt: trimmedString(500),
-	image: httpsUrl
+	image: httpsUrl,
+	content: z.string().max(50_000, 'Content terlalu panjang.').optional().nullable()
 });
 
 export const updateNewsSchema = createNewsSchema
@@ -35,3 +46,16 @@ export const listNewsQuerySchema = z.object({
 export type CreateNewsInput = z.infer<typeof createNewsSchema>;
 export type UpdateNewsInput = z.infer<typeof updateNewsSchema>;
 export type ListNewsQuery = z.infer<typeof listNewsQuerySchema>;
+
+/**
+ * Slugify a title to a URL-safe form. Used by the dashboard's auto-suggest.
+ */
+export function slugify(input: string): string {
+	return input
+		.normalize('NFKD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 120);
+}
