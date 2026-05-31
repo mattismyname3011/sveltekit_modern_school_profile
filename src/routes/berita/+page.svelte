@@ -4,7 +4,9 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import NewsCard from '$lib/components/NewsCard.svelte';
 	import { reveal } from '$lib/actions/reveal';
+	import { goto } from '$app/navigation';
 	import { page as pageStore } from '$app/state';
+	import { fade } from 'svelte/transition';
 
 	let { data }: { data: PageData } = $props();
 
@@ -17,8 +19,41 @@
 		return u.pathname + (u.search ? u.search : '');
 	}
 
-	const featured = $derived(data.items[0] ?? null);
-	const rest = $derived(data.items.slice(1));
+	const showFeatured = $derived(
+		data.pagination.page === 1 && !data.filters.q && !data.filters.category
+	);
+	const featured = $derived(showFeatured ? data.items[0] ?? null : null);
+	const rest = $derived(showFeatured ? data.items.slice(1) : data.items);
+
+	let searchValue = $state(data.filters.q);
+	let searchTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+
+	function handleSearchInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		searchValue = target.value;
+
+		if (searchTimer) {
+			clearTimeout(searchTimer);
+		}
+
+		searchTimer = setTimeout(() => {
+			goto(urlWith({ q: searchValue.trim() || null, page: null }), {
+				replaceState: true,
+				keepFocus: true,
+			});
+		}, 300);
+	}
+
+	function handleSearchSubmit(event: Event) {
+		event.preventDefault();
+		if (searchTimer) {
+			clearTimeout(searchTimer);
+		}
+		goto(urlWith({ q: searchValue.trim() || null, page: null }), {
+			replaceState: true,
+			keepFocus: true,
+		});
+	}
 </script>
 
 <svelte:head>
@@ -66,17 +101,18 @@
 				</div>
 
 				<!-- Search -->
-				<form method="get" action="/berita" class="search-form">
+				<form method="get" action="/berita" class="search-form" onsubmit={handleSearchSubmit}>
 					{#if data.filters.category}
 						<input type="hidden" name="kategori" value={data.filters.category} />
 					{/if}
 					<input
 						type="text"
 						name="q"
-						value={data.filters.q}
+						bind:value={searchValue}
 						placeholder="Cari berita…"
 						class="search-input"
 						autocomplete="off"
+						oninput={handleSearchInput}
 					/>
 					<button type="submit" class="search-btn" aria-label="Cari">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -84,8 +120,13 @@
 							<path d="m21 21-4.3-4.3" />
 						</svg>
 					</button>
-					{#if data.filters.q}
-						<a href={urlWith({ q: null, page: null })} class="search-clear" title="Hapus pencarian" aria-label="Hapus pencarian">
+					{#if searchValue}
+						<a
+							href={urlWith({ q: null, page: null })}
+							class="search-clear"
+							title="Hapus pencarian"
+							aria-label="Hapus pencarian"
+						>
 							✕
 						</a>
 					{/if}
@@ -118,101 +159,103 @@
 		</section>
 	{/if}
 
-	<!-- Empty state -->
-	{#if data.items.length === 0}
-		<section class="px-4 md:px-8 pb-20">
-			<div class="max-w-3xl mx-auto text-center py-16 px-6 rounded-3xl bg-surface-2 border border-slate-200">
-				<div class="text-5xl mb-4" aria-hidden="true">📰</div>
-				<h2 class="font-display font-bold text-xl text-primary">Belum ada berita yang cocok</h2>
-				<p class="mt-2 text-slate-600">
+	{#key `${data.filters.q}|${data.filters.category}|${data.pagination.page}`}
+		<!-- Empty state -->
+		{#if data.items.length === 0}
+			<section class="px-4 md:px-8 pb-20" transition:fade={{ duration: 200 }}>
+				<div class="max-w-3xl mx-auto text-center py-16 px-6 rounded-3xl bg-surface-2 border border-slate-200">
+					<div class="text-5xl mb-4" aria-hidden="true">📰</div>
+					<h2 class="font-display font-bold text-xl text-primary">Belum ada berita yang cocok</h2>
+					<p class="mt-2 text-slate-600">
+						{#if data.filters.q || data.filters.category}
+							Coba hapus filter atau ubah kata kunci pencarian.
+						{:else}
+							Tim sekolah akan segera memperbarui halaman ini.
+						{/if}
+					</p>
 					{#if data.filters.q || data.filters.category}
-						Coba hapus filter atau ubah kata kunci pencarian.
-					{:else}
-						Tim sekolah akan segera memperbarui halaman ini.
+						<a href="/berita" class="mt-6 inline-block adm-btn-link">← Reset filter</a>
 					{/if}
-				</p>
-				{#if data.filters.q || data.filters.category}
-					<a href="/berita" class="mt-6 inline-block adm-btn-link">← Reset filter</a>
-				{/if}
-			</div>
-		</section>
-	{:else}
-		<!-- Featured (first item, large) -->
-		{#if featured && data.pagination.page === 1 && !data.filters.q && !data.filters.category}
-			<section class="px-4 md:px-8 pb-12">
-				<div class="max-w-7xl mx-auto">
-					<a
-						href={`/berita/${featured.slug}`}
-						class="featured group"
-						use:reveal={{ from: 'up' }}
-					>
-						<div class="featured-img">
-							<img src={featured.image} alt={featured.title} loading="lazy" />
-							<span class="featured-cat">{featured.category}</span>
-						</div>
-						<div class="featured-meta">
-							<div class="text-xs font-semibold uppercase tracking-widest text-accent">
-								Sorotan · {featured.date}
+				</div>
+			</section>
+		{:else}
+			<!-- Featured (first item, large) -->
+			{#if featured && data.pagination.page === 1 && !data.filters.q && !data.filters.category}
+				<section class="px-4 md:px-8 pb-12" transition:fade={{ duration: 200 }}>
+					<div class="max-w-7xl mx-auto">
+						<a
+							href={`/berita/${featured.slug}`}
+							class="featured group"
+							use:reveal={{ from: 'up' }}
+						>
+							<div class="featured-img">
+								<img src={featured.image} alt={featured.title} loading="lazy" />
+								<span class="featured-cat">{featured.category}</span>
 							</div>
-							<h2
-								class="mt-3 font-display font-extrabold text-3xl md:text-4xl text-primary
-								       leading-[1.15] transition-colors duration-300 group-hover:text-accent"
+							<div class="featured-meta">
+								<div class="text-xs font-semibold uppercase tracking-widest text-accent">
+									Sorotan · {featured.date}
+								</div>
+								<h2
+									class="mt-3 font-display font-extrabold text-3xl md:text-4xl text-primary
+									       leading-[1.15] transition-colors duration-300 group-hover:text-accent"
+								>
+									{featured.title}
+								</h2>
+								<p class="mt-4 text-slate-600 text-base md:text-lg leading-relaxed line-clamp-3">
+									{featured.excerpt}
+								</p>
+								<span class="mt-6 inline-flex items-center gap-2 font-semibold text-primary">
+									Baca selengkapnya
+									<span aria-hidden="true">→</span>
+								</span>
+							</div>
+						</a>
+					</div>
+				</section>
+			{/if}
+
+			<!-- Grid -->
+			<section class="px-4 md:px-8 pb-20" transition:fade={{ duration: 200 }}>
+				<div class="max-w-7xl mx-auto">
+					<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+						{#each rest as item, i (item.slug)}
+							<div use:reveal={{ from: 'up', delay: 80 + i * 60 }} class="card-wrap">
+								<NewsCard {...item} href={`/berita/${item.slug}`} />
+							</div>
+						{/each}
+					</div>
+
+					<!-- Pagination -->
+					{#if data.pagination.pages > 1}
+						<div class="pager">
+							<a
+								class="page-link"
+								href={urlWith({ page: Math.max(1, data.pagination.page - 1) })}
+								aria-disabled={data.pagination.page === 1}
+								style:pointer-events={data.pagination.page === 1 ? 'none' : 'auto'}
+								style:opacity={data.pagination.page === 1 ? 0.4 : 1}
 							>
-								{featured.title}
-							</h2>
-							<p class="mt-4 text-slate-600 text-base md:text-lg leading-relaxed line-clamp-3">
-								{featured.excerpt}
-							</p>
-							<span class="mt-6 inline-flex items-center gap-2 font-semibold text-primary">
-								Baca selengkapnya
-								<span aria-hidden="true">→</span>
+								← Sebelumnya
+							</a>
+							<span class="page-info">
+								Halaman <strong class="text-primary">{data.pagination.page}</strong> dari {data.pagination.pages}
 							</span>
+							<a
+								class="page-link"
+								href={urlWith({ page: Math.min(data.pagination.pages, data.pagination.page + 1) })}
+								aria-disabled={data.pagination.page === data.pagination.pages}
+								style:pointer-events={data.pagination.page === data.pagination.pages ? 'none' : 'auto'}
+								style:opacity={data.pagination.page === data.pagination.pages ? 0.4 : 1}
+							>
+								Selanjutnya →
+							</a>
 						</div>
-					</a>
+					{/if}
 				</div>
 			</section>
 		{/if}
-
-		<!-- Grid -->
-		<section class="px-4 md:px-8 pb-20">
-			<div class="max-w-7xl mx-auto">
-				<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-					{#each rest as item, i (item.slug)}
-						<div use:reveal={{ from: 'up', delay: 80 + i * 60 }} class="card-wrap">
-							<NewsCard {...item} href={`/berita/${item.slug}`} />
-						</div>
-					{/each}
-				</div>
-
-				<!-- Pagination -->
-				{#if data.pagination.pages > 1}
-					<div class="pager">
-						<a
-							class="page-link"
-							href={urlWith({ page: Math.max(1, data.pagination.page - 1) })}
-							aria-disabled={data.pagination.page === 1}
-							style:pointer-events={data.pagination.page === 1 ? 'none' : 'auto'}
-							style:opacity={data.pagination.page === 1 ? 0.4 : 1}
-						>
-							← Sebelumnya
-						</a>
-						<span class="page-info">
-							Halaman <strong class="text-primary">{data.pagination.page}</strong> dari {data.pagination.pages}
-						</span>
-						<a
-							class="page-link"
-							href={urlWith({ page: Math.min(data.pagination.pages, data.pagination.page + 1) })}
-							aria-disabled={data.pagination.page === data.pagination.pages}
-							style:pointer-events={data.pagination.page === data.pagination.pages ? 'none' : 'auto'}
-							style:opacity={data.pagination.page === data.pagination.pages ? 0.4 : 1}
-						>
-							Selanjutnya →
-						</a>
-					</div>
-				{/if}
-			</div>
-		</section>
-	{/if}
+	{/key}
 </main>
 
 <Footer />
