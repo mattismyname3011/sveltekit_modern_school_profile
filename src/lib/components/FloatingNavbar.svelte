@@ -16,7 +16,7 @@
 			{ label: "Beranda", href: "/" },
 			{ label: "Tentang", href: "/#tentang" },
 			{ label: "Program", href: "/programs" },
-			{ label: "Berita", href: "/#berita" },
+			{ label: "Berita", href: "/berita" },
 			{ label: "Kontak", href: "/#kontak" },
 		],
 		brand = "SMP 1 Anggana",

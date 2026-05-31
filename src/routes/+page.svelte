@@ -49,7 +49,7 @@
 				<!-- Floating stat card overlay -->
 				<div
 					use:parallax={{ speed: -0.06 }}
-					class="absolute -bottom-8 left-4 md:left-auto md:right-[-20px]
+					class="about-stat-card absolute -bottom-8 left-4 md:left-auto md:right-[-20px]
 					       bg-white rounded-3xl shadow-2xl shadow-slate-300/50
 					       border border-slate-100 p-6 max-w-[260px]"
 				>
@@ -95,7 +95,7 @@
 					] as item, i}
 						<div
 							use:reveal={{ from: 'up', delay: 200 + i * 80 }}
-							class="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm
+							class="about-feature-card rounded-2xl bg-white border border-slate-100 p-4 shadow-sm
 							       transition-all duration-300
 							       hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60"
 						>

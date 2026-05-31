@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import Button from './Button.svelte';
-	import { reveal } from '$lib/actions/reveal';
 	import { parallax } from '$lib/actions/parallax';
 
 	interface Slide {
@@ -137,23 +136,17 @@
 
 <section
 	id="beranda"
-	class="relative pt-28 md:pt-36 pb-16 md:pb-24 px-4 md:px-8 overflow-hidden"
+	class="relative overflow-hidden px-4 pb-12 pt-24 sm:pt-28 md:px-8 md:pb-20 md:pt-32 lg:pt-36"
 >
-	<!-- Background ambient blobs -->
-	<div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
-		<div use:parallax={{ speed: 0.15 }} class="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-primary/5 blur-3xl"></div>
-		<div use:parallax={{ speed: -0.18 }} class="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full bg-accent/5 blur-3xl"></div>
-	</div>
-
 	<!-- Parallax band behind everything -->
 	<div
 		aria-hidden="true"
-		class="absolute inset-x-0 top-24 md:top-32 pointer-events-none overflow-hidden -z-0"
+		class="pointer-events-none absolute inset-x-0 top-24 -z-0 overflow-hidden md:top-32"
 	>
 		<div
-			class="whitespace-nowrap select-none
+			class="select-none whitespace-nowrap
 			       font-display font-extrabold uppercase tracking-tighter
-			       text-[18vw] leading-[0.85] text-slate-900/[0.04]"
+			       text-[28vw] leading-[0.85] text-slate-900/[0.035] md:text-[18vw]"
 			style="transform: translate3d({bgX}px, 0, 0);"
 		>
 			ANGGANA · ANGGANA · ANGGANA
@@ -161,13 +154,15 @@
 	</div>
 
 	<div class="relative z-10 max-w-7xl mx-auto">
-		<div class="grid lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] gap-6 md:gap-8">
+		<div class="grid gap-5 md:gap-7 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px]">
 			<!-- ============ MAIN SLIDE ============ -->
 			<div class="relative">
 				<!-- Slide stack with crossfade -->
 				<div
 					class="relative overflow-hidden mask-organic
-					       aspect-[16/11] md:aspect-[16/10] bg-slate-900"
+					       h-[calc(100svh-7rem)] min-h-[500px] max-h-[620px] bg-slate-900
+					       sm:min-h-[540px] md:min-h-[560px]
+					       lg:aspect-[16/11] lg:min-h-0 xl:aspect-[16/10]"
 				>
 					{#each slides as slide, i}
 						<div
@@ -182,38 +177,38 @@
 								style="transform: scale({i === index ? 1.06 : 1});"
 							/>
 							<!-- Gradient overlay for legibility -->
-							<div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent"></div>
-							<div class="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent"></div>
+							<div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/28 to-slate-950/5 md:from-slate-950/72"></div>
+							<div class="absolute inset-0 bg-gradient-to-r from-slate-950/42 via-transparent to-transparent"></div>
 						</div>
 					{/each}
 
 					<!-- Foreground copy -->
-					<div class="absolute inset-0 p-6 md:p-10 lg:p-14 flex flex-col justify-end">
+					<div class="absolute inset-0 flex flex-col justify-end p-5 pb-14 sm:p-7 sm:pb-16 md:p-10 lg:p-14">
 						<div class="text-white">
 							<div
-								class="text-sm md:text-base font-bold tracking-wide
+								class="text-xs font-bold tracking-wide sm:text-sm md:text-base
 								       text-white/90"
 							>
 								{current.hashtag}
 							</div>
 							<h1
-								class="mt-2 md:mt-3 font-display font-extrabold tracking-tight
-								       text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] xl:text-[5.5rem]
-								       leading-[0.95] text-white"
+								class="mt-2 max-w-[11ch] font-display font-extrabold tracking-tight
+								       text-[clamp(2.35rem,12vw,4.75rem)] leading-[0.94] text-white
+								       md:mt-3 md:max-w-[12ch] md:text-[clamp(4.4rem,8vw,5.5rem)]"
 							>
 								<span class="block opacity-95">{current.titleA}</span>
 								<span class="block">{current.titleB}</span>
 							</h1>
 
-							<p class="mt-5 md:mt-6 max-w-xl text-sm md:text-base text-white/85 leading-relaxed">
+							<p class="mt-4 max-w-[34rem] text-base leading-relaxed text-white/86 md:mt-6">
 								{current.desc}
 							</p>
 
-							<div class="mt-7 md:mt-8 flex flex-wrap items-center gap-4">
-								<Button href="/programs" variant="accent" size="lg">Jelajahi Sekarang</Button>
+							<div class="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center md:mt-8">
+								<Button href="/programs" variant="accent" size="lg" class="w-full sm:w-auto">Jelajahi Sekarang</Button>
 
 								<!-- Counter -->
-								<div class="flex items-center gap-3 ml-2">
+								<div class="flex min-h-11 items-center gap-3 sm:ml-2">
 									<span class="font-display font-bold text-white text-lg">
 										{String(index + 1).padStart(2, '0')}
 									</span>
@@ -231,21 +226,76 @@
 				</div>
 
 				<!-- Slide dots (mobile-friendly direct nav) -->
-				<div class="absolute -bottom-3 left-6 md:left-10 flex gap-2">
+				<div class="absolute bottom-5 left-5 hidden gap-1 sm:left-7 sm:gap-2 md:left-10 md:flex">
 					{#each slides as _, i}
 						<button
 							type="button"
 							aria-label={`Pindah ke slide ${i + 1}`}
 							onclick={() => jumpTo(i)}
-							class="h-2 rounded-full transition-all duration-300
-							       {i === index ? 'w-8 bg-accent' : 'w-2 bg-slate-300 hover:bg-slate-400'}"
-						></button>
+							class="grid min-h-11 min-w-11 place-items-center rounded-full transition-all duration-300
+							       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+						>
+							<span
+								aria-hidden="true"
+								class="h-2 rounded-full transition-all duration-300
+								       {i === index ? 'w-8 bg-accent' : 'w-2 bg-white/55'}"
+							></span>
+						</button>
 					{/each}
+				</div>
+
+				<!-- Compact slide controls live inside the frame on touch layouts. -->
+				<div class="absolute right-5 top-5 flex gap-2 sm:right-7 sm:top-7 lg:hidden">
+					<button
+						type="button"
+						onclick={() => go(-1)}
+						aria-label="Slide sebelumnya"
+						class="grid min-h-11 min-w-11 place-items-center rounded-full border border-white/18 bg-slate-950/35 text-white
+						       shadow-lg shadow-slate-950/20 transition-colors duration-300
+						       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+					>
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+							<path d="M19 12H5M12 19l-7-7 7-7" />
+						</svg>
+					</button>
+
+					<button
+						type="button"
+						onclick={() => go(1)}
+						aria-label="Slide berikutnya"
+						class="grid min-h-11 min-w-11 place-items-center rounded-full bg-white text-primary
+						       shadow-lg shadow-slate-950/20 transition-colors duration-300
+						       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+					>
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+							<path d="M5 12h14M13 5l7 7-7 7" />
+						</svg>
+					</button>
+				</div>
+
+				<!-- Shortcuts adapt into a horizontal touch strip below the hero. -->
+				<div class="mt-4 grid gap-4 lg:hidden">
+					<nav aria-label="Jelajahi sekolah" class="overflow-x-auto scrollbar-hide">
+						<ul class="flex w-max gap-2 pr-4">
+							{#each discover as d}
+								<li>
+									<a
+										href={d.href}
+										class="inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700
+										       shadow-sm shadow-slate-200/50 transition-colors duration-200
+										       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+									>
+										{d.label}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</nav>
 				</div>
 			</div>
 
 			<!-- ============ RIGHT RAIL: Preview + Controls + Discover ============ -->
-			<div class="flex flex-col gap-6">
+			<div class="hidden flex-col gap-6 lg:flex">
 				<!-- Preview of next slide -->
 				<button
 					type="button"

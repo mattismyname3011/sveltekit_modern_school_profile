@@ -140,7 +140,10 @@
 					onscroll={updateButtons}
 					class="flex gap-5 md:gap-6 overflow-x-auto
 					       snap-x snap-mandatory scrollbar-hide
-					       -mx-4 px-4 lg:mx-0 lg:px-0
+					       -mx-4 md:-mx-8 lg:mx-0
+					       px-0 scroll-px-4 md:scroll-px-8 lg:scroll-px-0
+					       [&>*:first-child]:ml-4 md:[&>*:first-child]:ml-8 lg:[&>*:first-child]:ml-0
+					       [&>*:last-child]:mr-4 md:[&>*:last-child]:mr-8 lg:[&>*:last-child]:mr-0
 					       pb-3 scroll-smooth"
 				>
 					{@render children()}
@@ -149,7 +152,7 @@
 				<!-- Right edge fade hint (desktop only) -->
 				<div
 					aria-hidden="true"
-					class="hidden lg:block pointer-events-none
+					class="carousel-edge-fade hidden lg:block pointer-events-none
 					       absolute inset-y-0 right-0 w-12
 					       bg-gradient-to-l from-surface to-transparent"
 				></div>

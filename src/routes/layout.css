@@ -389,57 +389,75 @@ body {
    inline script in app.html, plus user toggle from Footer FAB).
    Applies across landing, news listing, news detail.
 
-   Strategy:
-     - Body + main background flip first (dark canvas).
-     - Override only the surface utility classes that matter
-       (cards, panels), NOT every text utility — that would
-       force inverse contrast on anything that already uses a
-       custom color.
-     - Re-tone the navbar specifically because its translucent
-       white pill becomes unreadable on a dark page.
+   Physical scene: families and staff scan school content after sunset,
+   with page photos and school updates glowing on handheld screens.
+
+   Color strategy: full palette for a brand site. Deep indigo carries the
+   night surface, lagoon cyan handles interactive focus, marigold adds
+   school warmth, and coral is reserved for news/category emphasis.
    ========================================================== */
 
+[data-theme='dark'] {
+	--dark-canvas: oklch(13% 0.052 258);
+	--dark-canvas-deep: oklch(9% 0.046 268);
+	--dark-card: oklch(20% 0.058 252);
+	--dark-card-hover: oklch(24% 0.072 246);
+	--dark-card-muted: oklch(17% 0.05 268);
+	--dark-border: oklch(76% 0.08 218 / 0.24);
+	--dark-text: oklch(91% 0.028 242);
+	--dark-text-strong: oklch(98% 0.018 92);
+	--dark-text-muted: oklch(78% 0.048 235);
+	--dark-text-soft: oklch(67% 0.052 238);
+	--dark-accent: oklch(80% 0.16 188);
+	--dark-accent-soft: oklch(87% 0.105 185);
+	--dark-brand: oklch(83% 0.18 72);
+	--dark-brand-soft: oklch(91% 0.13 84);
+	--dark-coral: oklch(75% 0.18 24);
+	--dark-coral-soft: oklch(86% 0.12 28);
+	--dark-shadow: oklch(4% 0.035 268 / 0.62);
+}
+
 [data-theme='dark'] body {
-	background: #05070d;
-	color: #e2e8f0;
+	background: var(--dark-canvas);
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] ::selection {
-	background: #fb7185;
-	color: #0f172a;
+	background: var(--dark-brand);
+	color: var(--dark-canvas);
 }
 
 [data-theme='dark'] .bg-surface,
 [data-theme='dark'] .bg-surface-2 {
-	background: #05070d;
+	background: var(--dark-canvas);
 }
 
 /* Floating navbar — dark navy pill instead of translucent white. */
 [data-theme='dark'] nav.fixed > div.flex {
-	background: rgba(8, 12, 22, 0.88);
-	border-color: rgba(148, 163, 184, 0.18);
-	box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+	background: color-mix(in oklch, var(--dark-canvas-deep) 88%, var(--dark-accent) 12%);
+	border-color: var(--dark-border);
+	box-shadow: 0 18px 40px -16px var(--dark-shadow);
 }
 
 [data-theme='dark'] nav.fixed .text-slate-700,
 [data-theme='dark'] nav.fixed .text-primary {
-	color: #e2e8f0 !important;
+	color: var(--dark-text) !important;
 }
 
 [data-theme='dark'] nav.fixed .text-slate-700:hover {
-	color: #f8fafc !important;
+	color: var(--dark-text-strong) !important;
 }
 
 /* Magic pill highlight — soften so it doesn't blow out the dark surface. */
 [data-theme='dark'] nav.fixed ul .bg-slate-100 {
-	background-color: rgba(148, 163, 184, 0.12) !important;
+	background-color: color-mix(in oklch, var(--dark-accent) 20%, transparent) !important;
 }
 
 /* Brand mark stays primary navy + white — contrast already fine. */
 
 /* CTA stays brand primary in both themes — re-emphasize border to lift it. */
 [data-theme='dark'] nav.fixed a.bg-primary {
-	box-shadow: 0 8px 24px -10px rgba(56, 189, 248, 0.35);
+	box-shadow: 0 8px 24px -10px color-mix(in oklch, var(--dark-accent) 45%, transparent);
 }
 
 /* ----- Cards & panels on landing / listing / related ----- */
@@ -447,51 +465,51 @@ body {
 /* The main card surface in landing/listing pages uses bg-white. Flip it
    to a dark slate so cards remain visually distinct from the page bg. */
 [data-theme='dark'] section .bg-white {
-	background-color: #0f172a;
-	color: #e2e8f0;
+	background-color: var(--dark-card);
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] section .bg-slate-50 {
-	background-color: #0a0e1a;
+	background-color: var(--dark-card-muted);
 }
 
 /* News card root inside related & listing is bg-slate-100 by default. */
 [data-theme='dark'] section .bg-slate-100 {
-	background-color: #0f172a;
+	background-color: var(--dark-card);
 }
 
 /* Body text on cards stays readable. */
 [data-theme='dark'] section .text-slate-600 {
-	color: #cbd5e1;
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] section .text-slate-700,
 [data-theme='dark'] section .text-slate-800 {
-	color: #e2e8f0;
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] section .text-slate-500 {
-	color: #94a3b8;
+	color: var(--dark-text-soft);
 }
 
 /* Card titles use .text-primary in light mode (deep navy) — flip to off-white
    for legibility against the dark card surface. */
 [data-theme='dark'] section .text-primary {
-	color: #f8fafc;
+	color: var(--dark-text-strong);
 }
 
-/* Date pills on news cards are bg-white/95 — keep them light but with a
-   slate text so they pop against the card. */
+/* Date pills on news cards are bg-white/95 in light mode. In dark mode,
+   keep them raised without introducing a separate card color. */
 [data-theme='dark'] section .bg-white\/95 {
-	background-color: rgba(15, 23, 42, 0.85);
-	color: #e2e8f0;
+	background-color: color-mix(in oklch, var(--dark-card-hover) 88%, var(--dark-brand) 12%);
+	color: var(--dark-text);
 }
 
 /* Borders that were hairline grey become hairline slate. */
 [data-theme='dark'] .border-slate-100,
 [data-theme='dark'] .border-slate-200,
 [data-theme='dark'] .border-slate-300 {
-	border-color: #1e293b;
+	border-color: var(--dark-border);
 }
 
 /* "About" stat tiles, news card shadows, etc. use shadow-slate-200/* — soften
@@ -501,226 +519,259 @@ body {
 [data-theme='dark'] .shadow-slate-200\/60,
 [data-theme='dark'] .shadow-slate-300\/40,
 [data-theme='dark'] .shadow-slate-300\/50 {
-	--tw-shadow-color: rgba(0, 0, 0, 0.6) !important;
+	--tw-shadow-color: var(--dark-shadow) !important;
 	box-shadow: 0 12px 32px -10px var(--tw-shadow-color) !important;
 }
 
 /* ----- News listing page header / search / chips ----- */
 
 [data-theme='dark'] .search-input {
-	background: #0f172a;
-	border-color: #1e293b;
-	color: #f1f5f9;
+	background: var(--dark-card-muted);
+	border-color: var(--dark-border);
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .search-input::placeholder {
-	color: #475569;
+	color: var(--dark-text-soft);
 }
 
 [data-theme='dark'] .search-input:focus {
-	border-color: #38bdf8;
-	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+	border-color: var(--dark-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklch, var(--dark-accent) 28%, transparent);
 }
 
 [data-theme='dark'] .search-btn {
-	background: #38bdf8;
-	color: #0f172a;
+	background: var(--dark-accent);
+	color: var(--dark-canvas-deep);
 }
 
 [data-theme='dark'] .search-btn:hover {
-	background: #0ea5e9;
+	background: var(--dark-accent-soft);
 }
 
 [data-theme='dark'] .chip {
-	background: #0f172a;
-	border-color: #1e293b;
-	color: #cbd5e1;
+	background: var(--dark-card-muted);
+	border-color: var(--dark-border);
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] .chip:hover {
-	border-color: #38bdf8;
-	color: #f1f5f9;
+	border-color: var(--dark-accent);
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .chip.active {
-	background: #38bdf8;
-	border-color: #38bdf8;
-	color: #0f172a;
+	background: var(--dark-brand);
+	border-color: var(--dark-brand);
+	color: var(--dark-canvas-deep);
 }
 
 [data-theme='dark'] .featured-img {
-	background: #0f172a;
-	box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.8);
+	background: var(--dark-card-muted);
+	box-shadow: 0 24px 48px -16px var(--dark-shadow);
 }
 
 [data-theme='dark'] .page-link {
-	background: #0f172a;
-	border-color: #1e293b;
-	color: #e2e8f0;
+	background: var(--dark-card-muted);
+	border-color: var(--dark-border);
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] .page-link:hover {
-	background: #38bdf8;
-	border-color: #38bdf8;
-	color: #0f172a;
+	background: var(--dark-accent);
+	border-color: var(--dark-accent);
+	color: var(--dark-canvas-deep);
 }
 
 [data-theme='dark'] .page-info {
-	color: #94a3b8;
+	color: var(--dark-text-soft);
+}
+
+/* Landing news carousel: the right fade must match the dark section, not the
+   light surface token baked into the Tailwind class. */
+[data-theme='dark'] .carousel-edge-fade {
+	background-image: linear-gradient(
+		to left,
+		var(--dark-canvas) 12%,
+		color-mix(in oklch, var(--dark-canvas) 82%, transparent) 58%,
+		transparent
+	) !important;
+}
+
+/* About section cards: replace the light slate hover haze with a warmer school
+   glow so cards lift cleanly on the colored night surface. */
+[data-theme='dark'] .about-stat-card {
+	background: color-mix(in oklch, var(--dark-card-hover) 86%, var(--dark-brand) 14%);
+	border-color: color-mix(in oklch, var(--dark-brand) 36%, var(--dark-border));
+	box-shadow:
+		0 22px 58px -26px color-mix(in oklch, var(--dark-brand) 52%, transparent),
+		0 0 0 1px color-mix(in oklch, var(--dark-accent) 14%, transparent);
+}
+
+[data-theme='dark'] .about-stat-card .bg-primary\/5 {
+	background-color: color-mix(in oklch, var(--dark-accent) 16%, var(--dark-card));
+	color: var(--dark-accent);
+}
+
+[data-theme='dark'] .about-feature-card:hover {
+	box-shadow:
+		0 18px 42px -22px color-mix(in oklch, var(--dark-brand) 48%, transparent),
+		0 0 0 1px color-mix(in oklch, var(--dark-accent) 22%, transparent) !important;
 }
 
 /* ----- News detail page (`<main class="post">`) ----- */
 
-[data-theme='dark'] .post .breadcrumb { color: #94a3b8; }
-[data-theme='dark'] .post .breadcrumb a:hover { color: #38bdf8; }
-[data-theme='dark'] .post .breadcrumb .sep { color: #475569; }
-[data-theme='dark'] .post .breadcrumb .current { color: #f8fafc; }
+[data-theme='dark'] .post .breadcrumb { color: var(--dark-text-soft); }
+[data-theme='dark'] .post .breadcrumb a:hover { color: var(--dark-accent); }
+[data-theme='dark'] .post .breadcrumb .sep { color: color-mix(in oklch, var(--dark-text-soft) 55%, var(--dark-canvas)); }
+[data-theme='dark'] .post .breadcrumb .current { color: var(--dark-text-strong); }
 
 [data-theme='dark'] .post .cat-pill {
-	background: rgba(225, 29, 72, 0.18);
-	border-color: rgba(225, 29, 72, 0.35);
-	color: #fda4af;
+	background: color-mix(in oklch, var(--dark-coral) 22%, transparent);
+	border-color: color-mix(in oklch, var(--dark-coral) 45%, transparent);
+	color: var(--dark-coral-soft);
 }
 
-[data-theme='dark'] .post .dot { color: #475569; }
-[data-theme='dark'] .post .date { color: #94a3b8; }
-[data-theme='dark'] .post .post-title { color: #f8fafc; }
-[data-theme='dark'] .post .post-lede  { color: #cbd5e1; }
+[data-theme='dark'] .post .dot { color: color-mix(in oklch, var(--dark-text-soft) 55%, var(--dark-canvas)); }
+[data-theme='dark'] .post .date { color: var(--dark-text-soft); }
+[data-theme='dark'] .post .post-title { color: var(--dark-text-strong); }
+[data-theme='dark'] .post .post-lede  { color: var(--dark-text-muted); }
 
-[data-theme='dark'] .post .reading-strip { color: #94a3b8; }
-[data-theme='dark'] .post .rs-item svg   { color: #38bdf8; }
-[data-theme='dark'] .post .rs-item strong { color: #f1f5f9; }
-[data-theme='dark'] .post .rs-sep { color: #334155; }
+[data-theme='dark'] .post .reading-strip { color: var(--dark-text-soft); }
+[data-theme='dark'] .post .rs-item svg   { color: var(--dark-brand); }
+[data-theme='dark'] .post .rs-item strong { color: var(--dark-text-strong); }
+[data-theme='dark'] .post .rs-sep { color: color-mix(in oklch, var(--dark-border) 70%, var(--dark-canvas)); }
 
 [data-theme='dark'] .post .post-hero {
-	background: #0f172a;
-	box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.65);
+	background: var(--dark-card-muted);
+	box-shadow: 0 30px 60px -25px var(--dark-shadow);
 }
 
 [data-theme='dark'] .post .share-btn {
-	background: #0f172a;
-	border-color: #1e293b;
-	color: #e2e8f0;
+	background: var(--dark-card-muted);
+	border-color: var(--dark-border);
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] .post .share-btn:hover {
-	background: #1e293b;
-	border-color: #38bdf8;
-	color: #f8fafc;
+	background: var(--dark-card-hover);
+	border-color: var(--dark-accent);
+	color: var(--dark-text-strong);
 }
 
-[data-theme='dark'] .post .share-label { color: #64748b; }
+[data-theme='dark'] .post .share-label { color: var(--dark-text-soft); }
 
-[data-theme='dark'] .post .post-end { border-top-color: #1e293b; }
-[data-theme='dark'] .post .back-to-list { color: #f1f5f9; }
-[data-theme='dark'] .post .back-to-list:hover { color: #fda4af; }
+[data-theme='dark'] .post .post-end { border-top-color: var(--dark-border); }
+[data-theme='dark'] .post .back-to-list { color: var(--dark-text-strong); }
+[data-theme='dark'] .post .back-to-list:hover { color: var(--dark-coral-soft); }
 
 /* TOC */
-[data-theme='dark'] .post .toc-label { color: #94a3b8; }
-[data-theme='dark'] .post .toc-list { border-left-color: #1e293b; }
-[data-theme='dark'] .post .toc-list a { color: #94a3b8; }
-[data-theme='dark'] .post .toc-list a:hover { color: #f1f5f9; }
+[data-theme='dark'] .post .toc-label { color: var(--dark-text-soft); }
+[data-theme='dark'] .post .toc-list { border-left-color: var(--dark-border); }
+[data-theme='dark'] .post .toc-list a { color: var(--dark-text-soft); }
+[data-theme='dark'] .post .toc-list a:hover { color: var(--dark-text-strong); }
 [data-theme='dark'] .post .toc-list li.active a {
-	color: #f8fafc;
-	border-left-color: #fb7185;
+	color: var(--dark-text-strong);
+	border-left-color: var(--dark-coral);
 }
 
 /* Related section background sits a touch deeper than body. */
-[data-theme='dark'] .related-section { background: #0a0e1a; }
+[data-theme='dark'] .related-section { background: var(--dark-canvas-deep); }
 
 /* MD content — flip the public-facing light theme defined earlier. */
 [data-theme='dark'] .post .md-content {
-	color: #e2e8f0;
+	color: var(--dark-text);
 }
 [data-theme='dark'] .post .md-content h1,
 [data-theme='dark'] .post .md-content h2,
 [data-theme='dark'] .post .md-content h3,
 [data-theme='dark'] .post .md-content h4 {
-	color: #f8fafc;
+	color: var(--dark-text-strong);
 }
 [data-theme='dark'] .post .md-content a {
-	color: #38bdf8;
-	text-decoration-color: #fb7185;
+	color: var(--dark-accent);
+	text-decoration-color: var(--dark-coral);
 }
 [data-theme='dark'] .post .md-content blockquote {
-	border-left-color: #fb7185;
-	background: rgba(251, 113, 133, 0.08);
-	color: #cbd5e1;
+	border-left-color: var(--dark-coral);
+	background: color-mix(in oklch, var(--dark-coral) 12%, transparent);
+	color: var(--dark-text-muted);
 }
 [data-theme='dark'] .post .md-content code {
-	background: rgba(148, 163, 184, 0.16);
-	color: #e2e8f0;
+	background: color-mix(in oklch, var(--dark-accent) 13%, var(--dark-card-muted));
+	color: var(--dark-text);
 }
 [data-theme='dark'] .post .md-content pre {
-	background: #020617;
-	color: #cbd5e1;
-	border: 1px solid #1e293b;
+	background: var(--dark-canvas-deep);
+	color: var(--dark-text-muted);
+	border: 1px solid var(--dark-border);
 }
-[data-theme='dark'] .post .md-content pre code { color: #cbd5e1; }
+[data-theme='dark'] .post .md-content pre code { color: var(--dark-text-muted); }
 [data-theme='dark'] .post .md-content th,
 [data-theme='dark'] .post .md-content td {
-	border-color: #1e293b;
+	border-color: var(--dark-border);
 }
-[data-theme='dark'] .post .md-content th { background: #0f172a; }
+[data-theme='dark'] .post .md-content th { background: var(--dark-card-muted); }
 
 /* Reading-progress bar */
 [data-theme='dark'] .progress .bar {
-	background: linear-gradient(90deg, #38bdf8, #fb7185);
-	box-shadow: 0 0 12px rgba(251, 113, 133, 0.45);
+	background: linear-gradient(90deg, var(--dark-accent), var(--dark-brand), var(--dark-coral));
+	box-shadow: 0 0 14px color-mix(in oklch, var(--dark-coral) 48%, transparent);
 }
 
 /* ----- Programs listing and detail pages ----- */
 
 [data-theme='dark'] .programs-page {
 	background:
-		radial-gradient(circle at 12% 12%, oklch(58% 0.11 220 / 0.18), transparent 28rem),
-		radial-gradient(circle at 88% 2%, oklch(62% 0.17 24 / 0.16), transparent 24rem),
-		linear-gradient(135deg, oklch(12% 0.035 246), oklch(8% 0.026 246) 56%, oklch(13% 0.038 230));
-	color: oklch(92% 0.014 238);
+		radial-gradient(circle at 12% 12%, color-mix(in oklch, var(--dark-accent) 28%, transparent), transparent 28rem),
+		radial-gradient(circle at 88% 2%, color-mix(in oklch, var(--dark-coral) 22%, transparent), transparent 24rem),
+		radial-gradient(circle at 55% 0%, color-mix(in oklch, var(--dark-brand) 10%, transparent), transparent 34rem),
+		linear-gradient(135deg, var(--dark-canvas), var(--dark-canvas-deep) 56%, color-mix(in oklch, var(--dark-canvas) 82%, var(--dark-accent) 18%));
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] .programs-hero > [aria-hidden='true']:first-child {
-	background: oklch(25% 0.041 238);
+	background: color-mix(in oklch, var(--dark-card-hover) 78%, var(--dark-brand) 22%);
 }
 
 [data-theme='dark'] .programs-hero > [aria-hidden='true']:nth-child(2) {
 	background-image:
-		linear-gradient(90deg, oklch(87% 0.018 238 / 0.055) 1px, transparent 1px),
-		linear-gradient(0deg, oklch(87% 0.018 238 / 0.045) 1px, transparent 1px);
+		linear-gradient(90deg, color-mix(in oklch, var(--dark-accent) 14%, transparent) 1px, transparent 1px),
+		linear-gradient(0deg, color-mix(in oklch, var(--dark-brand) 11%, transparent) 1px, transparent 1px);
 }
 
 [data-theme='dark'] .programs-hero > [aria-hidden='true']:nth-child(3) {
-	color: oklch(96% 0.01 238 / 0.055);
+	color: color-mix(in oklch, var(--dark-text-strong) 7%, transparent);
 }
 
 [data-theme='dark'] .programs-hero-copy h1,
 [data-theme='dark'] .programs-list h2,
 [data-theme='dark'] .program-detail-page h1 {
-	color: oklch(96% 0.012 238);
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .programs-hero-copy p,
 [data-theme='dark'] .programs-list p,
 [data-theme='dark'] .program-detail-page p {
-	color: oklch(82% 0.024 238);
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] .programs-hero-copy p:first-child,
 [data-theme='dark'] .programs-list .programs-list-head + p,
 [data-theme='dark'] .program-detail-page a,
 [data-theme='dark'] .program-detail-page [class*='uppercase'] {
-	color: oklch(78% 0.18 42);
+	color: var(--dark-brand);
 }
 
 [data-theme='dark'] .programs-hero-copy span:not([aria-hidden='true']),
 [data-theme='dark'] .program-detail-page span:not([aria-hidden='true']) {
-	border-color: oklch(82% 0.018 238 / 0.22);
-	background-color: oklch(18% 0.034 246 / 0.72);
-	color: oklch(94% 0.012 238);
+	border-color: var(--dark-border);
+	background-color: color-mix(in oklch, var(--dark-card-hover) 80%, var(--dark-accent) 20%);
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .programs-list-head {
-	border-color: oklch(84% 0.018 238 / 0.18);
+	border-color: var(--dark-border);
 }
 
 .program-card {
@@ -728,6 +779,7 @@ body {
 }
 
 .program-card h2,
+.program-card h3,
 .program-card p,
 .program-card span:not([aria-hidden='true']) {
 	transition:
@@ -736,7 +788,9 @@ body {
 }
 
 .program-card:hover h2,
-.program-card:focus-visible h2 {
+.program-card:hover h3,
+.program-card:focus-visible h2,
+.program-card:focus-visible h3 {
 	transform: translate3d(0, -2px, 0);
 }
 
@@ -745,66 +799,76 @@ body {
 	transform: translate3d(0, -1px, 0);
 }
 
+[data-theme='dark'] .program-card,
 [data-theme='dark'] .program-card-standard,
 [data-theme='dark'] .programs-empty {
-	background: oklch(19% 0.036 244);
-	border-color: oklch(76% 0.028 238 / 0.18);
-	color: oklch(92% 0.014 238);
-	box-shadow: 0 22px 62px oklch(2% 0.018 246 / 0.42);
+	background: var(--dark-card);
+	border-color: var(--dark-border);
+	color: var(--dark-text);
+	box-shadow: 0 22px 62px var(--dark-shadow);
 }
 
+[data-theme='dark'] .program-card:hover,
+[data-theme='dark'] .program-card:focus-visible,
 [data-theme='dark'] .program-card-standard:hover,
 [data-theme='dark'] .program-card-standard:focus-visible {
-	background: oklch(21% 0.04 244);
-	border-color: oklch(79% 0.15 46 / 0.42);
-	box-shadow: 0 28px 74px oklch(2% 0.018 246 / 0.56);
+	background: var(--dark-card-hover);
+	border-color: color-mix(in oklch, var(--dark-brand) 52%, transparent);
+	box-shadow: 0 28px 74px var(--dark-shadow);
 }
 
+[data-theme='dark'] .program-card figure,
 [data-theme='dark'] .program-card-standard figure {
-	background: oklch(25% 0.034 244);
+	background: var(--dark-card-muted);
 }
 
 [data-theme='dark'] .program-card-standard > [aria-hidden='true'] {
-	background: linear-gradient(180deg, oklch(19% 0.036 244 / 0), oklch(19% 0.036 244) 18%);
+	background: linear-gradient(180deg, color-mix(in oklch, var(--dark-card) 0%, transparent), var(--dark-card) 18%);
 }
 
 [data-theme='dark'] .program-card-standard:hover > [aria-hidden='true'],
 [data-theme='dark'] .program-card-standard:focus-visible > [aria-hidden='true'] {
-	background: linear-gradient(180deg, oklch(21% 0.04 244 / 0), oklch(21% 0.04 244) 18%);
+	background: linear-gradient(180deg, color-mix(in oklch, var(--dark-card-hover) 0%, transparent), var(--dark-card-hover) 18%);
 }
 
 [data-theme='dark'] .program-card h2,
+[data-theme='dark'] .program-card h3,
 [data-theme='dark'] .programs-empty h2 {
-	color: oklch(96% 0.012 238);
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .program-card p,
 [data-theme='dark'] .programs-empty p {
-	color: oklch(80% 0.024 238);
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] .program-card span:not([aria-hidden='true']),
 [data-theme='dark'] .programs-empty p:first-child {
-	color: oklch(79% 0.17 46);
+	color: var(--dark-brand);
 }
 
 [data-theme='dark'] .program-card:hover h2,
-[data-theme='dark'] .program-card:focus-visible h2 {
-	color: oklch(98% 0.01 238);
+[data-theme='dark'] .program-card:hover h3,
+[data-theme='dark'] .program-card:focus-visible h2,
+[data-theme='dark'] .program-card:focus-visible h3 {
+	color: var(--dark-text-strong);
 }
 
 [data-theme='dark'] .program-card:hover p,
 [data-theme='dark'] .program-card:focus-visible p {
-	color: oklch(85% 0.028 238);
+	color: color-mix(in oklch, var(--dark-text-muted) 82%, var(--dark-accent) 18%);
 }
 
 [data-theme='dark'] .program-card:hover span:not([aria-hidden='true']),
 [data-theme='dark'] .program-card:focus-visible span:not([aria-hidden='true']) {
-	color: oklch(86% 0.15 50);
+	color: var(--dark-brand-soft);
 }
 
+[data-theme='dark'] .program-card figure span:not([aria-hidden='true']),
 [data-theme='dark'] .program-card-standard span:first-child {
-	background: oklch(28% 0.052 244);
+	background: color-mix(in oklch, var(--dark-card-hover) 84%, var(--dark-brand) 16%);
+	color: var(--dark-text-strong);
+	box-shadow: 0 0 0 1px var(--dark-border);
 }
 
 [data-theme='dark'] .program-card-standard span[aria-hidden='true'] {
@@ -813,63 +877,63 @@ body {
 
 [data-theme='dark'] .program-detail-page {
 	background:
-		radial-gradient(circle at 9% 13%, oklch(55% 0.13 220 / 0.18), transparent 30rem),
-		radial-gradient(circle at 90% 4%, oklch(62% 0.17 24 / 0.14), transparent 25rem),
-		linear-gradient(135deg, oklch(12% 0.035 246), oklch(8% 0.026 246));
-	color: oklch(92% 0.014 238);
+		radial-gradient(circle at 9% 13%, color-mix(in oklch, var(--dark-accent) 26%, transparent), transparent 30rem),
+		radial-gradient(circle at 90% 4%, color-mix(in oklch, var(--dark-coral) 20%, transparent), transparent 25rem),
+		linear-gradient(135deg, var(--dark-canvas), var(--dark-canvas-deep));
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(1) {
-	background: oklch(64% 0.12 220 / 0.13);
+	background: color-mix(in oklch, var(--dark-accent) 18%, transparent);
 }
 
 [data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(2) {
-	background: oklch(65% 0.18 28 / 0.12);
+	background: color-mix(in oklch, var(--dark-coral) 17%, transparent);
 }
 
 [data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(3) {
-	color: oklch(96% 0.012 238 / 0.055);
+	color: color-mix(in oklch, var(--dark-text-strong) 7%, transparent);
 }
 
 [data-theme='dark'] .program-detail-image {
-	box-shadow: 0 30px 94px oklch(2% 0.02 246 / 0.62);
+	box-shadow: 0 30px 94px var(--dark-shadow);
 }
 
 [data-theme='dark'] .program-detail-page article > a {
-	color: oklch(80% 0.15 46);
+	color: var(--dark-brand);
 }
 
 [data-theme='dark'] .program-detail-page article > a:hover,
 [data-theme='dark'] .program-detail-page article > a:focus-visible {
-	color: oklch(88% 0.12 32);
+	color: var(--dark-brand-soft);
 }
 
 [data-theme='dark'] .program-detail-page article div span:not([aria-hidden='true']) {
-	border-color: oklch(84% 0.018 238 / 0.18);
-	background: oklch(17% 0.034 246 / 0.78);
-	color: oklch(92% 0.014 238);
+	border-color: var(--dark-border);
+	background: color-mix(in oklch, var(--dark-card) 82%, var(--dark-accent) 18%);
+	color: var(--dark-text);
 }
 
 [data-theme='dark'] .program-detail-page article p:first-of-type {
-	color: oklch(83% 0.026 238);
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] .program-detail-page article div:last-child p {
-	color: oklch(79% 0.024 238);
+	color: var(--dark-text-muted);
 }
 
 [data-theme='dark'] .program-detail-page article div:last-child p:first-child::first-letter {
-	color: oklch(80% 0.17 46);
+	color: var(--dark-brand);
 }
 
 [data-theme='dark'] .program-detail-closing {
-	background: linear-gradient(135deg, oklch(19% 0.048 246), oklch(12% 0.04 246));
-	box-shadow: 0 26px 86px oklch(2% 0.018 246 / 0.62);
+	background: linear-gradient(135deg, color-mix(in oklch, var(--dark-card-hover) 82%, var(--dark-brand) 18%), var(--dark-canvas));
+	box-shadow: 0 26px 86px var(--dark-shadow);
 }
 
 [data-theme='dark'] .program-detail-closing a {
-	background: oklch(93% 0.014 238);
-	color: oklch(16% 0.044 246);
+	background: var(--dark-brand);
+	color: var(--dark-canvas-deep);
 }
 
 @media (max-width: 640px) {

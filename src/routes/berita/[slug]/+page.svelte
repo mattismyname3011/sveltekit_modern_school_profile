@@ -514,6 +514,14 @@
 		background: #eef1f6;
 	}
 
+	:global([data-theme='dark']) .related-section {
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklch, var(--dark-canvas) 94%, var(--dark-accent) 6%),
+			color-mix(in oklch, var(--dark-canvas-deep) 96%, var(--dark-brand) 4%)
+		);
+	}
+
 	.related-head {
 		text-align: center;
 	}
