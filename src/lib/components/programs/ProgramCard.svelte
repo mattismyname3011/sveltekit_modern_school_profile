@@ -19,7 +19,7 @@
 
 <a
 	use:reveal={{ from: index % 3 === 1 ? 'scale' : 'up', delay: index * 70 }}
-	class="group relative flex h-full min-h-[27rem] flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white text-primary no-underline shadow-lg shadow-slate-200/50 outline-none transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-300/60 focus-visible:-translate-y-1 focus-visible:shadow-2xl focus-visible:shadow-slate-300/60 focus-visible:ring-4 focus-visible:ring-accent/30 dark:border-white/10 dark:bg-[oklch(16%_0.045_252)] dark:text-white dark:shadow-[0_20px_56px_-34px_oklch(4%_0.035_268_/_0.72)] dark:hover:bg-[oklch(19%_0.052_252)] dark:hover:shadow-[0_24px_64px_-38px_oklch(4%_0.035_268_/_0.78)] dark:focus-visible:bg-[oklch(19%_0.052_252)] dark:focus-visible:ring-accent/25 motion-reduce:transform-none motion-reduce:transition-none"
+	class="group relative flex h-full min-h-[27rem] flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white text-primary no-underline shadow-lg shadow-slate-200/50 outline-none transition-all duration-500 hover:shadow-2xl hover:shadow-slate-300/60 focus-visible:-translate-y-1 focus-visible:shadow-2xl focus-visible:shadow-slate-300/60 focus-visible:ring-4 focus-visible:ring-accent/30 dark:border-white/10 dark:bg-[oklch(16%_0.045_252)] dark:text-white dark:shadow-[0_20px_56px_-34px_oklch(4%_0.035_268_/_0.72)] dark:hover:bg-[oklch(19%_0.052_252)] dark:hover:shadow-[0_24px_64px_-38px_oklch(4%_0.035_268_/_0.78)] dark:focus-visible:bg-[oklch(19%_0.052_252)] dark:focus-visible:ring-accent/25 motion-reduce:transform-none motion-reduce:transition-none"
 	href={`/programs/${program.id}`}
 	aria-label={`Buka program ${program.title}`}
 >
