@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "$lib/db";
-import { pageVisits, programs } from "$lib/db/schema";
+import { pageViews, programs } from "$lib/db/schema";
 
 export type OverviewAnalytics = {
   visitors: {
@@ -22,15 +22,6 @@ export type OverviewAnalytics = {
   }[];
 };
 
-export type RecordVisitInput = {
-  visitorId: string;
-  resource: string;
-  resourceId?: number | null;
-  path: string;
-  ip?: string | null;
-  userAgent?: string | null;
-};
-
 function startOfDaysAgo(daysAgo: number): Date {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
@@ -38,18 +29,9 @@ function startOfDaysAgo(daysAgo: number): Date {
   return date;
 }
 
-export const analyticsRepo = {
-  async recordVisit(input: RecordVisitInput) {
-    await db.insert(pageVisits).values({
-      visitorId: input.visitorId,
-      resource: input.resource,
-      resourceId: input.resourceId ?? null,
-      path: input.path,
-      ip: input.ip ?? null,
-      userAgent: input.userAgent ?? null,
-    });
-  },
+const programIdFromPath = sql<number>`nullif(regexp_replace(${pageViews.path}, '^/programs/(\\d+).*$', '\\1'), '')::int`;
 
+export const analyticsRepo = {
   async getOverview(): Promise<OverviewAnalytics> {
     const weekStart = startOfDaysAgo(7);
     const monthStart = startOfDaysAgo(30);
@@ -63,39 +45,39 @@ export const analyticsRepo = {
     ] = await Promise.all([
       db
         .select({
-          count: sql<number>`count(distinct ${pageVisits.visitorId})::int`,
+          count: sql<number>`count(distinct ${pageViews.visitorHash})::int`,
         })
-        .from(pageVisits)
-        .where(gte(pageVisits.createdAt, weekStart)),
+        .from(pageViews)
+        .where(gte(pageViews.createdAt, weekStart)),
       db
         .select({
-          count: sql<number>`count(distinct ${pageVisits.visitorId})::int`,
+          count: sql<number>`count(distinct ${pageViews.visitorHash})::int`,
         })
-        .from(pageVisits)
-        .where(gte(pageVisits.createdAt, monthStart)),
+        .from(pageViews)
+        .where(gte(pageViews.createdAt, monthStart)),
       db
         .select({ count: sql<number>`count(*)::int` })
-        .from(pageVisits)
-        .where(gte(pageVisits.createdAt, weekStart)),
+        .from(pageViews)
+        .where(gte(pageViews.createdAt, weekStart)),
       db
         .select({ count: sql<number>`count(*)::int` })
-        .from(pageVisits)
-        .where(gte(pageVisits.createdAt, monthStart)),
+        .from(pageViews)
+        .where(gte(pageViews.createdAt, monthStart)),
       db
         .select({
           id: programs.id,
           title: programs.title,
           tag: programs.tag,
           image: programs.image,
-          views: sql<number>`count(${pageVisits.id})::int`,
-          visitors: sql<number>`count(distinct ${pageVisits.visitorId})::int`,
-          lastViewedAt: sql<string | null>`max(${pageVisits.createdAt})`,
+          views: sql<number>`count(${pageViews.id})::int`,
+          visitors: sql<number>`count(distinct ${pageViews.visitorHash})::int`,
+          lastViewedAt: sql<string | null>`max(${pageViews.createdAt})`,
         })
-        .from(pageVisits)
-        .innerJoin(programs, eq(pageVisits.resourceId, programs.id))
-        .where(eq(pageVisits.resource, "programs"))
+        .from(pageViews)
+        .innerJoin(programs, eq(programs.id, programIdFromPath))
+        .where(sql`${pageViews.path} like '/programs/%'`)
         .groupBy(programs.id)
-        .orderBy(desc(sql`count(${pageVisits.id})`))
+        .orderBy(desc(sql`count(${pageViews.id})`))
         .limit(5),
     ]);
 
