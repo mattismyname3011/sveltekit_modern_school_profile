@@ -154,7 +154,7 @@
 		--glow: rgba(139, 92, 246, 0.18);
 	}
 	.tile.amber {
-		--glow: rgba(251, 191, 36, 0.18);
+		--glow: rgba(248, 113, 113, 0.2);
 	}
 	.label {
 		color: #94a3b8;

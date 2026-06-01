@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /* ==========================================================
    Modern Corporate Design Tokens — SMP 1 Anggana
    ========================================================== */
@@ -393,8 +395,8 @@ body {
    with page photos and school updates glowing on handheld screens.
 
    Color strategy: full palette for a brand site. Deep indigo carries the
-   night surface, lagoon cyan handles interactive focus, marigold adds
-   school warmth, and coral is reserved for news/category emphasis.
+   night surface, lagoon cyan handles interactive focus, and confident red
+   carries school warmth, news, and category emphasis.
    ========================================================== */
 
 [data-theme='dark'] {
@@ -410,10 +412,10 @@ body {
 	--dark-text-soft: oklch(67% 0.052 238);
 	--dark-accent: oklch(80% 0.16 188);
 	--dark-accent-soft: oklch(87% 0.105 185);
-	--dark-brand: oklch(83% 0.18 72);
-	--dark-brand-soft: oklch(91% 0.13 84);
-	--dark-coral: oklch(75% 0.18 24);
-	--dark-coral-soft: oklch(86% 0.12 28);
+	--dark-brand: oklch(70% 0.22 22);
+	--dark-brand-soft: oklch(84% 0.15 20);
+	--dark-coral: oklch(67% 0.24 18);
+	--dark-coral-soft: oklch(82% 0.16 18);
 	--dark-shadow: oklch(4% 0.035 268 / 0.62);
 }
 
@@ -719,245 +721,10 @@ body {
 	box-shadow: 0 0 14px color-mix(in oklch, var(--dark-coral) 48%, transparent);
 }
 
-/* ----- Programs listing and detail pages ----- */
-
-[data-theme='dark'] .programs-page {
-	background:
-		radial-gradient(circle at 12% 12%, color-mix(in oklch, var(--dark-accent) 28%, transparent), transparent 28rem),
-		radial-gradient(circle at 88% 2%, color-mix(in oklch, var(--dark-coral) 22%, transparent), transparent 24rem),
-		radial-gradient(circle at 55% 0%, color-mix(in oklch, var(--dark-brand) 10%, transparent), transparent 34rem),
-		linear-gradient(135deg, var(--dark-canvas), var(--dark-canvas-deep) 56%, color-mix(in oklch, var(--dark-canvas) 82%, var(--dark-accent) 18%));
-	color: var(--dark-text);
-}
-
-[data-theme='dark'] .programs-hero > [aria-hidden='true']:first-child {
-	background: color-mix(in oklch, var(--dark-card-hover) 78%, var(--dark-brand) 22%);
-}
-
-[data-theme='dark'] .programs-hero > [aria-hidden='true']:nth-child(2) {
-	background-image:
-		linear-gradient(90deg, color-mix(in oklch, var(--dark-accent) 14%, transparent) 1px, transparent 1px),
-		linear-gradient(0deg, color-mix(in oklch, var(--dark-brand) 11%, transparent) 1px, transparent 1px);
-}
-
-[data-theme='dark'] .programs-hero > [aria-hidden='true']:nth-child(3) {
-	color: color-mix(in oklch, var(--dark-text-strong) 7%, transparent);
-}
-
-[data-theme='dark'] .programs-hero-copy h1,
-[data-theme='dark'] .programs-list h2,
-[data-theme='dark'] .program-detail-page h1 {
-	color: var(--dark-text-strong);
-}
-
-[data-theme='dark'] .programs-hero-copy p,
-[data-theme='dark'] .programs-list p,
-[data-theme='dark'] .program-detail-page p {
-	color: var(--dark-text-muted);
-}
-
-[data-theme='dark'] .programs-hero-copy p:first-child,
-[data-theme='dark'] .programs-list .programs-list-head + p,
-[data-theme='dark'] .program-detail-page a,
-[data-theme='dark'] .program-detail-page [class*='uppercase'] {
-	color: var(--dark-brand);
-}
-
-[data-theme='dark'] .programs-hero-copy span:not([aria-hidden='true']),
-[data-theme='dark'] .program-detail-page span:not([aria-hidden='true']) {
-	border-color: var(--dark-border);
-	background-color: color-mix(in oklch, var(--dark-card-hover) 80%, var(--dark-accent) 20%);
-	color: var(--dark-text-strong);
-}
-
-[data-theme='dark'] .programs-list-head {
-	border-color: var(--dark-border);
-}
-
-.program-card {
-	isolation: isolate;
-}
-
-.program-card h2,
-.program-card h3,
-.program-card p,
-.program-card span:not([aria-hidden='true']) {
-	transition:
-		color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-		transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.program-card:hover h2,
-.program-card:hover h3,
-.program-card:focus-visible h2,
-.program-card:focus-visible h3 {
-	transform: translate3d(0, -2px, 0);
-}
-
-.program-card:hover span:not([aria-hidden='true']),
-.program-card:focus-visible span:not([aria-hidden='true']) {
-	transform: translate3d(0, -1px, 0);
-}
-
-[data-theme='dark'] .program-card,
-[data-theme='dark'] .program-card-standard,
-[data-theme='dark'] .programs-empty {
-	background: var(--dark-card);
-	border-color: var(--dark-border);
-	color: var(--dark-text);
-	box-shadow: 0 22px 62px var(--dark-shadow);
-}
-
-[data-theme='dark'] .program-card:hover,
-[data-theme='dark'] .program-card:focus-visible,
-[data-theme='dark'] .program-card-standard:hover,
-[data-theme='dark'] .program-card-standard:focus-visible {
-	background: var(--dark-card-hover);
-	border-color: color-mix(in oklch, var(--dark-brand) 52%, transparent);
-	box-shadow: 0 28px 74px var(--dark-shadow);
-}
-
-[data-theme='dark'] .program-card figure,
-[data-theme='dark'] .program-card-standard figure {
-	background: var(--dark-card-muted);
-}
-
-[data-theme='dark'] .program-card-standard > [aria-hidden='true'] {
-	background: linear-gradient(180deg, color-mix(in oklch, var(--dark-card) 0%, transparent), var(--dark-card) 18%);
-}
-
-[data-theme='dark'] .program-card-standard:hover > [aria-hidden='true'],
-[data-theme='dark'] .program-card-standard:focus-visible > [aria-hidden='true'] {
-	background: linear-gradient(180deg, color-mix(in oklch, var(--dark-card-hover) 0%, transparent), var(--dark-card-hover) 18%);
-}
-
-[data-theme='dark'] .program-card h2,
-[data-theme='dark'] .program-card h3,
-[data-theme='dark'] .programs-empty h2 {
-	color: var(--dark-text-strong);
-}
-
-[data-theme='dark'] .program-card p,
-[data-theme='dark'] .programs-empty p {
-	color: var(--dark-text-muted);
-}
-
-[data-theme='dark'] .program-card span:not([aria-hidden='true']),
-[data-theme='dark'] .programs-empty p:first-child {
-	color: var(--dark-brand);
-}
-
-[data-theme='dark'] .program-card:hover h2,
-[data-theme='dark'] .program-card:hover h3,
-[data-theme='dark'] .program-card:focus-visible h2,
-[data-theme='dark'] .program-card:focus-visible h3 {
-	color: var(--dark-text-strong);
-}
-
-[data-theme='dark'] .program-card:hover p,
-[data-theme='dark'] .program-card:focus-visible p {
-	color: color-mix(in oklch, var(--dark-text-muted) 82%, var(--dark-accent) 18%);
-}
-
-[data-theme='dark'] .program-card:hover span:not([aria-hidden='true']),
-[data-theme='dark'] .program-card:focus-visible span:not([aria-hidden='true']) {
-	color: var(--dark-brand-soft);
-}
-
-[data-theme='dark'] .program-card figure span:not([aria-hidden='true']),
-[data-theme='dark'] .program-card-standard span:first-child {
-	background: color-mix(in oklch, var(--dark-card-hover) 84%, var(--dark-brand) 16%);
-	color: var(--dark-text-strong);
-	box-shadow: 0 0 0 1px var(--dark-border);
-}
-
-[data-theme='dark'] .program-card-standard span[aria-hidden='true'] {
-	background: currentColor;
-}
-
-[data-theme='dark'] .program-detail-page {
-	background:
-		radial-gradient(circle at 9% 13%, color-mix(in oklch, var(--dark-accent) 26%, transparent), transparent 30rem),
-		radial-gradient(circle at 90% 4%, color-mix(in oklch, var(--dark-coral) 20%, transparent), transparent 25rem),
-		linear-gradient(135deg, var(--dark-canvas), var(--dark-canvas-deep));
-	color: var(--dark-text);
-}
-
-[data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(1) {
-	background: color-mix(in oklch, var(--dark-accent) 18%, transparent);
-}
-
-[data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(2) {
-	background: color-mix(in oklch, var(--dark-coral) 17%, transparent);
-}
-
-[data-theme='dark'] .program-detail-page > [aria-hidden='true']:nth-child(3) {
-	color: color-mix(in oklch, var(--dark-text-strong) 7%, transparent);
-}
-
-[data-theme='dark'] .program-detail-image {
-	box-shadow: 0 30px 94px var(--dark-shadow);
-}
-
-[data-theme='dark'] .program-detail-page article > a {
-	color: var(--dark-brand);
-}
-
-[data-theme='dark'] .program-detail-page article > a:hover,
-[data-theme='dark'] .program-detail-page article > a:focus-visible {
-	color: var(--dark-brand-soft);
-}
-
-[data-theme='dark'] .program-detail-page article div span:not([aria-hidden='true']) {
-	border-color: var(--dark-border);
-	background: color-mix(in oklch, var(--dark-card) 82%, var(--dark-accent) 18%);
-	color: var(--dark-text);
-}
-
-[data-theme='dark'] .program-detail-page article p:first-of-type {
-	color: var(--dark-text-muted);
-}
-
-[data-theme='dark'] .program-detail-page article div:last-child p {
-	color: var(--dark-text-muted);
-}
-
-[data-theme='dark'] .program-detail-page article div:last-child p:first-child::first-letter {
-	color: var(--dark-brand);
-}
-
-[data-theme='dark'] .program-detail-closing {
-	background: linear-gradient(135deg, color-mix(in oklch, var(--dark-card-hover) 82%, var(--dark-brand) 18%), var(--dark-canvas));
-	box-shadow: 0 26px 86px var(--dark-shadow);
-}
-
-[data-theme='dark'] .program-detail-closing a {
-	background: var(--dark-brand);
-	color: var(--dark-canvas-deep);
-}
-
-@media (max-width: 640px) {
-	.programs-list-grid {
-		auto-rows: minmax(21rem, auto);
-	}
-
-	.program-card-standard {
-		min-height: 21rem;
-	}
-
-	.program-detail-page article div:last-child p:first-child::first-letter {
-		float: none;
-		margin: 0;
-		font-size: inherit;
-		line-height: inherit;
-	}
-}
-
 /* Smooth color transition when toggling theme. */
 html, body, .post, .related-section,
 section .bg-white, section .bg-slate-50, section .bg-slate-100,
 .bg-surface, .bg-surface-2,
-.search-input, .chip, .page-link,
-.programs-page, .program-detail-page, .program-card, .programs-empty {
+.search-input, .chip, .page-link {
 	transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }

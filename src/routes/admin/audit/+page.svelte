@@ -235,9 +235,9 @@
 		border-color: rgba(56, 189, 248, 0.3);
 	}
 	.pill.warn {
-		color: #fbbf24;
-		background: rgba(251, 191, 36, 0.1);
-		border-color: rgba(251, 191, 36, 0.3);
+		color: #f87171;
+		background: rgba(248, 113, 113, 0.1);
+		border-color: rgba(248, 113, 113, 0.3);
 	}
 	.pill.danger {
 		color: #fb7185;

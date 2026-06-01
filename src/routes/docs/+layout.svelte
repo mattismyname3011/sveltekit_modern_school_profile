@@ -360,7 +360,7 @@
 		color: #38bdf8;
 	}
 	.sm.patch {
-		color: #fbbf24;
+		color: #f87171;
 	}
 	.sm.delete {
 		color: #fb7185;

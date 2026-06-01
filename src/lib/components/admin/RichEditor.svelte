@@ -1234,7 +1234,7 @@
 	}
 
 	.autosave .dot.saving {
-		background: #fbbf24;
+		background: #f87171;
 		animation: pulse 1.2s ease-in-out infinite;
 	}
 

@@ -420,9 +420,9 @@
 
 	.method-patch,
 	.method-put {
-		background: rgba(251, 191, 36, 0.14);
-		color: #fbbf24;
-		border: 1px solid rgba(251, 191, 36, 0.35);
+		background: rgba(248, 113, 113, 0.14);
+		color: #f87171;
+		border: 1px solid rgba(248, 113, 113, 0.35);
 	}
 
 	.method-delete {
@@ -669,9 +669,9 @@
 	}
 
 	.status-client {
-		background: rgba(251, 191, 36, 0.14);
-		color: #fbbf24;
-		border: 1px solid rgba(251, 191, 36, 0.35);
+		background: rgba(248, 113, 113, 0.14);
+		color: #f87171;
+		border: 1px solid rgba(248, 113, 113, 0.35);
 	}
 
 	.status-server {
