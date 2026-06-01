@@ -25,8 +25,12 @@
 	const featured = $derived(showFeatured ? data.items[0] ?? null : null);
 	const rest = $derived(showFeatured ? data.items.slice(1) : data.items);
 
-	let searchValue = $state(data.filters.q);
+	let searchValue = $state('');
 	let searchTimer = $state<ReturnType<typeof setTimeout> | null>(null);
+
+	$effect(() => {
+		searchValue = data.filters.q;
+	});
 
 	function handleSearchInput(event: Event) {
 		const target = event.target as HTMLInputElement;
