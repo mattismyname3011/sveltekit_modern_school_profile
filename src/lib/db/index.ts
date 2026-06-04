@@ -18,3 +18,4 @@ const client = postgres(databaseUrl, {
 export const db = drizzle(client, { schema });
 
 export { schema };
+
