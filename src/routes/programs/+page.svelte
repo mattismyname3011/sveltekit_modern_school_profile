@@ -10,10 +10,10 @@
 </script>
 
 <svelte:head>
-	<title>Program Sekolah | SMP 1 Anggana</title>
+	<title>Program Sekolah | SMPN 1 Anggana</title>
 	<meta
 		name="description"
-		content="Jelajahi program akademik, karakter, seni, teknologi, olahraga, dan bahasa di SMP 1 Anggana."
+		content="Jelajahi program akademik, karakter, seni, teknologi, olahraga, dan bahasa di SMPN 1 Anggana."
 	/>
 </svelte:head>
 

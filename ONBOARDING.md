@@ -1,4 +1,4 @@
-# Onboarding — SMP 1 Anggana
+# Onboarding — SMPN 1 Anggana
 
 Panduan setup dari nol untuk anggota tim baru. Selesai dalam ~10 menit kalau Postgres dan Node sudah terpasang.
 

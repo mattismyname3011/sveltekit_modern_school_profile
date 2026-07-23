@@ -5,7 +5,7 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ==========================================================
-   Modern Corporate Design Tokens — SMP 1 Anggana
+   Modern Corporate Design Tokens — SMPN 1 Anggana
    ========================================================== */
 @theme {
 	/* Brand */

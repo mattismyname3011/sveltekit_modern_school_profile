@@ -18,10 +18,10 @@
 </script>
 
 <svelte:head>
-	<title>SMP 1 Anggana — Pendidikan Bermakna untuk Generasi Cemerlang</title>
+	<title>SMPN 1 Anggana — Pendidikan Bermakna untuk Generasi Cemerlang</title>
 	<meta
 		name="description"
-		content="Website resmi SMP 1 Anggana. Sekolah menengah dengan komitmen pada keunggulan akademik, karakter, dan inovasi."
+		content="Website resmi SMPN 1 Anggana. Sekolah menengah dengan komitmen pada keunggulan akademik, karakter, dan inovasi."
 	/>
 </svelte:head>
 
@@ -40,7 +40,7 @@
 					<img
 						use:parallax={{ speed: 0.18 }}
 						src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1200&auto=format&fit=crop"
-						alt="Lingkungan belajar SMP 1 Anggana"
+						alt="Lingkungan belajar SMPN 1 Anggana"
 						loading="lazy"
 						class="parallax-img"
 					/>
@@ -127,7 +127,7 @@
 		id="berita"
 		eyebrow="Update Terbaru"
 		title="Berita"
-		subtitle="Simak lebih lengkap terkait aktivitas dan pencapaian SMP 1 Anggana."
+		subtitle="Simak lebih lengkap terkait aktivitas dan pencapaian SMPN 1 Anggana."
 		viewAllHref="/berita"
 		viewAllLabel="Baca Selengkapnya"
 	>
@@ -168,7 +168,7 @@
 					<div use:reveal={{ from: 'left', delay: 100 }}>
 						<div class="text-xs font-bold uppercase tracking-widest text-accent">PPDB 2026/2027</div>
 						<h2 class="mt-3 font-display font-extrabold tracking-tight text-4xl md:text-6xl leading-[1.05]">
-							Mulai perjalanan akademik Anda di SMP 1 Anggana
+							Mulai perjalanan akademik Anda di SMPN 1 Anggana
 						</h2>
 						<p class="mt-6 text-white/80 text-lg leading-relaxed max-w-xl">
 							Pendaftaran tahap pertama dibuka hingga 30 Juni 2026. Kunjungi sekolah kami atau

@@ -178,11 +178,11 @@ const newsSeed: (typeof news.$inferInsert)[] = [
 		title: 'Tim Robotik Raih Juara 2 Tingkat Provinsi',
 		slug: 'tim-robotik-raih-juara-2-tingkat-provinsi',
 		excerpt:
-			'Lima siswa SMP 1 Anggana berhasil membawa pulang trofi setelah final ketat di Samarinda. Mereka mengalahkan 24 sekolah lainnya.',
+			'Lima siswa SMPN 1 Anggana berhasil membawa pulang trofi setelah final ketat di Samarinda. Mereka mengalahkan 24 sekolah lainnya.',
 		image:
 			'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop',
 		content:
-			'<h2>Perjalanan menuju juara</h2><p>Tim <strong>Robotik SMP 1 Anggana</strong> mengikuti kompetisi tingkat provinsi yang berlangsung selama 3 hari di Samarinda. Tahun ini, mereka mempersiapkan robot line-follower yang lebih akurat dengan tambahan sensor IR.</p><blockquote><p>"Kami latihan tiap sore selama dua bulan terakhir." — Andi, kapten tim</p></blockquote><h3>Apa selanjutnya?</h3><ul><li>Persiapan untuk tingkat nasional di Jakarta</li><li>Rekrutmen anggota baru kelas VII</li><li>Workshop terbuka untuk siswa lain</li></ul><p>Selamat untuk para siswa hebat ini!</p>'
+			'<h2>Perjalanan menuju juara</h2><p>Tim <strong>Robotik SMPN 1 Anggana</strong> mengikuti kompetisi tingkat provinsi yang berlangsung selama 3 hari di Samarinda. Tahun ini, mereka mempersiapkan robot line-follower yang lebih akurat dengan tambahan sensor IR.</p><blockquote><p>"Kami latihan tiap sore selama dua bulan terakhir." — Andi, kapten tim</p></blockquote><h3>Apa selanjutnya?</h3><ul><li>Persiapan untuk tingkat nasional di Jakarta</li><li>Rekrutmen anggota baru kelas VII</li><li>Workshop terbuka untuk siswa lain</li></ul><p>Selamat untuk para siswa hebat ini!</p>'
 	},
 	{
 		category: 'Akademik',

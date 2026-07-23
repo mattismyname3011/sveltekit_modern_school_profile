@@ -19,7 +19,7 @@
 			{ label: "Berita", href: "/berita" },
 			{ label: "Kontak", href: "/#kontak" },
 		],
-		brand = "SMP 1 Anggana",
+		brand = "SMPN 1 Anggana",
 	}: Props = $props();
 
 	/**

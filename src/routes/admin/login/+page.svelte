@@ -35,7 +35,7 @@
 		<div class="header">
 			<span class="brand-mark">SMP</span>
 			<div>
-				<div class="brand-title">SMP 1 Anggana</div>
+				<div class="brand-title">SMPN 1 Anggana</div>
 				<div class="brand-sub">Admin Dashboard</div>
 			</div>
 		</div>

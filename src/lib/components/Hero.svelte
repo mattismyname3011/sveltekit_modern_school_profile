@@ -38,7 +38,7 @@
 			hashtag: '#InovasiPelajar',
 			titleA: 'Menginspirasi',
 			titleB: 'Inovasi Tanpa Batas',
-			desc: 'Lab modern, ekosistem coding, dan klub robotik membuka jalan bagi imajinasi pelajar SMP 1 Anggana.',
+			desc: 'Lab modern, ekosistem coding, dan klub robotik membuka jalan bagi imajinasi pelajar SMPN 1 Anggana.',
 			image:
 				'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1600&auto=format&fit=crop',
 			previewLabel: 'BerikutnyaUntukmu',
@@ -57,7 +57,7 @@
 	];
 
 	const discover = [
-		{ label: 'Tentang SMP 1 Anggana', href: '#tentang' },
+		{ label: 'Tentang SMPN 1 Anggana', href: '#tentang' },
 		{ label: 'Sejarah & Visi Misi', href: '#tentang' },
 		{ label: 'Program Unggulan', href: '#program' },
 		{ label: 'Prestasi & Akreditasi', href: '#tentang' },
@@ -171,7 +171,7 @@
 				class="relative min-w-0"
 				role="region"
 				aria-roledescription="carousel"
-				aria-label="Sorotan SMP 1 Anggana"
+				aria-label="Sorotan SMPN 1 Anggana"
 				onmouseenter={stopAuto}
 				onmouseleave={startAuto}
 				onfocusin={stopAuto}

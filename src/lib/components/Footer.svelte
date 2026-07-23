@@ -15,7 +15,7 @@
 			time: '20:46',
 			tag: 'Artikel',
 			title:
-				'Tim Robotik SMP 1 Anggana Boyong Juara 2 Provinsi #BeraniBerinovasi #PelajarUnggul'
+				'Tim Robotik SMPN 1 Anggana Boyong Juara 2 Provinsi #BeraniBerinovasi #PelajarUnggul'
 		},
 		{
 			date: '20-05-2026',
@@ -93,7 +93,7 @@
 			</div>
 			<div>
 				<div class="font-display font-extrabold text-primary tracking-tight leading-none">
-					SMP 1 Anggana
+					SMPN 1 Anggana
 				</div>
 				<div class="text-[11px] text-slate-500 mt-1 font-medium">
 					the spirit of education
@@ -257,7 +257,7 @@
 
 		<!-- ================ Bottom bar ================ -->
 		<div class="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs text-white/55">
-			<div>© 2026 SMP 1 Anggana. All Rights Reserved.</div>
+			<div>© 2026 SMPN 1 Anggana. All Rights Reserved.</div>
 			<div class="flex gap-6">
 				<a href="/" class="hover:text-white transition-colors">Kebijakan Privasi</a>
 				<a href="/" class="hover:text-white transition-colors">Syarat & Ketentuan</a>
