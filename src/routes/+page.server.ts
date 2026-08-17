@@ -3,6 +3,7 @@ import { programsRepo } from '$lib/server/repositories/programs';
 import { newsRepo } from '$lib/server/repositories/news';
 import { eventsRepo } from '$lib/server/repositories/events';
 import { recordPageView } from '$lib/server/analytics/track';
+import { formatEventTime } from '$lib/utils/date';
 
 /**
  * Loads homepage data directly from the repositories.
@@ -19,7 +20,7 @@ export const load: PageServerLoad = async (event) => {
 	const [programsResult, newsResult, eventsResult] = await Promise.all([
 		programsRepo.list({ limit: 12, offset: 0 }),
 		newsRepo.list({ limit: 8, offset: 0 }),
-		eventsRepo.list({ limit: 12, offset: 0 })
+		eventsRepo.listUpcoming({ limit: 5, offset: 0 })
 	]);
 
 	// Shape the rows to match what the existing components expect.
@@ -56,8 +57,9 @@ export const load: PageServerLoad = async (event) => {
 			title: e.title,
 			excerpt: e.excerpt,
 			image: e.image,
-			time: e.time,
+			time: formatEventTime(e.time),
 			loc: e.location
 		}))
 	};
 };
+

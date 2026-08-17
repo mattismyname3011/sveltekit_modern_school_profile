@@ -20,7 +20,7 @@ import {
 } from '$lib/server/api/schemas/programs';
 import { createEventSchema, updateEventSchema } from '$lib/server/api/schemas/events';
 
-export type FieldKind = 'text' | 'textarea' | 'url' | 'longtext';
+export type FieldKind = 'text' | 'textarea' | 'url' | 'longtext' | 'date' | 'image' | 'time';
 
 export type AdminField = {
 	name: string;
@@ -65,7 +65,7 @@ const programsResource: AdminResource = {
 		{ name: 'title', label: 'Title', kind: 'text', required: true, listColumn: true },
 		{ name: 'tag', label: 'Tag', kind: 'text', required: true, listColumn: true },
 		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
-		{ name: 'image', label: 'Image URL', kind: 'url', required: true },
+		{ name: 'image', label: 'Gambar Cover', kind: 'image', required: true },
 		{ name: 'audience', label: 'Audience', kind: 'text', hint: 'e.g. Kelas VII sampai IX.' },
 		{ name: 'schedule', label: 'Schedule', kind: 'text', hint: 'e.g. Rabu, 15.30 WITA.' },
 		{ name: 'location', label: 'Location', kind: 'text', listColumn: true },
@@ -120,13 +120,24 @@ const eventsResource: AdminResource = {
 	createSchema: createEventSchema,
 	updateSchema: updateEventSchema,
 	fields: [
-		{ name: 'date', label: 'Date label', kind: 'text', required: true, listColumn: true, hint: 'e.g. "12 Jun 2026"' },
-		{ name: 'dateDay', label: 'Day', kind: 'text', required: true, hint: '1–2 digits, e.g. "12"' },
-		{ name: 'dateMonth', label: 'Month', kind: 'text', required: true, hint: 'Short label, e.g. "Jun"' },
+		{
+			name: 'date',
+			label: 'Tanggal Acara',
+			kind: 'date',
+			required: true,
+			listColumn: true,
+			hint: 'Pilih tanggal pelaksanaan acara.'
+		},
 		{ name: 'title', label: 'Title', kind: 'text', required: true, listColumn: true },
 		{ name: 'excerpt', label: 'Excerpt', kind: 'textarea', required: true },
-		{ name: 'image', label: 'Image URL', kind: 'url', required: true },
-		{ name: 'time', label: 'Time', kind: 'text', required: true, hint: 'e.g. "08:00 WITA"' },
+		{ name: 'image', label: 'Gambar Cover', kind: 'image', required: true },
+		{
+			name: 'time',
+			label: 'Waktu Pelaksanaan',
+			kind: 'time',
+			required: true,
+			hint: 'Pilih jam pelaksanaan acara (WITA).'
+		},
 		{ name: 'location', label: 'Location', kind: 'text', required: true, listColumn: true }
 	]
 };

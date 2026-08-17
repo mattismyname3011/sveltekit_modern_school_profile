@@ -290,6 +290,54 @@ const eventsSeed: (typeof events.$inferInsert)[] = [
 			'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1400&auto=format&fit=crop',
 		time: '19:00 WITA',
 		location: 'Aula Utama'
+	},
+	{
+		date: '15 Okt 2026',
+		dateDay: '15',
+		dateMonth: 'Okt',
+		title: 'Festival Literasi & Bulan Bahasa',
+		excerpt:
+			'Lomba cipta puisi, debat bahasa Indonesia dan Inggris, serta bazar buku karya siswa dan guru di Plaza Sekolah.',
+		image:
+			'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1400&auto=format&fit=crop',
+		time: '08:30 WITA',
+		location: 'Perpustakaan & Plaza'
+	},
+	{
+		date: '10 Nov 2026',
+		dateDay: '10',
+		dateMonth: 'Nov',
+		title: 'Expo Sains & Gelar Karya Siswa',
+		excerpt:
+			'Pameran proyek STEAM terintegrasi dari seluruh kelas, mencakup prototipe energi terbarukan dan instalasi botani cerdas.',
+		image:
+			'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1400&auto=format&fit=crop',
+		time: '09:00 WITA',
+		location: 'Lapangan Indoor'
+	},
+	{
+		date: '25 Nov 2026',
+		dateDay: '25',
+		dateMonth: 'Nov',
+		title: 'Peringatan Hari Guru Nasional',
+		excerpt:
+			'Apresiasi tenaga pendidik dan tenaga kependidikan berprestasi, disertai pagelaran musik kolaborasi guru-siswa.',
+		image:
+			'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1400&auto=format&fit=crop',
+		time: '07:30 WITA',
+		location: 'Halaman Sekolah'
+	},
+	{
+		date: '18 Des 2026',
+		dateDay: '18',
+		dateMonth: 'Des',
+		title: 'Class Meeting & Pembagian Rapor Semester Ganjil',
+		excerpt:
+			'Penyerahan laporan hasil belajar peserta didik dan pengumuman juara umum akademik dan ekstrakurikuler.',
+		image:
+			'https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=1400&auto=format&fit=crop',
+		time: '08:00 WITA',
+		location: 'Aula Utama'
 	}
 ];
 

@@ -19,12 +19,15 @@ const optionalText = (max: number) =>
 		.nullable()
 		.optional();
 
-const httpsUrl = z
+const imageSchema = z
 	.string()
 	.trim()
-	.url('Must be a valid URL.')
+	.min(1, 'Image is required.')
 	.max(2048)
-	.refine((u) => /^https?:\/\//i.test(u), 'URL must start with http(s)://');
+	.refine(
+		(u) => /^https?:\/\//i.test(u) || /^\/uploads\/[a-zA-Z0-9_.-]+$/i.test(u) || /^\/[a-zA-Z0-9_.-]/.test(u),
+		'Must be a valid URL (http/https) or uploaded image path (/uploads/...)'
+	);
 
 // Schemas ---------------------------------------------------------------
 
@@ -32,7 +35,7 @@ export const createProgramSchema = z.object({
 	title: trimmedString(160),
 	tag: trimmedString(60),
 	excerpt: trimmedString(500),
-	image: httpsUrl,
+	image: imageSchema,
 	post: optionalText(20_000),
 	audience: optionalText(180),
 	schedule: optionalText(180),

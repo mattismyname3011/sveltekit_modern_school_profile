@@ -502,7 +502,8 @@
 		gap: 1rem;
 	}
 
-	:global(.adm-form label) {
+	:global(.adm-form label),
+	:global(.adm-form .adm-field) {
 		display: flex;
 		flex-direction: column;
 		gap: 0.375rem;

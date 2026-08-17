@@ -34,15 +34,14 @@
 	];
 
 	const navLinks = [
-		'Profil Sekolah',
-		'Akademik',
-		'PPDB 2026',
-		'Berita',
-		'Prestasi',
-		'Ekstrakurikuler',
-		'Karir Guru',
-		'Hubungi Kami',
-		'Peta Situs'
+		{ label: 'Profil Sekolah', href: '/#tentang' },
+		{ label: 'Program Unggulan', href: '/programs' },
+		{ label: 'PPDB 2026', href: '/#kontak' },
+		{ label: 'Berita Sekolah', href: '/berita' },
+		{ label: 'Agenda & Acara', href: '/#acara' },
+		{ label: 'Ekstrakurikuler', href: '/programs' },
+		{ label: 'Hubungi Kami', href: '/#kontak' },
+		{ label: 'Dokumentasi API', href: '/docs' }
 	];
 
 	const socials = [
@@ -118,8 +117,7 @@
 			<!-- ===== COL 1: Contact info ===== -->
 			<div>
 				<address class="not-italic text-sm leading-relaxed text-white/80">
-					Jl. Anggana Raya, Kelurahan Sungai Meriam, Kecamatan Anggana,
-					Kabupaten Kutai Kartanegara, Kalimantan Timur 75381, Indonesia.
+					JL. KUTAI NO. 137, Kec. Anggana, Kab. Kutai Kartanegara, Prov. Kalimantan Timur
 				</address>
 				<p class="mt-4 text-sm text-white/80">Phone: (0541) 555-0123</p>
 				<p class="text-sm text-white/80">Fax: (0541) 555-0124</p>
@@ -176,13 +174,13 @@
 					{#each navLinks as link}
 						<li>
 							<a
-								href="/"
+								href={link.href}
 								class="group inline-flex items-center gap-2
 								       text-base md:text-lg font-semibold text-white/90
 								       transition-colors duration-200
 								       hover:text-accent"
 							>
-								<span>{link}</span>
+								<span>{link.label}</span>
 								<svg
 									class="w-4 h-4 opacity-0 -translate-x-1
 									       transition-all duration-200

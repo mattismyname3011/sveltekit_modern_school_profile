@@ -17,8 +17,8 @@
  * surface (saveUpload) stays the same.
  */
 import { createHash } from 'node:crypto';
-import { mkdir, writeFile, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdir, writeFile, access, unlink } from 'node:fs/promises';
+import { join, basename } from 'node:path';
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -123,3 +123,78 @@ export async function saveUpload(file: File): Promise<UploadResult | UploadFailu
 		filename
 	};
 }
+
+/**
+ * Extracts and validates the upload filename from a URL or relative path (e.g. "/uploads/abc.jpg").
+ * Returns null if the URL is not a valid upload path or contains path traversal attempts.
+ */
+export function extractUploadFilename(imageUrlOrPath: string | null | undefined): string | null {
+	if (!imageUrlOrPath || typeof imageUrlOrPath !== 'string') return null;
+	const trimmed = imageUrlOrPath.trim();
+	const match = trimmed.match(/^\/uploads\/([a-zA-Z0-9_.-]+)$/);
+	if (!match) return null;
+	const filename = basename(match[1]);
+	if (!filename || filename === '.' || filename === '..' || filename.includes('/') || filename.includes('\\')) {
+		return null;
+	}
+	return filename;
+}
+
+/**
+ * Unconditionally delete an uploaded file from disk if it exists.
+ * Returns true if the file was deleted, false otherwise.
+ */
+export async function deleteUploadedFile(imageUrlOrPath: string | null | undefined): Promise<boolean> {
+	const filename = extractUploadFilename(imageUrlOrPath);
+	if (!filename) return false;
+
+	const fullPath = join(UPLOADS_DIR, filename);
+	try {
+		await unlink(fullPath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Deletes an uploaded file from disk only if no active records in programs, events, or news
+ * reference this image URL.
+ */
+export async function cleanupUnusedUpload(imageUrlOrPath: string | null | undefined): Promise<boolean> {
+	const filename = extractUploadFilename(imageUrlOrPath);
+	if (!filename) return false;
+
+	const uploadUrl = `/uploads/${filename}`;
+
+	// Check if this image URL is used in any of the tables
+	try {
+		const { db } = await import('$lib/db');
+		const { programs, events, news } = await import('$lib/db/schema');
+		const { eq, sql } = await import('drizzle-orm');
+
+		const [[pCount], [eCount], [nCount]] = await Promise.all([
+			db
+				.select({ count: sql<number>`count(*)::int` })
+				.from(programs)
+				.where(eq(programs.image, uploadUrl)),
+			db
+				.select({ count: sql<number>`count(*)::int` })
+				.from(events)
+				.where(eq(events.image, uploadUrl)),
+			db
+				.select({ count: sql<number>`count(*)::int` })
+				.from(news)
+				.where(eq(news.image, uploadUrl))
+		]);
+
+		const totalReferences = (pCount?.count ?? 0) + (eCount?.count ?? 0) + (nCount?.count ?? 0);
+		if (totalReferences === 0) {
+			return await deleteUploadedFile(uploadUrl);
+		}
+	} catch (err) {
+		console.error('[storage:cleanupUnusedUpload] error checking references', err);
+	}
+	return false;
+}
+

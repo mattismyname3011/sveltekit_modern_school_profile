@@ -42,6 +42,7 @@
 
 	let listEl: HTMLUListElement | null = $state(null);
 	let itemEls: HTMLAnchorElement[] = $state([]);
+	let mobileOpen = $state(false);
 
 	// Magic Pill state
 	// `instant` snaps without sliding (used the very first appearance so the pill
@@ -55,7 +56,18 @@
 		const onChange = (e: MediaQueryListEvent) =>
 			(reducedMotion = e.matches);
 		mq.addEventListener("change", onChange);
-		return () => mq.removeEventListener("change", onChange);
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape" && mobileOpen) {
+				mobileOpen = false;
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			mq.removeEventListener("change", onChange);
+			window.removeEventListener("keydown", handleKeyDown);
+		};
 	});
 
 	async function moveTo(i: number) {
@@ -90,7 +102,7 @@
 >
 	<div
 		class="flex items-center justify-between gap-3
-		       rounded-full bg-white/85 backdrop-blur-lg
+		       rounded-full bg-white/90 backdrop-blur-lg
 		       border border-slate-200
 		       pl-5 pr-2 py-2
 		       shadow-xl shadow-slate-300/40"
@@ -110,7 +122,7 @@
 			</span>
 		</a>
 
-		<!-- Nav list -->
+		<!-- Desktop Nav list -->
 		<ul
 			bind:this={listEl}
 			onmouseleave={leave}
@@ -152,29 +164,77 @@
 			{/each}
 		</ul>
 
-		<!-- CTA -->
-		<a
-			href={ctaHref}
-			class="inline-flex items-center gap-2 shrink-0
-			       bg-primary hover:bg-primary-600 text-white
-			       text-xs md:text-sm font-semibold
-			       px-4 md:px-5 py-2.5 rounded-full
-			       transition-all duration-300
-			       shadow-lg shadow-primary/20
-			       hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-		>
-			Daftar
-			<svg
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2.5"
-				stroke-linecap="round"
+		<!-- Actions -->
+		<div class="flex items-center gap-2">
+			<!-- CTA -->
+			<a
+				href={ctaHref}
+				class="inline-flex items-center gap-2 shrink-0
+				       bg-primary hover:bg-primary-600 text-white
+				       text-xs md:text-sm font-semibold
+				       px-4 md:px-5 py-2.5 rounded-full
+				       transition-all duration-300
+				       shadow-lg shadow-primary/20
+				       hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
 			>
-				<path d="M5 12h14M13 5l7 7-7 7" />
-			</svg>
-		</a>
+				Daftar
+				<svg
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.5"
+					stroke-linecap="round"
+				>
+					<path d="M5 12h14M13 5l7 7-7 7" />
+				</svg>
+			</a>
+
+			<!-- Mobile menu toggle button -->
+			<button
+				type="button"
+				class="md:hidden w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 grid place-items-center transition-colors"
+				aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
+				aria-expanded={mobileOpen}
+				aria-controls="mobile-nav"
+				onclick={() => (mobileOpen = !mobileOpen)}
+			>
+				{#if mobileOpen}
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+						<path d="M18 6L6 18M6 6l12 12" />
+					</svg>
+				{:else}
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+						<path d="M4 6h16M4 12h16M4 18h16" />
+					</svg>
+				{/if}
+			</button>
+		</div>
 	</div>
+
+	<!-- Mobile dropdown menu -->
+	{#if mobileOpen}
+		<div
+			id="mobile-nav"
+			class="md:hidden mt-2 p-3 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-2xl shadow-slate-400/30 animate-in fade-in slide-in-from-top-2 duration-200"
+		>
+			<ul class="flex flex-col gap-1">
+				{#each items as item}
+					<li>
+						<a
+							href={resolveHref(item.href)}
+							onclick={() => (mobileOpen = false)}
+							class="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-slate-700 hover:bg-primary/5 hover:text-primary transition-colors"
+						>
+							<span>{item.label}</span>
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+								<path d="M9 18l6-6-6-6" />
+							</svg>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
 </nav>

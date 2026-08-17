@@ -197,7 +197,7 @@
 						<h3 class="font-display font-bold text-2xl">Hubungi Kami</h3>
 						<ul class="mt-6 space-y-5">
 							{#each [
-								{ icon: '📍', label: 'Alamat', value: 'Jl. Anggana Raya, Kutai Kartanegara, Kalimantan Timur' },
+								{ icon: '📍', label: 'Alamat', value: 'JL. KUTAI NO. 137, Kec. Anggana, Kab. Kutai Kartanegara, Prov. Kalimantan Timur' },
 								{ icon: '✉', label: 'Email', value: 'info@smp1anggana.sch.id' },
 								{ icon: '🕒', label: 'Jam Kantor', value: 'Senin – Jumat, 07:00 – 15:00 WITA' }
 							] as c}

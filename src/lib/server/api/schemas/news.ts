@@ -3,12 +3,15 @@ import { z } from 'zod';
 const trimmedString = (max: number) =>
 	z.string().trim().min(1, 'Field is required.').max(max, `Max ${max} characters.`);
 
-const httpsUrl = z
+const imageSchema = z
 	.string()
 	.trim()
-	.url('Must be a valid URL.')
+	.min(1, 'Image is required.')
 	.max(2048)
-	.refine((u) => /^https?:\/\//i.test(u), 'URL must start with http(s)://');
+	.refine(
+		(u) => /^https?:\/\//i.test(u) || /^\/uploads\/[a-zA-Z0-9_.-]+$/i.test(u) || /^\/[a-zA-Z0-9_.-]/.test(u),
+		'Must be a valid URL (http/https) or uploaded image path (/uploads/...)'
+	);
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -26,7 +29,7 @@ export const createNewsSchema = z.object({
 	title: trimmedString(200),
 	slug: slugSchema,
 	excerpt: trimmedString(500),
-	image: httpsUrl,
+	image: imageSchema,
 	content: z.string().max(50_000, 'Content terlalu panjang.').optional().nullable()
 });
 

@@ -1,6 +1,7 @@
 import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { db } from '$lib/db';
 import { programs } from '$lib/db/schema';
+import { cleanupUnusedUpload } from '$lib/server/storage';
 import type {
 	CreateProgramInput,
 	ListProgramsQuery,
@@ -73,6 +74,8 @@ export const programsRepo = {
 	},
 
 	async update(id: number, input: UpdateProgramInput) {
+		const existing = input.image !== undefined ? await this.findById(id) : null;
+
 		const [row] = await db
 			.update(programs)
 			.set({
@@ -81,11 +84,21 @@ export const programsRepo = {
 			})
 			.where(eq(programs.id, id))
 			.returning();
+
+		if (row && existing?.image && input.image && existing.image !== input.image) {
+			await cleanupUnusedUpload(existing.image);
+		}
+
 		return row ?? null;
 	},
 
 	async remove(id: number) {
+		const existing = await this.findById(id);
 		const [row] = await db.delete(programs).where(eq(programs.id, id)).returning({ id: programs.id });
+		if (row && existing?.image) {
+			await cleanupUnusedUpload(existing.image);
+		}
 		return row ?? null;
 	}
 };
+

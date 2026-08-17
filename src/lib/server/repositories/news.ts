@@ -1,6 +1,7 @@
 import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { db } from '$lib/db';
 import { news } from '$lib/db/schema';
+import { cleanupUnusedUpload } from '$lib/server/storage';
 import type {
 	CreateNewsInput,
 	ListNewsQuery,
@@ -54,19 +55,33 @@ export const newsRepo = {
 	},
 
 	async update(id: number, input: UpdateNewsInput) {
+		const existing = input.image !== undefined ? await this.findById(id) : null;
+
 		const [row] = await db
 			.update(news)
 			.set({ ...input, updatedAt: new Date() })
 			.where(eq(news.id, id))
 			.returning();
+
+		if (row && existing?.image && input.image && existing.image !== input.image) {
+			await cleanupUnusedUpload(existing.image);
+		}
+
 		return row ?? null;
 	},
 
 	async remove(id: number) {
+		const existing = await this.findById(id);
 		const [row] = await db
 			.delete(news)
 			.where(eq(news.id, id))
 			.returning({ id: news.id });
+
+		if (row && existing?.image) {
+			await cleanupUnusedUpload(existing.image);
+		}
+
 		return row ?? null;
 	}
 };
+

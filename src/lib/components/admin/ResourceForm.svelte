@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { AdminField } from '$lib/server/admin/resources';
 	import { enhance } from '$app/forms';
+	import DatePicker from './DatePicker.svelte';
+	import ImageUpload from './ImageUpload.svelte';
+	import TimePicker from './TimePicker.svelte';
 
 	type Props = {
 		fields: AdminField[];
@@ -45,7 +48,7 @@
 	}}
 >
 	{#each fields as f (f.name)}
-		<label>
+		<div class="adm-field">
 			<span class="field-label">
 				{f.label}
 				{#if f.required}<span style="color:#fb7185">*</span>{/if}
@@ -55,6 +58,13 @@
 				<textarea name={f.name} rows="3" required={f.required ?? false}>{value(f.name)}</textarea>
 			{:else if f.kind === 'longtext'}
 				<textarea name={f.name} rows="8">{value(f.name)}</textarea>
+			{:else if f.kind === 'image' || f.name === 'image'}
+				<ImageUpload
+					name={f.name}
+					value={value(f.name)}
+					required={f.required ?? false}
+					hint={f.hint}
+				/>
 			{:else if f.kind === 'url'}
 				<input
 					type="url"
@@ -62,6 +72,20 @@
 					inputmode="url"
 					value={value(f.name)}
 					required={f.required ?? false}
+				/>
+			{:else if f.kind === 'date'}
+				<DatePicker
+					name={f.name}
+					value={value(f.name)}
+					required={f.required ?? false}
+					placeholder={`Pilih ${f.label.toLowerCase()}...`}
+				/>
+			{:else if f.kind === 'time' || f.name === 'time'}
+				<TimePicker
+					name={f.name}
+					value={value(f.name)}
+					required={f.required ?? false}
+					placeholder={`Pilih ${f.label.toLowerCase()}...`}
 				/>
 			{:else}
 				<input type="text" name={f.name} value={value(f.name)} required={f.required ?? false} />
@@ -73,7 +97,7 @@
 			{#if fieldErrors?.[f.name]?.[0]}
 				<span class="field-error">{fieldErrors[f.name]![0]}</span>
 			{/if}
-		</label>
+		</div>
 	{/each}
 
 	<div class="form-actions">
