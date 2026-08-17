@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "deploy": "set -a && source /etc/sveltekit_modern_school_profile/production.env && set +a && npm run build && pm2 reload ecosystem.config.js",
+    "deploy": "set -a && . /etc/sveltekit_modern_school_profile/production.env && set +a && npm run build && pm2 reload ecosystem.config.cjs",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
