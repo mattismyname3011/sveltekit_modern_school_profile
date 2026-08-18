@@ -15,6 +15,34 @@
 	const programs = $derived(data.programs);
 	const news = $derived(data.news);
 	const events = $derived(data.events);
+	const ppdb = $derived(data.ppdb);
+
+	const statusBadgeStyles = {
+		open: {
+			badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+			dot: 'bg-emerald-400',
+			label: 'Pendaftaran Dibuka'
+		},
+		closed: {
+			badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+			dot: 'bg-rose-400',
+			label: 'Pendaftaran Ditutup'
+		},
+		coming_soon: {
+			badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+			dot: 'bg-amber-400',
+			label: 'Segera Dibuka'
+		},
+		announcement: {
+			badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+			dot: 'bg-sky-400',
+			label: 'Pengumuman Hasil'
+		}
+	} as const;
+
+	const activeStatusMeta = $derived(
+		statusBadgeStyles[ppdb?.status as keyof typeof statusBadgeStyles] ?? statusBadgeStyles.closed
+	);
 </script>
 
 <svelte:head>
@@ -166,30 +194,62 @@
 
 				<div class="relative grid lg:grid-cols-2 gap-12 items-center">
 					<div use:reveal={{ from: 'left', delay: 100 }}>
-						<div class="text-xs font-bold uppercase tracking-widest text-accent">PPDB 2026/2027</div>
-						<h2 class="mt-3 font-display font-extrabold tracking-tight text-4xl md:text-6xl leading-[1.05]">
-							Mulai perjalanan akademik Anda di SMPN 1 Anggana
+						<div class="flex flex-wrap items-center gap-3">
+							<div class="text-xs font-bold uppercase tracking-widest text-accent">
+								{ppdb?.badgeText || 'PPDB 2026/2027'}
+							</div>
+							<span
+								class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border {activeStatusMeta.badge}"
+							>
+								<span class="w-1.5 h-1.5 rounded-full {activeStatusMeta.dot} animate-pulse"></span>
+								{activeStatusMeta.label}
+							</span>
+						</div>
+
+						<h2 class="mt-4 font-display font-extrabold tracking-tight text-4xl md:text-6xl leading-[1.05]">
+							{ppdb?.title || 'Mulai perjalanan akademik Anda di SMPN 1 Anggana'}
 						</h2>
 						<p class="mt-6 text-white/80 text-lg leading-relaxed max-w-xl">
-							Pendaftaran tahap pertama dibuka hingga 30 Juni 2026. Kunjungi sekolah kami atau
-							hubungi tim PPDB untuk informasi lengkap.
+							{ppdb?.description ||
+								'Pendaftaran tahap pertama dibuka hingga 30 Juni 2026. Kunjungi sekolah kami atau hubungi tim PPDB untuk informasi lengkap.'}
 						</p>
 
+						{#if ppdb?.announcementNotes}
+							<div class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/15 text-sm text-white/90 leading-relaxed max-w-xl">
+								<span class="font-bold text-accent">Catatan:</span> {ppdb.announcementNotes}
+							</div>
+						{/if}
+
 						<div class="mt-10 flex flex-wrap gap-4">
-							<Button variant="accent" size="lg">Daftar Online</Button>
-							<a
-								href="tel:+625415550123"
-								class="inline-flex items-center gap-3 px-7 py-3.5
-								       text-white border border-white/25 rounded-full
-								       font-semibold text-base
-								       hover:bg-white hover:text-primary
-								       transition-all duration-300"
-							>
-								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-									<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-								</svg>
-								(0541) 555-0123
-							</a>
+							{#if ppdb?.ctaEnabled && ppdb?.ctaText}
+								<Button
+									href={ppdb.ctaLink}
+									variant="accent"
+									size="lg"
+									target={ppdb.ctaLink?.startsWith('http') ? '_blank' : undefined}
+								>
+									{ppdb.ctaText}
+									{#if ppdb.status === 'open'}
+										<span aria-hidden="true" class="ml-1">↗</span>
+									{/if}
+								</Button>
+							{/if}
+
+							{#if ppdb?.secondaryCtaText && ppdb?.secondaryCtaLink}
+								<a
+									href={ppdb.secondaryCtaLink}
+									class="inline-flex items-center gap-3 px-7 py-3.5
+									       text-white border border-white/25 rounded-full
+									       font-semibold text-base
+									       hover:bg-white hover:text-primary
+									       transition-all duration-300"
+								>
+									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+									</svg>
+									{ppdb.secondaryCtaText}
+								</a>
+							{/if}
 						</div>
 					</div>
 
@@ -198,8 +258,9 @@
 						<ul class="mt-6 space-y-5">
 							{#each [
 								{ icon: '📍', label: 'Alamat', value: 'JL. KUTAI NO. 137, Kec. Anggana, Kab. Kutai Kartanegara, Prov. Kalimantan Timur' },
-								{ icon: '✉', label: 'Email', value: 'info@smp1anggana.sch.id' },
-								{ icon: '🕒', label: 'Jam Kantor', value: 'Senin – Jumat, 07:00 – 15:00 WITA' }
+								{ icon: '✉', label: 'Email', value: ppdb?.contactEmail || 'info@smp1anggana.sch.id' },
+								{ icon: '🕒', label: 'Jam Kantor', value: ppdb?.officeHours || 'Senin – Jumat, 07:00 – 15:00 WITA' },
+								...(ppdb?.contactWhatsapp ? [{ icon: '💬', label: 'WhatsApp', value: ppdb.contactWhatsapp }] : [])
 							] as c}
 								<li class="flex gap-4">
 									<div class="w-11 h-11 rounded-2xl bg-white/15 grid place-items-center shrink-0 text-lg">

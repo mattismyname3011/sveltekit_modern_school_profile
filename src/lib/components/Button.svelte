@@ -6,6 +6,8 @@
 
 	interface Props {
 		href?: string;
+		target?: string;
+		rel?: string;
 		variant?: Variant;
 		size?: Size;
 		class?: string;
@@ -15,6 +17,8 @@
 
 	let {
 		href,
+		target,
+		rel,
 		variant = 'primary',
 		size = 'md',
 		class: klass = '',
@@ -47,7 +51,7 @@
 </script>
 
 {#if href}
-	<a {href} class="{base} {variants[variant]} {sizes[size]} {klass}">
+	<a {href} {target} {rel} class="{base} {variants[variant]} {sizes[size]} {klass}">
 		{@render children()}
 		<svg
 			class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"

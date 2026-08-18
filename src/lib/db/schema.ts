@@ -175,3 +175,38 @@ export const pageViews = pgTable(
 
 export type PageView = typeof pageViews.$inferSelect;
 export type NewPageView = typeof pageViews.$inferInsert;
+
+/**
+ * ppdb_settings — singleton configuration table for school registration / PPDB status.
+ *
+ * Holds registration status ('open' | 'closed' | 'coming_soon' | 'announcement'),
+ * dynamic banner messaging, CTA actions, and contact info.
+ */
+export const ppdbSettings = pgTable('ppdb_settings', {
+	id: serial('id').primaryKey(),
+	status: text('status').notNull().default('closed'),
+	academicYear: text('academic_year').notNull().default('2026/2027'),
+	badgeText: text('badge_text').notNull().default('PPDB 2026/2027'),
+	title: text('title').notNull().default('Mulai perjalanan akademik Anda di SMPN 1 Anggana'),
+	description: text('description').notNull().default(
+		'Pendaftaran PPDB Tahun Ajaran 2026/2027 saat ini telah ditutup. Kunjungi sekolah kami atau hubungi tim PPDB untuk informasi lengkap.'
+	),
+	ctaText: text('cta_text').notNull().default('Hubungi Panitia'),
+	ctaLink: text('cta_link').notNull().default('/#kontak'),
+	ctaEnabled: boolean('cta_enabled').notNull().default(true),
+	secondaryCtaText: text('secondary_cta_text').default('(0541) 555-0123'),
+	secondaryCtaLink: text('secondary_cta_link').default('tel:+625415550123'),
+	contactPhone: text('contact_phone').default('(0541) 555-0123'),
+	contactWhatsapp: text('contact_whatsapp').default('+6281234567890'),
+	contactEmail: text('contact_email').default('info@smp1anggana.sch.id'),
+	officeHours: text('office_hours').default('Senin – Jumat, 07:00 – 15:00 WITA'),
+	announcementNotes: text('announcement_notes'),
+	startDate: text('start_date'),
+	endDate: text('end_date'),
+	announcementDate: text('announcement_date'),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export type PpdbSetting = typeof ppdbSettings.$inferSelect;
+export type NewPpdbSetting = typeof ppdbSettings.$inferInsert;
+

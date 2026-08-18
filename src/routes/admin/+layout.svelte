@@ -12,6 +12,7 @@
 		{ href: '/admin/programs', label: 'Programs', icon: '◇' },
 		{ href: '/admin/news', label: 'News', icon: '✦' },
 		{ href: '/admin/events', label: 'Events', icon: '◆' },
+		{ href: '/admin/ppdb', label: 'PPDB Settings', icon: '◈' },
 		{ href: '/admin/users', label: 'Users', icon: '◉', adminOnly: true },
 		{ href: '/admin/audit', label: 'Audit log', icon: '◎', adminOnly: true },
 		{ href: '/admin/account', label: 'Account', icon: '○' }

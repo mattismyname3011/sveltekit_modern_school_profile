@@ -9,6 +9,8 @@
 	interface Props {
 		items?: NavItem[];
 		brand?: string;
+		ctaLabel?: string;
+		ctaHref?: string;
 	}
 
 	let {
@@ -20,6 +22,8 @@
 			{ label: "Kontak", href: "/#kontak" },
 		],
 		brand = "SMPN 1 Anggana",
+		ctaLabel,
+		ctaHref
 	}: Props = $props();
 
 	/**
@@ -37,7 +41,13 @@
 		return onHome ? href : "/" + href;
 	}
 
-	const ctaHref = $derived(resolveHref("#kontak"));
+	const ppdb = $derived(page.data?.ppdb as { status?: string; ctaText?: string; ctaLink?: string } | undefined);
+	const activeCtaLabel = $derived(
+		ctaLabel ?? (ppdb?.status === 'open' ? 'Daftar' : 'Info PPDB')
+	);
+	const activeCtaHref = $derived(
+		ctaHref ?? (ppdb?.status === 'open' && ppdb?.ctaLink && ppdb.ctaLink.startsWith('http') ? ppdb.ctaLink : resolveHref("#kontak"))
+	);
 	const brandHref = $derived(onHome ? "#beranda" : "/");
 
 	let listEl: HTMLUListElement | null = $state(null);
@@ -168,7 +178,7 @@
 		<div class="flex items-center gap-2">
 			<!-- CTA -->
 			<a
-				href={ctaHref}
+				href={activeCtaHref}
 				class="inline-flex items-center gap-2 shrink-0
 				       bg-primary hover:bg-primary-600 text-white
 				       text-xs md:text-sm font-semibold
@@ -177,7 +187,7 @@
 				       shadow-lg shadow-primary/20
 				       hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
 			>
-				Daftar
+				{activeCtaLabel}
 				<svg
 					width="14"
 					height="14"

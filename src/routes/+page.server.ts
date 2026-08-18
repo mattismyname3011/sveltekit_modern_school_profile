@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { programsRepo } from '$lib/server/repositories/programs';
 import { newsRepo } from '$lib/server/repositories/news';
 import { eventsRepo } from '$lib/server/repositories/events';
+import { ppdbSettingsRepo } from '$lib/server/repositories/ppdb';
 import { recordPageView } from '$lib/server/analytics/track';
 import { formatEventTime } from '$lib/utils/date';
 
@@ -17,16 +18,37 @@ export const load: PageServerLoad = async (event) => {
 	// Fire-and-forget — never block render on analytics.
 	recordPageView(event, '/').catch((err) => console.error('[analytics]', err));
 
-	const [programsResult, newsResult, eventsResult] = await Promise.all([
+	const [programsResult, newsResult, eventsResult, ppdbResult] = await Promise.all([
 		programsRepo.list({ limit: 12, offset: 0 }),
 		newsRepo.list({ limit: 8, offset: 0 }),
-		eventsRepo.listUpcoming({ limit: 5, offset: 0 })
+		eventsRepo.listUpcoming({ limit: 5, offset: 0 }),
+		ppdbSettingsRepo.get()
 	]);
 
 	// Shape the rows to match what the existing components expect.
 	// (DB columns use snake_case + dateDay/dateMonth/location;
 	// some components want shorter names like dateD/dateM/loc.)
 	return {
+		ppdb: {
+			status: ppdbResult.status,
+			academicYear: ppdbResult.academicYear,
+			badgeText: ppdbResult.badgeText,
+			title: ppdbResult.title,
+			description: ppdbResult.description,
+			ctaText: ppdbResult.ctaText,
+			ctaLink: ppdbResult.ctaLink,
+			ctaEnabled: ppdbResult.ctaEnabled,
+			secondaryCtaText: ppdbResult.secondaryCtaText,
+			secondaryCtaLink: ppdbResult.secondaryCtaLink,
+			contactPhone: ppdbResult.contactPhone,
+			contactWhatsapp: ppdbResult.contactWhatsapp,
+			contactEmail: ppdbResult.contactEmail,
+			officeHours: ppdbResult.officeHours,
+			announcementNotes: ppdbResult.announcementNotes,
+			startDate: ppdbResult.startDate,
+			endDate: ppdbResult.endDate,
+			announcementDate: ppdbResult.announcementDate
+		},
 		programs: programsResult.rows.map((p) => ({
 			id: p.id,
 			tag: p.tag,

@@ -11,7 +11,7 @@ import postgres from 'postgres';
 import { randomBytes, scrypt as scryptCb } from 'node:crypto';
 import { promisify } from 'node:util';
 import * as schema from './schema';
-import { events, news, programs, users } from './schema';
+import { events, news, ppdbSettings, programs, users } from './schema';
 
 const scrypt = promisify(scryptCb) as (
 	password: string | Buffer,
@@ -348,13 +348,32 @@ async function main() {
 	await db.delete(events);
 	await db.delete(news);
 	await db.delete(programs);
+	await db.delete(ppdbSettings);
 
 	await db.insert(programs).values(programSeed);
 	await db.insert(news).values(newsSeed);
 	await db.insert(events).values(eventsSeed);
+	await db.insert(ppdbSettings).values({
+		id: 1,
+		status: 'closed',
+		academicYear: '2026/2027',
+		badgeText: 'PPDB 2026/2027',
+		title: 'Mulai perjalanan akademik Anda di SMPN 1 Anggana',
+		description:
+			'Pendaftaran PPDB Tahun Ajaran 2026/2027 saat ini telah ditutup. Kunjungi sekolah kami atau hubungi tim PPDB untuk informasi lengkap.',
+		ctaText: 'Hubungi Panitia',
+		ctaLink: '/#kontak',
+		ctaEnabled: true,
+		secondaryCtaText: '(0541) 555-0123',
+		secondaryCtaLink: 'tel:+625415550123',
+		contactPhone: '(0541) 555-0123',
+		contactWhatsapp: '+6281234567890',
+		contactEmail: 'info@smp1anggana.sch.id',
+		officeHours: 'Senin – Jumat, 07:00 – 15:00 WITA'
+	});
 
 	console.log(
-		`✅ Done. Inserted ${programSeed.length} programs, ${newsSeed.length} news, ${eventsSeed.length} events.`
+		`✅ Done. Inserted ${programSeed.length} programs, ${newsSeed.length} news, ${eventsSeed.length} events, and PPDB settings.`
 	);
 
 	// --- Bootstrap admin user (idempotent) ---

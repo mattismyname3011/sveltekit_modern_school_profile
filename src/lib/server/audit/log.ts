@@ -26,7 +26,9 @@ export type AuditAction =
 	| 'user.delete'
 	| 'resource.create'
 	| 'resource.update'
-	| 'resource.delete';
+	| 'resource.delete'
+	| 'ppdb.update'
+	| 'settings.update';
 
 export type AuditEntry = {
 	action: AuditAction;

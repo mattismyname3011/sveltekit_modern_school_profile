@@ -27,12 +27,14 @@ Props:
 
 ## FloatingNavbar
 
-`src/lib/components/FloatingNavbar.svelte` renders a persistent top navigation bar with a sliding "Magic Pill" hover/focus indicator on desktop, responsive brand and CTA ("Daftar") buttons, and a mobile drawer menu for smaller viewports with keyboard escape and click-outside dismissal.
+`src/lib/components/FloatingNavbar.svelte` renders a persistent top navigation bar with a sliding "Magic Pill" hover/focus indicator on desktop, dynamic PPDB-aware CTA button (e.g. "Daftar" when PPDB is open, "Info PPDB" when closed), and a mobile drawer menu for smaller viewports with keyboard escape and click-outside dismissal.
 
 Props:
 
 - `items?: NavItem[]` (default: Beranda, Tentang, Program, Berita, Kontak)
 - `brand?: string` (default: "SMPN 1 Anggana")
+- `ctaLabel?: string` (optional override for CTA button text; defaults to dynamic PPDB status)
+- `ctaHref?: string` (optional override for CTA button destination)
 
 ## DatePicker (Admin)
 
