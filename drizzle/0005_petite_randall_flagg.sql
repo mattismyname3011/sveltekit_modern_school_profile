@@ -1,0 +1,22 @@
+CREATE TABLE "ppdb_settings" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"status" text DEFAULT 'closed' NOT NULL,
+	"academic_year" text DEFAULT '2026/2027' NOT NULL,
+	"badge_text" text DEFAULT 'PPDB 2026/2027' NOT NULL,
+	"title" text DEFAULT 'Mulai perjalanan akademik Anda di SMPN 1 Anggana' NOT NULL,
+	"description" text DEFAULT 'Pendaftaran PPDB Tahun Ajaran 2026/2027 saat ini telah ditutup. Kunjungi sekolah kami atau hubungi tim PPDB untuk informasi lengkap.' NOT NULL,
+	"cta_text" text DEFAULT 'Hubungi Panitia' NOT NULL,
+	"cta_link" text DEFAULT '/#kontak' NOT NULL,
+	"cta_enabled" boolean DEFAULT true NOT NULL,
+	"secondary_cta_text" text DEFAULT '(0541) 555-0123',
+	"secondary_cta_link" text DEFAULT 'tel:+625415550123',
+	"contact_phone" text DEFAULT '(0541) 555-0123',
+	"contact_whatsapp" text DEFAULT '+6281234567890',
+	"contact_email" text DEFAULT 'info@smp1anggana.sch.id',
+	"office_hours" text DEFAULT 'Senin – Jumat, 07:00 – 15:00 WITA',
+	"announcement_notes" text,
+	"start_date" text,
+	"end_date" text,
+	"announcement_date" text,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
