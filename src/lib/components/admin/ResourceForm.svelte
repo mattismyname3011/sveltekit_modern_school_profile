@@ -48,16 +48,20 @@
 	}}
 >
 	{#each fields as f (f.name)}
+		{@const fid = `field-${f.name}`}
+		{@const hintId = `field-${f.name}-hint`}
+		{@const errorId = `field-${f.name}-error`}
+		{@const describedBy = [f.hint ? hintId : null, fieldErrors?.[f.name]?.[0] ? errorId : null].filter(Boolean).join(' ') || undefined}
 		<div class="adm-field">
-			<span class="field-label">
+			<label class="field-label" for={fid}>
 				{f.label}
-				{#if f.required}<span style="color:#fb7185">*</span>{/if}
-			</span>
+				{#if f.required}<span style="color:#fb7185" aria-hidden="true">*</span>{/if}
+			</label>
 
 			{#if f.kind === 'textarea'}
-				<textarea name={f.name} rows="3" required={f.required ?? false}>{value(f.name)}</textarea>
+				<textarea id={fid} name={f.name} rows="3" required={f.required ?? false} aria-describedby={describedBy} aria-invalid={fieldErrors?.[f.name] ? 'true' : undefined}>{value(f.name)}</textarea>
 			{:else if f.kind === 'longtext'}
-				<textarea name={f.name} rows="8">{value(f.name)}</textarea>
+				<textarea id={fid} name={f.name} rows="8" aria-describedby={describedBy} aria-invalid={fieldErrors?.[f.name] ? 'true' : undefined}>{value(f.name)}</textarea>
 			{:else if f.kind === 'image' || f.name === 'image'}
 				<ImageUpload
 					name={f.name}
@@ -67,11 +71,14 @@
 				/>
 			{:else if f.kind === 'url'}
 				<input
+					id={fid}
 					type="url"
 					name={f.name}
 					inputmode="url"
 					value={value(f.name)}
 					required={f.required ?? false}
+					aria-describedby={describedBy}
+					aria-invalid={fieldErrors?.[f.name] ? 'true' : undefined}
 				/>
 			{:else if f.kind === 'date'}
 				<DatePicker
@@ -88,14 +95,14 @@
 					placeholder={`Pilih ${f.label.toLowerCase()}...`}
 				/>
 			{:else}
-				<input type="text" name={f.name} value={value(f.name)} required={f.required ?? false} />
+				<input id={fid} type="text" name={f.name} value={value(f.name)} required={f.required ?? false} aria-describedby={describedBy} aria-invalid={fieldErrors?.[f.name] ? 'true' : undefined} />
 			{/if}
 
 			{#if f.hint}
-				<span class="field-hint">{f.hint}</span>
+				<span class="field-hint" id={hintId}>{f.hint}</span>
 			{/if}
 			{#if fieldErrors?.[f.name]?.[0]}
-				<span class="field-error">{fieldErrors[f.name]![0]}</span>
+				<span class="field-error" id={errorId} role="alert">{fieldErrors[f.name]![0]}</span>
 			{/if}
 		</div>
 	{/each}

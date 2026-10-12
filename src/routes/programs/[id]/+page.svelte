@@ -65,7 +65,7 @@
 
 <FloatingNavbar />
 
-<main class="min-h-screen overflow-x-clip bg-[linear-gradient(135deg,oklch(97%_0.009_238)_0%,oklch(92%_0.02_244)_54%,oklch(98%_0.01_18)_100%)] text-[oklch(22%_0.045_244)] transition-colors duration-200 dark:bg-[radial-gradient(circle_at_9%_13%,oklch(80%_0.16_188_/_0.26),transparent_30rem),radial-gradient(circle_at_90%_4%,oklch(67%_0.24_18_/_0.2),transparent_25rem),linear-gradient(135deg,oklch(13%_0.052_258),oklch(9%_0.046_268))] dark:text-[oklch(92%_0.014_238)]">
+<main class="min-h-screen overflow-x-clip bg-surface text-ink dark:bg-slate-950 dark:text-slate-100">
 	<section class="px-[clamp(1rem,4vw,4rem)] pb-[clamp(2.5rem,5vw,4.5rem)] pt-[clamp(6.5rem,10vw,9rem)]">
 		<div class="mx-auto max-w-[1180px]">
 			<nav

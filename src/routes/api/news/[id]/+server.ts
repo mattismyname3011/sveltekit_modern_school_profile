@@ -43,6 +43,10 @@ export const PATCH: RequestHandler = async (event) => {
 	if (body.response) return body.response;
 
 	try {
+		if (body.data.slug !== undefined) {
+			const clash = await newsRepo.findBySlug(body.data.slug);
+			if (clash && clash.id !== id) return ApiError.conflict('Slug sudah digunakan.');
+		}
 		const row = await newsRepo.update(id, body.data);
 		if (!row) return ApiError.notFound('News not found.');
 		return ok(row);

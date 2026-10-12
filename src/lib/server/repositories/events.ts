@@ -9,6 +9,11 @@ import type {
 	UpdateEventInput
 } from '$lib/server/api/schemas/events';
 
+/** Escape LIKE wildcards so user search can't broaden the pattern. */
+function escapeLike(input: string): string {
+	return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 export const eventsRepo = {
 	async list(opts: ListEventsQuery) {
 		if (opts.upcoming) {
@@ -19,7 +24,7 @@ export const eventsRepo = {
 		// stable insertion-order proxy. Switch to a real date column later if
 		// you want chronological sort by event date.
 		const where = opts.q
-			? or(ilike(events.title, `%${opts.q}%`), ilike(events.excerpt, `%${opts.q}%`))
+			? or(ilike(events.title, `%${escapeLike(opts.q)}%`), ilike(events.excerpt, `%${escapeLike(opts.q)}%`))
 			: undefined;
 
 		const [rows, [{ count }]] = await Promise.all([

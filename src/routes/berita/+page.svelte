@@ -61,10 +61,10 @@
 </script>
 
 <svelte:head>
-	<title>Berita — SMPN 1 Anggana</title>
+	<title>Berita | SMPN 1 Anggana</title>
 	<meta
 		name="description"
-		content="Kabar terbaru, prestasi, dan kegiatan SMPN 1 Anggana — diperbarui rutin oleh tim sekolah."
+		content="Kabar terbaru, prestasi, dan kegiatan SMPN 1 Anggana, diperbarui rutin oleh tim sekolah."
 	/>
 </svelte:head>
 
@@ -82,7 +82,7 @@
 		</div>
 
 		<div class="max-w-7xl mx-auto" use:reveal={{ from: 'up' }}>
-			<nav class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+			<nav aria-label="Breadcrumb" class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
 				<a href="/" class="hover:text-primary">Beranda</a>
 				<span class="mx-2 text-slate-300">›</span>
 				<span class="text-primary">Berita</span>
@@ -112,18 +112,13 @@
 					<input
 						type="text"
 						name="q"
+						aria-label="Cari berita"
 						bind:value={searchValue}
 						placeholder="Cari berita…"
 						class="search-input"
 						autocomplete="off"
 						oninput={handleSearchInput}
 					/>
-					<button type="submit" class="search-btn" aria-label="Cari">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-							<circle cx="11" cy="11" r="7" />
-							<path d="m21 21-4.3-4.3" />
-						</svg>
-					</button>
 					{#if searchValue}
 						<a
 							href={urlWith({ q: null, page: null })}
@@ -131,9 +126,15 @@
 							title="Hapus pencarian"
 							aria-label="Hapus pencarian"
 						>
-							✕
+							<span aria-hidden="true">✕</span>
 						</a>
 					{/if}
+					<button type="submit" class="search-btn" aria-label="Cari">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="11" cy="11" r="7" />
+							<path d="m21 21-4.3-4.3" />
+						</svg>
+					</button>
 				</form>
 			</div>
 		</div>
@@ -168,7 +169,12 @@
 		{#if data.items.length === 0}
 			<section class="px-4 md:px-8 pb-20" transition:fade={{ duration: 200 }}>
 				<div class="max-w-3xl mx-auto text-center py-16 px-6 rounded-3xl bg-surface-2 border border-slate-200">
-					<div class="text-5xl mb-4" aria-hidden="true">📰</div>
+					<div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-primary/5 grid place-items-center text-primary" aria-hidden="true">
+						<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0V9" />
+							<path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6z" />
+						</svg>
+					</div>
 					<h2 class="font-display font-bold text-xl text-primary">Belum ada berita yang cocok</h2>
 					<p class="mt-2 text-slate-600">
 						{#if data.filters.q || data.filters.category}
@@ -189,11 +195,11 @@
 					<div class="max-w-7xl mx-auto">
 						<a
 							href={`/berita/${featured.slug}`}
-							class="featured group"
+							class="featured group rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-4"
 							use:reveal={{ from: 'up' }}
 						>
 							<div class="featured-img">
-								<img src={featured.image} alt={featured.title} loading="lazy" />
+								<img src={featured.image} alt={featured.title} loading="eager" fetchpriority="high" />
 								<span class="featured-cat">{featured.category}</span>
 							</div>
 							<div class="featured-meta">
@@ -274,8 +280,8 @@
 
 	.search-input {
 		min-width: 14rem;
+		min-height: 2.75rem;
 		padding: 0.625rem 0.875rem;
-		padding-right: 2.5rem;
 		border-radius: 9999px;
 		border: 1px solid #e5e7eb;
 		background: #ffffff;
@@ -291,26 +297,24 @@
 	}
 
 	.search-clear {
-		position: absolute;
-		right: 3.25rem;
-		top: 50%;
-		transform: translateY(-50%);
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.5rem;
-		height: 1.5rem;
+		min-width: 2.75rem;
+		min-height: 2.75rem;
 		border-radius: 9999px;
-		background: rgba(15, 23, 42, 0.06);
+		border: 1px solid #e5e7eb;
+		background: #ffffff;
 		color: #475569;
 		text-decoration: none;
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		line-height: 1;
 		transition: all 150ms ease;
 	}
 
 	.search-clear:hover {
 		background: #0b2e4f;
+		border-color: #0b2e4f;
 		color: #fff;
 	}
 
@@ -318,8 +322,8 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
+		min-width: 2.75rem;
+		min-height: 2.75rem;
 		border-radius: 9999px;
 		background: #0b2e4f;
 		color: #fff;
@@ -336,7 +340,8 @@
 	.chip {
 		display: inline-flex;
 		align-items: center;
-		padding: 0.4375rem 0.875rem;
+		min-height: 2.75rem;
+		padding: 0.4375rem 1rem;
 		border-radius: 9999px;
 		background: #ffffff;
 		border: 1px solid #e5e7eb;
@@ -348,6 +353,13 @@
 	}
 
 	.chip:hover {
+		border-color: #0b2e4f;
+		color: #0b2e4f;
+	}
+
+	.chip:focus-visible {
+		outline: 2px solid #0b2e4f;
+		outline-offset: 2px;
 		border-color: #0b2e4f;
 		color: #0b2e4f;
 	}

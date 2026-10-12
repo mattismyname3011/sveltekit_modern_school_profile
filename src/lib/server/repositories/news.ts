@@ -8,12 +8,20 @@ import type {
 	UpdateNewsInput
 } from '$lib/server/api/schemas/news';
 
+/** Escape LIKE wildcards so user search can't broaden the pattern. */
+function escapeLike(input: string): string {
+	return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 export const newsRepo = {
 	async list(opts: ListNewsQuery) {
 		const where = and(
 			opts.category ? eq(news.category, opts.category) : undefined,
 			opts.q
-				? or(ilike(news.title, `%${opts.q}%`), ilike(news.excerpt, `%${opts.q}%`))
+				? or(
+						ilike(news.title, `%${escapeLike(opts.q)}%`),
+						ilike(news.excerpt, `%${escapeLike(opts.q)}%`)
+					)
 				: undefined
 		);
 

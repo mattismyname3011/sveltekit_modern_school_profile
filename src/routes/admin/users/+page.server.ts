@@ -159,6 +159,9 @@ export const actions: Actions = {
 		const parsed = idSchema.safeParse({ id: form.get('id') });
 		if (!parsed.success) return fail(400, { activeMessage: 'Input tidak valid.' });
 
+		const target = await usersRepo.findById(parsed.data.id);
+		if (!target) return fail(404, { activeMessage: 'User tidak ditemukan.' });
+
 		await usersRepo.setActive(parsed.data.id, true);
 		await audit(event, {
 			action: 'user.activate',

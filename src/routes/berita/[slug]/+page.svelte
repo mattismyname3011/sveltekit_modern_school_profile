@@ -7,21 +7,17 @@
 	import ImageLightbox from '$lib/components/news/ImageLightbox.svelte';
 	import ReadingProgress from '$lib/components/news/ReadingProgress.svelte';
 	import { reveal } from '$lib/actions/reveal';
-	import { onMount } from 'svelte';
 
 	let { data }: { data: PageData } = $props();
 	const post = $derived(data.post);
 	const related = $derived(data.related);
 
 	let copied = $state(false);
-	let pageUrl = $state('');
-
-	onMount(() => {
-		pageUrl = window.location.href;
-	});
+	// Canonical URL comes from the server so share links work on first render (SSR).
+	const pageUrl = $derived(data.url);
 
 	const shareWhatsApp = $derived(
-		`https://wa.me/?text=${encodeURIComponent(post.title + ' — ' + pageUrl)}`
+		`https://wa.me/?text=${encodeURIComponent(post.title + ', ' + pageUrl)}`
 	);
 	const shareTwitter = $derived(
 		`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(pageUrl)}`
@@ -42,13 +38,19 @@
 </script>
 
 <svelte:head>
-	<title>{post.title} — SMPN 1 Anggana</title>
+	<title>{post.title} | SMPN 1 Anggana</title>
 	<meta name="description" content={post.excerpt} />
+	<link rel="canonical" href={data.url} />
 	<meta property="og:title" content={post.title} />
 	<meta property="og:description" content={post.excerpt} />
-	<meta property="og:image" content={post.image} />
+	<meta property="og:image" content={post.imageUrl} />
+	<meta property="og:url" content={data.url} />
 	<meta property="og:type" content="article" />
+	<meta property="article:published_time" content={post.publishedAt} />
 	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={post.title} />
+	<meta name="twitter:description" content={post.excerpt} />
+	<meta name="twitter:image" content={post.imageUrl} />
 </svelte:head>
 
 <ReadingProgress />
@@ -108,7 +110,7 @@
 			</div>
 
 			<div class="post-hero" use:reveal={{ from: 'scale', delay: 280 }}>
-				<img src={post.image} alt={post.title} />
+				<img src={post.image} alt={post.title} loading="eager" fetchpriority="high" />
 			</div>
 		</header>
 
@@ -153,16 +155,17 @@
 						<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
 					</svg>
 				</a>
-				<button type="button" class="share-btn" onclick={copyLink} title="Salin link" aria-label="Salin link">
-					{#if copied}
-						✓
-					{:else}
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-							<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-						</svg>
-					{/if}
-				</button>
+			<button type="button" class="share-btn" onclick={copyLink} title="Salin link" aria-label={copied ? 'Link tersalin' : 'Salin link'}>
+				{#if copied}
+					<span aria-hidden="true">✓</span>
+				{:else}
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+					</svg>
+				{/if}
+			</button>
+			<span role="status" aria-live="polite" class="sr-only">{copied ? 'Link berhasil disalin' : ''}</span>
 			</aside>
 
 			<div class="post-content">
@@ -431,8 +434,8 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
+		min-width: 2.75rem;
+		min-height: 2.75rem;
 		border-radius: 9999px;
 		background: #ffffff;
 		border: 1px solid #e5e7eb;
@@ -447,6 +450,23 @@
 		color: #ffffff;
 		border-color: #0b2e4f;
 		transform: translateY(-1px);
+	}
+
+	.share-btn:focus-visible {
+		outline: 2px solid #0b2e4f;
+		outline-offset: 2px;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.post-content {

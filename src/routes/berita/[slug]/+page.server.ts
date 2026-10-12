@@ -53,6 +53,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
+		url: event.url.href,
 		post: {
 			id: post.id,
 			title: post.title,
@@ -60,6 +61,8 @@ export const load: PageServerLoad = async (event) => {
 			category: post.category,
 			date: post.date,
 			image: post.image,
+			imageUrl: new URL(post.image, event.url.origin).href,
+			publishedAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
 			excerpt: post.excerpt,
 			contentHtml,
 			toc,

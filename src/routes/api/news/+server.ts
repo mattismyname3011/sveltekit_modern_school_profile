@@ -42,6 +42,8 @@ export const POST: RequestHandler = async (event) => {
 	if (body.response) return body.response;
 
 	try {
+		const existing = await newsRepo.findBySlug(body.data.slug);
+		if (existing) return ApiError.conflict('Slug sudah digunakan.');
 		const row = await newsRepo.create(body.data);
 		return ok(row, { status: 201 });
 	} catch (err) {

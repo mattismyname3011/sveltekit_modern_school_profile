@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import { redirect } from '@sveltejs/kit';
 import { newsRepo } from '$lib/server/repositories/news';
 import { recordPageView } from '$lib/server/analytics/track';
 import { db } from '$lib/db';
@@ -11,9 +12,10 @@ export const load: PageServerLoad = async (event) => {
 	recordPageView(event, '/berita').catch((err) => console.error('[analytics]', err));
 
 	const params = event.url.searchParams;
-	const page = Math.max(1, Number(params.get('page') ?? '1'));
-	const category = params.get('kategori')?.trim() || undefined;
-	const q = params.get('q')?.trim() || undefined;
+	const rawPage = Number(params.get('page') ?? '1');
+	const page = Number.isSafeInteger(rawPage) && rawPage > 0 ? Math.min(rawPage, 1000) : 1;
+	const category = params.get('kategori')?.trim().slice(0, 64) || undefined;
+	const q = params.get('q')?.trim().slice(0, 100) || undefined;
 
 	const offset = (page - 1) * PAGE_SIZE;
 	const { rows, total } = await newsRepo.list({
@@ -22,6 +24,13 @@ export const load: PageServerLoad = async (event) => {
 		category,
 		q
 	});
+
+	const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	if (page > pages) {
+		const u = new URL(event.url);
+		u.searchParams.set('page', String(pages));
+		throw redirect(303, u.pathname + u.search);
+	}
 
 	// Distinct categories for filter chips. Cap at 30; tiny query for tiny tables.
 	const cats = await db

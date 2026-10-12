@@ -32,8 +32,13 @@
 	let minute = $state('');
 	let hourInput = $state<HTMLInputElement | null>(null);
 	let minuteInput = $state<HTMLInputElement | null>(null);
+	let lastPropValue = $state<string | undefined>(undefined);
 
+	// Only re-seed from the prop when it actually changed, so a parent
+	// re-render never wipes an in-progress keystroke.
 	$effect(() => {
+		if (value === lastPropValue) return;
+		lastPropValue = value;
 		const parsed = parseInitial(value);
 		hour = parsed.h;
 		minute = parsed.m;

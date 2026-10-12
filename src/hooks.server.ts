@@ -22,11 +22,6 @@ const ALLOWED_API_METHODS = new Set([
   "HEAD",
 ]);
 
-function wantsHtml(event: Parameters<Handle>[0]["event"]): boolean {
-  const accept = event.request.headers.get("accept") ?? "";
-  return accept.includes("text/html");
-}
-
 export const handle: Handle = async ({ event, resolve }) => {
   // --- Session resolution ---
   const token = event.cookies.get(SESSION_COOKIE);
@@ -44,15 +39,12 @@ export const handle: Handle = async ({ event, resolve }) => {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
-    if (event.request.method !== "OPTIONS") {
+    // GET/HEAD/OPTIONS are public (per-route handlers decide).
+    // Only write methods require admin here as defense-in-depth;
+    // each write handler still calls requireAdmin() itself.
+    if (event.request.method !== "GET" && event.request.method !== "HEAD" && event.request.method !== "OPTIONS") {
       const unauth = requireAdmin(event);
       if (unauth) {
-        if (event.request.method === "GET" && wantsHtml(event)) {
-          return new Response(null, {
-            status: 303,
-            headers: { Location: "/api-blocked" },
-          });
-        }
         return unauth;
       }
     }

@@ -21,6 +21,7 @@
 	let inviteOpen = $state(false);
 	let confirmId = $state<number | null>(null);
 	let saving = $state(false);
+	let showPassword = $state(false);
 
 	function fmt(date: string | null) {
 		if (!date) return '—';
@@ -97,14 +98,23 @@
 			<label>
 				<span class="field-label">Initial password</span>
 				<input
-					type="text"
+					type={showPassword ? 'text' : 'password'}
 					name="password"
 					required
-					autocomplete="off"
+					autocomplete="new-password"
 					minlength="12"
 					placeholder="≥12 chars"
 				/>
 				<span class="field-hint">User wajib mengubahnya setelah login pertama.</span>
+				<button
+					type="button"
+					class="adm-btn"
+					style="margin-top:0.375rem"
+					onclick={() => (showPassword = !showPassword)}
+					aria-pressed={showPassword}
+				>
+					{showPassword ? 'Sembunyikan' : 'Tampilkan'}
+				</button>
 				{#if f?.invite?.fieldErrors?.password?.[0]}
 					<span class="field-error">{f.invite.fieldErrors.password[0]}</span>
 				{/if}
@@ -170,6 +180,7 @@
 								<input type="hidden" name="id" value={u.id} />
 								<select
 									name="role"
+									aria-label={`Role untuk ${u.email}`}
 									class="inline-select"
 									onchange={(e) => (e.currentTarget.form as HTMLFormElement).requestSubmit()}
 									value={u.role}

@@ -218,58 +218,45 @@
 
 	<!-- Interactive Trigger button -->
 	<div
-		tabindex="0"
-		role="button"
 		class="adm-datepicker-trigger"
 		class:has-value={Boolean(selectedDate)}
 		class:is-open={isOpen}
-		onclick={() => (isOpen = !isOpen)}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				isOpen = !isOpen;
-			}
-		}}
-		aria-haspopup="dialog"
-		aria-expanded={isOpen}
 	>
-		<span class="adm-datepicker-icon">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-				<line x1="16" y1="2" x2="16" y2="6" />
-				<line x1="8" y1="2" x2="8" y2="6" />
-				<line x1="3" y1="10" x2="21" y2="10" />
-			</svg>
-		</span>
+		<button
+			type="button"
+			class="trigger-main"
+			onclick={() => (isOpen = !isOpen)}
+			aria-haspopup="dialog"
+			aria-expanded={isOpen}
+		>
+			<span class="adm-datepicker-icon">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+					<line x1="16" y1="2" x2="16" y2="6" />
+					<line x1="8" y1="2" x2="8" y2="6" />
+					<line x1="3" y1="10" x2="21" y2="10" />
+				</svg>
+			</span>
 
-		<span class="adm-datepicker-text">
-			{displayFormatted || placeholder}
-		</span>
+			<span class="adm-datepicker-text">
+				{displayFormatted || placeholder}
+			</span>
+
+			{#if !selectedDate}
+				<span class="adm-datepicker-chevron" aria-hidden="true">▾</span>
+			{/if}
+		</button>
 
 		{#if selectedDate}
-			<span
-				role="button"
-				tabindex="0"
+			<button
+				type="button"
 				class="adm-datepicker-clear"
 				title="Hapus tanggal"
 				aria-label="Hapus tanggal"
-				onclick={(e) => {
-					e.stopPropagation();
-					e.preventDefault();
-					clearDate();
-				}}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.stopPropagation();
-						e.preventDefault();
-						clearDate();
-					}
-				}}
+				onclick={clearDate}
 			>
-				✕
-			</span>
-		{:else}
-			<span class="adm-datepicker-chevron">▾</span>
+				<span aria-hidden="true">✕</span>
+			</button>
 		{/if}
 	</div>
 
@@ -386,6 +373,27 @@
 		box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
 	}
 
+	.trigger-main {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0;
+		background: none;
+		border: none;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.trigger-main:focus-visible {
+		outline: 2px solid rgba(56, 189, 248, 0.7);
+		outline-offset: 2px;
+		border-radius: 0.25rem;
+	}
+
 	.adm-datepicker-icon {
 		display: inline-flex;
 		color: #38bdf8;
@@ -416,6 +424,11 @@
 	.adm-datepicker-clear:hover {
 		color: #fda4af;
 		background: rgba(251, 113, 133, 0.1);
+	}
+
+	.adm-datepicker-clear:focus-visible {
+		outline: 2px solid rgba(56, 189, 248, 0.7);
+		outline-offset: 1px;
 	}
 
 	/* Popover Calendar Container */

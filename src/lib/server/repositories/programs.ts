@@ -13,12 +13,21 @@ import type {
  * Routes should depend on this rather than touching the ORM directly,
  * which keeps query concerns out of the HTTP layer.
  */
+
+/** Escape LIKE wildcards so user search can't broaden the pattern. */
+function escapeLike(input: string): string {
+	return input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 export const programsRepo = {
 	async list(opts: ListProgramsQuery) {
 		const where = and(
 			opts.tag ? eq(programs.tag, opts.tag) : undefined,
 			opts.q
-				? or(ilike(programs.title, `%${opts.q}%`), ilike(programs.excerpt, `%${opts.q}%`))
+				? or(
+						ilike(programs.title, `%${escapeLike(opts.q)}%`),
+						ilike(programs.excerpt, `%${escapeLike(opts.q)}%`)
+					)
 				: undefined
 		);
 

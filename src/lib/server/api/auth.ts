@@ -22,8 +22,9 @@ export function requireAdmin(event: RequestEvent): Response | null {
 	// 2) Bearer-token — for scripts.
 	const expected = env.API_ADMIN_TOKEN;
 	if (!expected || expected.length < 16) {
-		// Refuse to authenticate against a weak/missing token rather than fail open.
-		return ApiError.internal('API auth is misconfigured.');
+		// Fail closed, but don't reveal config state to clients.
+		console.error('[api/auth] API_ADMIN_TOKEN missing or too short.');
+		return ApiError.unauthorized();
 	}
 
 	const header = event.request.headers.get('authorization') ?? '';

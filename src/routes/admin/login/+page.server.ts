@@ -4,6 +4,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { usersRepo } from '$lib/server/auth/users';
 import { createSession, setSessionCookie } from '$lib/server/auth/session';
 import { audit } from '$lib/server/audit/log';
+import { rateLimit } from '$lib/server/api/rate-limit';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.user) {
@@ -30,6 +31,16 @@ const loginSchema = z.object({
 export const actions: Actions = {
 	default: async (event) => {
 		const form = await event.request.formData();
+		const emailHint = String(form.get('email') ?? '');
+
+		// Brute-force protection: 10 attempts/minute per IP.
+		const limited = rateLimit(event, { key: 'login', limit: 10, windowMs: 60_000 });
+		if (limited) {
+			return fail(429, {
+				email: emailHint,
+				message: 'Terlalu banyak percobaan login. Coba lagi dalam 1 menit.'
+			});
+		}
 		const parsed = loginSchema.safeParse({
 			email: form.get('email'),
 			password: form.get('password')
