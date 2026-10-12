@@ -1,5 +1,21 @@
 # Components
 
+## Button
+
+`src/lib/components/Button.svelte` renders a link or button action with four variants (`primary`, `accent`, `ghost`, `white`) and two sizes. Rounded-2xl corners, 44px minimum touch target, visible focus ring with offset, and `disabled` state.
+
+Props:
+
+- `href?: string` (renders `<a>` when set, `<button>` otherwise)
+- `type?: 'button' | 'submit' | 'reset'` (default: `'button'`)
+- `disabled?: boolean`
+- `hideArrow?: boolean` (hides the direction arrow; set for text-only actions)
+- `variant?: Variant` (default: `'primary'`)
+- `size?: Size` (default: `'md'`)
+- `ariaLabel?: string`
+
+The arrow signals movement, so it stays only where direction matters.
+
 ## ProgramCard
 
 `src/lib/components/programs/ProgramCard.svelte` renders a linked program preview for program listing surfaces. Its visual treatment follows the home-page `ProgramBento` card language: rounded image-first cards, white or dark surfaces, soft slate elevation, compact category pills, display-weight titles, and a circular arrow action that moves on hover or keyboard focus.
@@ -15,7 +31,7 @@ The card surfaces the first available quick metadata value from `schedule`, `loc
 
 `src/lib/components/Hero.svelte` renders the landing-page image slider and discovery shortcuts. The hero adapts from a full image-led mobile layout to a main-slide and preview-rail desktop layout.
 
-The slider uses one persistent bottom control rail at every viewport size. It supports previous, next, direct slide selection, and horizontal swipe gestures with keyboard-visible focus states. It pauses autoplay while the user interacts with it, disables autoplay when reduced motion is requested, and condenses nonessential copy on short landscape screens.
+The slider uses one persistent bottom control rail at every viewport size. It supports previous, next, direct slide selection, an explicit pause/play toggle for autoplay (WCAG 2.2.2), and horizontal swipe gestures with keyboard-visible focus states. It pauses autoplay while the user interacts with it, disables autoplay when reduced motion is requested, and only the active slide loads eagerly (`fetchpriority="high"`) while the rest lazy-load. Description text clamps to 3 lines on small screens instead of disappearing.
 
 ## EventsTimeline
 
@@ -70,6 +86,67 @@ Props:
 - `value?: string` (initial time string, e.g. "08:00 WITA" or "08:00")
 - `required?: boolean` (default: `false`)
 
+## NewsCard
 
+`src/lib/components/NewsCard.svelte` renders a linked news preview card used on the homepage carousel, `/berita` grid, and related-posts rail. Image lazy-loads, title + excerpt clamp, visible focus ring on keyboard navigation.
 
+Props:
+
+- `category: string`
+- `date: string`
+- `title: string`
+- `excerpt: string`
+- `image: string`
+- `href: string` (required, no dead `#` fallback)
+
+## ResourceForm (Admin)
+
+`src/lib/components/admin/ResourceForm.svelte` renders create/edit forms from an `AdminField[]` config (text, textarea, url, longtext, image, date, time). Native inputs are paired with explicit `<label for>` + `aria-describedby` (hint/error) + `aria-invalid`; errors use `role="alert"`. Submits via SvelteKit form actions with `enhance`.
+
+Props:
+
+- `fields: AdminField[]`
+- `values?: Record<string, unknown> | null`
+- `fieldErrors?: Record<string, string[] | undefined> | null`
+- `message?: string | null`
+- `submitLabel?: string` (default: `'Save'`)
+- `cancelHref: string`
+
+## AboutSection
+
+`src/lib/components/AboutSection.svelte` renders the school's historical identity and core institutional pillars in a clean editorial layout. It features a framed campus photograph with subtle architectural masking, institutional founding details, narrative overview, and four structured pillars with numbered indices (Akreditasi A, Rasio Belajar 1:18, 32 Ekstrakurikuler, Jejaring Edukasi) free from decorative emoji slop or floating sticker cards.
+
+## ProgramBento
+
+`src/lib/components/ProgramBento.svelte` renders the homepage curriculum and program showcase. It uses a structured editorial hierarchy featuring a prominent flagship banner for the primary program followed by a balanced multi-column grid of secondary programs, with clean typography, image lazy-loading, and accessible interaction cues.
+
+Props:
+
+- `programs: ProgramPreview[]`
+
+## ContactSection
+
+`src/lib/components/ContactSection.svelte` renders the school admission (PPDB) status and contact secretariat information. Built with high-contrast deep navy branding, clear status indicators without perpetual animation loops, actionable PPDB triggers, and an institutional directory using clean SVG icons.
+
+Props:
+
+- `ppdb?: Record<string, any>`
+
+## Carousel
+
+`src/lib/components/Carousel.svelte` renders a horizontal scrollable card carousel with smooth directional scrolling and responsive controls. It features an introductory header card with scroll-to-reveal animation, scroll track indicators, and elevated glassmorphic dark mode styling.
+
+Props:
+
+- `title: string`
+- `eyebrow?: string`
+- `subtitle?: string`
+- `viewAllHref?: string`
+- `viewAllLabel?: string`
+- `id?: string`
+- `children: Snippet`
+
+## Footer
+
+`src/lib/components/Footer.svelte` renders the site footer with institutional accreditation information, social links, quick navigation, recent article feed, floating back-to-top button, and the floating three-state theme switcher (light, dark, auto).
 
