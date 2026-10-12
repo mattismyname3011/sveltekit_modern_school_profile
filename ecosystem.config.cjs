@@ -35,7 +35,10 @@ module.exports = {
       interpreter: 'node',
       instances: 1,
       exec_mode: 'fork',
-      env: loadEnvFile('/etc/sveltekit_modern_school_profile/production.env'),
+      env: {
+        BODY_SIZE_LIMIT: '10M',
+        ...loadEnvFile('/etc/sveltekit_modern_school_profile/production.env')
+      },
       error_file: '/var/www/sveltekit_modern_school_profile/shared/logs/pm2-error.log',
       out_file: '/var/www/sveltekit_modern_school_profile/shared/logs/pm2-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',

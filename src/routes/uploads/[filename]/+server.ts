@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	const ext = filename.split('.').pop()?.toLowerCase() ?? '';
 	const mime = MIME_MAP[ext] ?? 'application/octet-stream';
 
-	return new Response(data, {
+	return new Response(new Uint8Array(data), {
 		status: 200,
 		headers: {
 			'Content-Type': mime,

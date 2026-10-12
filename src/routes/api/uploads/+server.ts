@@ -33,8 +33,9 @@ export const POST: RequestHandler = async (event) => {
 	let form: FormData;
 	try {
 		form = await event.request.formData();
-	} catch {
-		return ApiError.badRequest('Could not read form data.');
+	} catch (err) {
+		console.error('[/api/uploads] Failed to read multipart form data:', err);
+		return ApiError.badRequest('Gagal memproses file unggahan. Pastikan ukuran file maksimal 5 MB.');
 	}
 
 	const file = form.get('file');
