@@ -41,12 +41,25 @@
 		return onHome ? href : "/" + href;
 	}
 
+	/** Allow internal (/, #) and http(s) CTA links; reject javascript:/data:. */
+	function resolveCtaHref(link: string | undefined, status: string | undefined): string {
+		const fallback = resolveHref("#kontak");
+		if (!link) return fallback;
+		const v = link.trim();
+		if (/^(javascript|data|vbscript|file):/i.test(v)) return fallback;
+		if (/^(https?:\/\/|\/|#)/i.test(v)) {
+			if (v.startsWith("#")) return resolveHref(v);
+			return v;
+		}
+		return fallback;
+	}
+
 	const ppdb = $derived(page.data?.ppdb as { status?: string; ctaText?: string; ctaLink?: string } | undefined);
 	const activeCtaLabel = $derived(
 		ctaLabel ?? (ppdb?.status === 'open' ? 'Daftar' : 'Info PPDB')
 	);
 	const activeCtaHref = $derived(
-		ctaHref ?? (ppdb?.status === 'open' && ppdb?.ctaLink && ppdb.ctaLink.startsWith('http') ? ppdb.ctaLink : resolveHref("#kontak"))
+		ctaHref ?? resolveCtaHref(ppdb?.ctaLink, ppdb?.status)
 	);
 	const brandHref = $derived(onHome ? "#beranda" : "/");
 
@@ -182,7 +195,7 @@
 				class="inline-flex items-center gap-2 shrink-0
 				       bg-primary hover:bg-primary-600 text-white
 				       text-xs md:text-sm font-semibold
-				       px-4 md:px-5 py-2.5 rounded-full
+				       px-4 md:px-5 py-2.5 min-h-[44px] rounded-full
 				       transition-all duration-300
 				       shadow-lg shadow-primary/20
 				       hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
@@ -204,7 +217,7 @@
 			<!-- Mobile menu toggle button -->
 			<button
 				type="button"
-				class="md:hidden w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 grid place-items-center transition-colors"
+				class="md:hidden w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 grid place-items-center transition-colors"
 				aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
 				aria-expanded={mobileOpen}
 				aria-controls="mobile-nav"

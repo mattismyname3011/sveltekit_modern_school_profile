@@ -2,9 +2,10 @@
 	import { onMount } from 'svelte';
 	import Button from './Button.svelte';
 	import { parallax } from '$lib/actions/parallax';
+	import { reveal } from '$lib/actions/reveal';
 
 	interface Slide {
-		hashtag: string;
+		category: string;
 		titleA: string;
 		titleB: string;
 		desc: string;
@@ -15,58 +16,51 @@
 
 	const slides: Slide[] = [
 		{
-			hashtag: '#BeraniBerprestasi',
+			category: 'Keunggulan Akademik',
 			titleA: 'Mendidik',
 			titleB: 'Pemimpin Masa Depan',
 			desc: 'Membentuk pelajar yang berani berkarya, unggul secara akademik, dan siap berkompetisi di tingkat nasional.',
 			image:
 				'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1600&auto=format&fit=crop',
-			previewLabel: 'BerikutnyaUntukmu',
-			previewTitle: 'Karakter\nUnggul'
+			previewLabel: 'Sorotan Berikutnya',
+			previewTitle: 'Pendidikan\nKarakter'
 		},
 		{
-			hashtag: '#KarakterUnggul',
+			category: 'Integritas & Empati',
 			titleA: 'Membangun',
 			titleB: 'Generasi Berkarakter',
 			desc: 'Pendidikan karakter terintegrasi dalam setiap kegiatan, menumbuhkan integritas dan empati siswa.',
 			image:
 				'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1600&auto=format&fit=crop',
-			previewLabel: 'BerikutnyaUntukmu',
-			previewTitle: 'Inovasi\nTanpa Batas'
+			previewLabel: 'Sorotan Berikutnya',
+			previewTitle: 'Inovasi\nTeknologi'
 		},
 		{
-			hashtag: '#InovasiPelajar',
+			category: 'Riset & Teknologi',
 			titleA: 'Menginspirasi',
 			titleB: 'Inovasi Tanpa Batas',
-			desc: 'Lab modern, ekosistem coding, dan klub robotik membuka jalan bagi imajinasi pelajar SMPN 1 Anggana.',
+			desc: 'Lab modern, ekosistem digital, dan pembinaan riset pelajar membuka jalan bagi kreativitas sains.',
 			image:
 				'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1600&auto=format&fit=crop',
-			previewLabel: 'BerikutnyaUntukmu',
-			previewTitle: 'Prestasi\nGemilang'
+			previewLabel: 'Sorotan Berikutnya',
+			previewTitle: 'Prestasi\nSiswa'
 		},
 		{
-			hashtag: '#PrestasiGemilang',
+			category: 'Kiprah Siswa',
 			titleA: 'Merayakan',
 			titleB: 'Prestasi Gemilang',
-			desc: 'Ratusan medali, juara olimpiade, dan pencapaian seni-olahraga yang membanggakan setiap tahun.',
+			desc: 'Komitmen berkelanjutan mencetak juara di bidang sains, seni budaya, dan olahraga setiap tahun.',
 			image:
 				'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1600&auto=format&fit=crop',
-			previewLabel: 'BerikutnyaUntukmu',
-			previewTitle: 'Berani\nBerprestasi'
+			previewLabel: 'Sorotan Berikutnya',
+			previewTitle: 'Keunggulan\nAkademik'
 		}
-	];
-
-	const discover = [
-		{ label: 'Tentang SMPN 1 Anggana', href: '#tentang' },
-		{ label: 'Sejarah & Visi Misi', href: '#tentang' },
-		{ label: 'Program Unggulan', href: '#program' },
-		{ label: 'Prestasi & Akreditasi', href: '#tentang' },
-		{ label: 'Berita & Agenda', href: '#berita' }
 	];
 
 	let index = $state(0);
 	let isAnimating = $state(false);
 	let reducedMotion = $state(false);
+	let autoPlay = $state(true);
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let pointerStartX: number | null = null;
 
@@ -90,7 +84,7 @@
 	}
 
 	function startAuto() {
-		if (reducedMotion) return;
+		if (reducedMotion || !autoPlay) return;
 		stopAuto();
 		timer = setInterval(() => {
 			index = (index + 1) % slides.length;
@@ -99,6 +93,11 @@
 	function stopAuto() {
 		if (timer) clearInterval(timer);
 		timer = null;
+	}
+	function toggleAuto() {
+		autoPlay = !autoPlay;
+		if (autoPlay) startAuto();
+		else stopAuto();
 	}
 	function restartAuto() {
 		stopAuto();
@@ -143,29 +142,8 @@
 	id="beranda"
 	class="relative overflow-hidden px-4 pb-14 pt-24 sm:pt-28 md:px-8 md:pb-20 md:pt-32 lg:pt-36"
 >
-	<!-- Background ambient blobs -->
-	<div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
-		<div use:parallax={{ speed: 0.15 }} class="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-primary/5 dark:bg-primary/10 blur-3xl"></div>
-		<div use:parallax={{ speed: -0.18 }} class="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full bg-accent/5 dark:bg-accent/10 blur-3xl"></div>
-	</div>
-
-	<!-- Parallax band behind everything -->
-	<div
-		aria-hidden="true"
-		class="absolute inset-x-0 top-24 md:top-32 pointer-events-none overflow-hidden -z-0"
-	>
-		<div
-			use:parallax={{ speed: 0.05 }}
-			class="select-none whitespace-nowrap
-			       font-display font-extrabold uppercase tracking-tighter
-			       text-[28vw] leading-[0.85] text-slate-900/[0.04] dark:text-white/[0.02] md:text-[18vw]"
-		>
-			ANGGANA · ANGGANA · ANGGANA
-		</div>
-	</div>
-
 	<div class="relative z-10 max-w-7xl mx-auto">
-		<div class="grid gap-6 md:gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_390px]">
+		<div class="grid gap-6 md:gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 			<!-- ============ MAIN SLIDE ============ -->
 			<div
 				class="relative min-w-0"
@@ -176,6 +154,7 @@
 				onmouseleave={startAuto}
 				onfocusin={stopAuto}
 				onfocusout={startAuto}
+				use:reveal={{ from: 'up' }}
 			>
 				<!-- Slide stack with crossfade -->
 				<div
@@ -201,41 +180,42 @@
 							<img
 								src={slide.image}
 								alt={slide.titleB}
+								loading={i === index ? 'eager' : 'lazy'}
+								fetchpriority={i === index ? 'high' : 'low'}
 								class="w-full h-full object-cover transition-transform duration-[7000ms] ease-out"
-								style="transform: scale({i === index ? 1.06 : 1});"
+								style="transform: scale({i === index ? 1.05 : 1});"
 							/>
-							<!-- Gradient overlay for legibility -->
-							<div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-slate-950/5 md:from-slate-950/76"></div>
-							<div class="absolute inset-0 bg-gradient-to-r from-slate-950/45 via-transparent to-transparent"></div>
+							<!-- Editorial vignette gradient for legibility -->
+							<div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/10 md:from-slate-950/80"></div>
+							<div class="absolute inset-0 bg-gradient-to-r from-slate-950/40 via-transparent to-transparent"></div>
 						</div>
 					{/each}
 
 					<!-- Foreground copy -->
-					<div class="absolute inset-0 flex flex-col justify-end p-5 sm:p-7 md:p-10 lg:p-12 xl:p-14">
+					<div class="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14">
 						<div class="max-w-3xl text-white">
-							<div
-								class="text-xs font-bold tracking-wide sm:text-sm md:text-base
-								       text-white/90"
-							>
-								{current.hashtag}
+							<div class="text-xs font-bold uppercase tracking-wider text-white/90">
+								{current.category}
 							</div>
 							<h1
-								class="mt-2 max-w-[12ch] font-display font-extrabold tracking-[-0.045em]
-								       text-[clamp(2.45rem,11.5vw,4.75rem)] leading-[0.94] text-white
-								       md:mt-3 md:max-w-[13ch] md:text-[clamp(4.2rem,7vw,5.5rem)]"
+								class="mt-2 max-w-[12ch] font-display font-extrabold tracking-[-0.04em]
+								       text-[clamp(2.4rem,10vw,4.5rem)] leading-[0.95] text-white
+								       md:mt-3 md:max-w-[13ch] md:text-[clamp(3.8rem,6.5vw,5.2rem)]"
 							>
 								<span class="block opacity-95">{current.titleA}</span>
 								<span class="block">{current.titleB}</span>
 							</h1>
 
-							<p class="hero-description mt-4 max-w-[38rem] text-sm leading-relaxed text-white/85 sm:text-base md:mt-6">
+							<p class="hero-description mt-4 max-w-[38rem] text-sm leading-relaxed text-white/85 line-clamp-3 sm:text-base md:mt-6">
 								{current.desc}
 							</p>
 
-							<div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 md:mt-8">
-								<Button href="/programs" variant="accent" size="lg" class="max-sm:w-full">Jelajahi Sekarang</Button>
+							<div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 md:mt-8">
+								<Button href="#program" variant="accent" size="lg" class="max-sm:w-full">
+									Lihat Program Kami
+								</Button>
 
-								<!-- Counter -->
+								<!-- Slide indicator counter -->
 								<div class="flex min-h-11 items-center gap-3 sm:ml-2">
 									<span class="font-display font-bold text-white text-lg">
 										{String(index + 1).padStart(2, '0')}
@@ -253,7 +233,7 @@
 					</div>
 				</div>
 
-				<!-- Persistent controls -->
+				<!-- Slider interactive controls -->
 				<div class="mt-4 flex min-h-12 items-center gap-3 sm:mt-5">
 					<button
 						type="button"
@@ -302,37 +282,42 @@
 							<path d="M5 12h14M13 5l7 7-7 7" />
 						</svg>
 					</button>
-				</div>
 
-				<!-- Touch-friendly shortcuts -->
-				<nav aria-label="Jelajahi sekolah" class="mt-4 overflow-x-auto scrollbar-hide lg:hidden">
-					<ul class="flex w-max gap-2 pr-4">
-						{#each discover as d}
-							<li>
-								<a
-									href={d.href}
-									class="inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700
-									       shadow-sm shadow-slate-200/40 transition-colors duration-200
-									       hover:border-primary/25 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30
-									       dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:text-accent"
-								>
-									{d.label}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</nav>
+					<button
+						type="button"
+						onclick={toggleAuto}
+						aria-pressed={!autoPlay}
+						aria-label={autoPlay ? 'Jeda putar otomatis' : 'Putar otomatis'}
+						title={autoPlay ? 'Jeda putar otomatis' : 'Putar otomatis'}
+						class="grid size-12 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-primary
+						       shadow-sm transition-[transform,background-color,color,border-color] duration-300
+						       hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-white
+						       focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+						       dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:border-accent dark:hover:bg-accent"
+					>
+						{#if autoPlay}
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+								<rect x="6" y="4" width="4" height="16" rx="1" />
+								<rect x="14" y="4" width="4" height="16" rx="1" />
+							</svg>
+						{:else}
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+								<path d="M7 4.5v15l13-7.5z" />
+							</svg>
+						{/if}
+					</button>
+				</div>
 			</div>
 
-			<!-- ============ RIGHT RAIL: Preview + Controls + Discover ============ -->
-			<div class="hidden flex-col gap-6 lg:flex">
-				<!-- Preview of next slide -->
+			<!-- ============ RIGHT RAIL: Preview + Editorial Institutional Note ============ -->
+			<div class="hidden flex-col gap-6 lg:flex" use:reveal={{ from: 'right', delay: 120 }}>
+				<!-- Preview thumbnail of next slide -->
 				<button
 					type="button"
 					onclick={() => go(1)}
 					aria-label="Slide berikutnya"
 					class="group relative block overflow-hidden mask-organic-alt
-					       aspect-[4/5] lg:aspect-auto lg:h-[300px] xl:h-[340px]
+					       aspect-[4/5] lg:aspect-auto lg:h-[300px] xl:h-[330px]
 					       bg-slate-200 dark:bg-slate-800 cursor-pointer
 					       focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/30 dark:focus-visible:ring-accent/30"
 				>
@@ -341,25 +326,26 @@
 							src={slide.image}
 							alt=""
 							aria-hidden="true"
+							loading={i === (index + 1) % slides.length ? 'eager' : 'lazy'}
 							class="absolute inset-0 w-full h-full object-cover
 							       transition-[opacity,transform] duration-700 ease-out
 							       group-hover:scale-105"
 							style="opacity: {i === (index + 1) % slides.length ? 1 : 0};"
 						/>
 					{/each}
-					<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent"></div>
+					<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
-					<div class="absolute inset-0 p-5 md:p-6 flex flex-col justify-end text-white">
-						<div class="text-xs font-semibold opacity-85">#{next.previewLabel}</div>
+					<div class="absolute inset-0 p-6 flex flex-col justify-end text-white">
+						<div class="text-xs font-semibold uppercase tracking-wider text-white/80">{next.previewLabel}</div>
 						<div
-							class="mt-1 font-display font-extrabold leading-[0.95]
+							class="mt-1 font-display font-extrabold leading-[1.0]
 							       text-2xl md:text-3xl whitespace-pre-line"
 						>
 							{next.previewTitle}
 						</div>
 					</div>
 
-					<!-- Hover hint -->
+					<!-- Directional hover cue -->
 					<div
 						class="absolute top-4 right-4 w-9 h-9 rounded-full
 						       bg-white/90 text-primary grid place-items-center
@@ -373,34 +359,21 @@
 					</div>
 				</button>
 
-				<!-- Discover list -->
-				<div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-black/20 p-6">
-					<div class="font-display font-bold text-primary dark:text-white">Jelajahi Sekolah</div>
-					<ul class="mt-4 divide-y divide-slate-100 dark:divide-slate-700">
-						{#each discover as d}
-							<li>
-								<a
-									href={d.href}
-									class="group flex items-center justify-between py-3
-									       text-sm text-slate-700 dark:text-slate-300 font-medium
-									       hover:text-primary dark:hover:text-accent transition-colors duration-200"
-								>
-									<span>{d.label}</span>
-									<svg
-										class="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-primary dark:group-hover:text-accent
-										       group-hover:translate-x-0.5 transition-all duration-200"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-										stroke-linecap="round"
-									>
-										<path d="M9 18l6-6-6-6" />
-									</svg>
-								</a>
-							</li>
-						{/each}
-					</ul>
+				<!-- Editorial Institutional Card -->
+				<div class="bg-white dark:bg-slate-900/85 rounded-3xl border border-slate-200/80 dark:border-white/10 p-6 shadow-sm dark:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.65)] backdrop-blur-sm flex flex-col justify-between flex-1">
+					<div>
+						<div class="flex items-center justify-between">
+							<span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Profil Lembaga</span>
+							<span class="text-xs font-semibold text-accent">NPSN: 30400508</span>
+						</div>
+						<p class="mt-3 font-display font-bold text-lg leading-snug text-primary dark:text-white">
+							Membentuk pribadi cerdas, berkarakter luhur, dan berbudaya lingkungan.
+						</p>
+					</div>
+					<div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-medium">
+						<span>Anggana, Kutai Kartanegara</span>
+						<span class="font-bold text-primary dark:text-white">Akreditasi A</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -408,18 +381,6 @@
 </section>
 
 <style>
-	@media (max-width: 389px) {
-		.hero-description {
-			display: none;
-		}
-	}
-
-	@media (max-height: 560px) and (orientation: landscape) {
-		.hero-description {
-			display: none;
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		:global(.duration-700),
 		:global(.duration-\[7000ms\]) {

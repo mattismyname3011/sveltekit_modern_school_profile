@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { theme } from '$lib/theme.svelte';
+	import { reveal } from '$lib/actions/reveal';
 
 	interface Article {
 		date: string;
@@ -15,7 +16,7 @@
 			time: '20:46',
 			tag: 'Artikel',
 			title:
-				'Tim Robotik SMPN 1 Anggana Boyong Juara 2 Provinsi #BeraniBerinovasi #PelajarUnggul'
+				'Tim Robotik SMPN 1 Anggana Raih Juara 2 Tingkat Provinsi'
 		},
 		{
 			date: '20-05-2026',
@@ -45,11 +46,11 @@
 	];
 
 	const socials = [
-		{ label: 'Facebook', href: '#', d: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' },
-		{ label: 'Instagram', href: '#', d: 'M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z' },
-		{ label: 'Twitter / X', href: '#', d: 'M18 4l-12 16M6 4l12 16' },
-		{ label: 'LinkedIn', href: '#', d: 'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z' },
-		{ label: 'YouTube', href: '#', d: 'M22.54 6.42A2.78 2.78 0 0 0 20.6 4.5C18.88 4 12 4 12 4s-6.88 0-8.6.5A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 11.5a29 29 0 0 0 .46 5.08 2.78 2.78 0 0 0 1.94 1.92C5.12 19 12 19 12 19s6.88 0 8.6-.5a2.78 2.78 0 0 0 1.94-1.92A29 29 0 0 0 23 11.5a29 29 0 0 0-.46-5.08zM10 15.02v-7l6 3.5z' }
+		{ label: 'Facebook (segera hadir)', d: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' },
+		{ label: 'Instagram (segera hadir)', d: 'M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01M3 7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z' },
+		{ label: 'Twitter / X (segera hadir)', d: 'M18 4l-12 16M6 4l12 16' },
+		{ label: 'LinkedIn (segera hadir)', d: 'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z' },
+		{ label: 'YouTube (segera hadir)', d: 'M22.54 6.42A2.78 2.78 0 0 0 20.6 4.5C18.88 4 12 4 12 4s-6.88 0-8.6.5A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 11.5a29 29 0 0 0 .46 5.08 2.78 2.78 0 0 0 1.94 1.92C5.12 19 12 19 12 19s6.88 0 8.6-.5a2.78 2.78 0 0 0 1.94-1.92A29 29 0 0 0 23 11.5a29 29 0 0 0-.46-5.08zM10 15.02v-7l6 3.5z' }
 	];
 
 	let showScrollTop = $state(false);
@@ -78,11 +79,11 @@
 	}
 </script>
 
-<footer class="relative bg-primary-700 text-white mt-24 md:mt-32">
+<footer class="relative bg-primary-700 dark:bg-slate-950/95 text-white mt-24 md:mt-32 dark:border-t dark:border-white/10">
 	<!-- ================ Curved white tab top-left ================ -->
 	<div
-		class="relative bg-white rounded-br-[2.5rem]
-		       w-[280px] md:w-[320px] h-24 md:h-28
+		class="relative bg-white dark:bg-slate-900 rounded-br-[2.5rem]
+		       w-[min(280px,72vw)] md:w-[320px] h-24 md:h-28
 		       flex items-center px-7 md:px-9"
 	>
 		<!-- Logo + brand -->
@@ -91,10 +92,10 @@
 				S1
 			</div>
 			<div>
-				<div class="font-display font-extrabold text-primary tracking-tight leading-none">
+				<div class="font-display font-extrabold text-primary dark:text-white tracking-tight leading-none">
 					SMPN 1 Anggana
 				</div>
-				<div class="text-[11px] text-slate-500 mt-1 font-medium">
+				<div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
 					the spirit of education
 				</div>
 			</div>
@@ -103,7 +104,7 @@
 		<!-- Concave curve to the RIGHT of the tab (so dark "bites" into white) -->
 		<span
 			aria-hidden="true"
-			class="absolute top-0 right-[-2.5rem] w-10 h-10 bg-primary-700"
+			class="absolute top-0 right-[-2.5rem] w-10 h-10 bg-primary-700 dark:bg-slate-950/95"
 			style="border-top-left-radius: 2.5rem;"
 		></span>
 	</div>
@@ -113,7 +114,7 @@
 
 	<!-- ================ Body grid ================ -->
 	<div class="px-6 md:px-12 lg:px-16 pt-10 md:pt-14 pb-10">
-		<div class="max-w-7xl mx-auto grid lg:grid-cols-[1.1fr_1fr_1fr] gap-10 md:gap-14">
+		<div class="max-w-7xl mx-auto grid lg:grid-cols-[1.1fr_1fr_1fr] gap-10 md:gap-14" use:reveal={{ from: 'up' }}>
 			<!-- ===== COL 1: Contact info ===== -->
 			<div>
 				<address class="not-italic text-sm leading-relaxed text-white/80">
@@ -127,27 +128,28 @@
 				<ul class="mt-7 flex flex-wrap gap-2.5">
 					{#each socials as s}
 						<li>
-							<a
-								href={s.href}
+							<span
+								role="img"
 								aria-label={s.label}
-								class="group w-10 h-10 rounded-full
+								title={s.label}
+								class="group w-11 h-11 rounded-full
 								       border border-white/20
 								       grid place-items-center
-								       transition-all duration-300
-								       hover:bg-white hover:border-white hover:-translate-y-0.5"
+								       opacity-70"
 							>
 								<svg
-									class="w-[18px] h-[18px] text-white/85 group-hover:text-primary transition-colors"
+									class="w-[18px] h-[18px] text-white/85"
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
 									stroke-width="1.8"
 									stroke-linecap="round"
 									stroke-linejoin="round"
+									aria-hidden="true"
 								>
 									<path d={s.d} />
 								</svg>
-							</a>
+							</span>
 						</li>
 					{/each}
 				</ul>
@@ -162,7 +164,7 @@
 							Akreditasi Sekolah
 						</div>
 						<div class="font-display font-bold text-white text-sm">
-							Unggul (A) — BAN-S/M
+							Unggul (A) dari BAN-S/M
 						</div>
 					</div>
 				</div>
@@ -202,20 +204,17 @@
 			<!-- ===== COL 3: Article feed widget ===== -->
 			<div>
 				<div
-					class="rounded-2xl bg-primary border border-white/10
+					class="rounded-2xl bg-primary dark:bg-slate-900/80 border border-white/10
 					       p-3 max-h-[320px] overflow-y-auto scrollbar-hide"
 				>
 					{#each recentArticles as a, i}
-						<article
-							class="group p-3 rounded-xl
-							       transition-colors duration-200
-							       hover:bg-white/5 cursor-pointer"
-						>
-							<div class="flex items-start gap-3">
+						<article class="group p-3 rounded-xl transition-colors duration-200 hover:bg-white/5">
+							<a href="/berita" class="flex items-start gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
 								<div
 									class="w-10 h-10 rounded-lg bg-white/10 grid place-items-center shrink-0
 									       text-white/70 group-hover:bg-accent group-hover:text-white
 									       transition-colors duration-200"
+									aria-hidden="true"
 								>
 									<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 										<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -233,7 +232,7 @@
 										{a.title}
 									</p>
 								</div>
-							</div>
+							</a>
 						</article>
 						{#if i < recentArticles.length - 1}
 							<div class="border-t border-dashed border-white/10 mx-3"></div>
@@ -254,13 +253,8 @@
 		</div>
 
 		<!-- ================ Bottom bar ================ -->
-		<div class="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs text-white/55">
+		<div class="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs text-white/70">
 			<div>© 2026 SMPN 1 Anggana. All Rights Reserved.</div>
-			<div class="flex gap-6">
-				<a href="/" class="hover:text-white transition-colors">Kebijakan Privasi</a>
-				<a href="/" class="hover:text-white transition-colors">Syarat & Ketentuan</a>
-				<a href="/" class="hover:text-white transition-colors">Sitemap</a>
-			</div>
 		</div>
 	</div>
 
@@ -269,6 +263,7 @@
 		<!-- Theme toggle -->
 		<button
 			type="button"
+			id="theme-toggle-btn"
 			onclick={() => theme.cycle()}
 			aria-label={`Tema: ${themeLabel()}. Klik untuk ganti.`}
 			title={`Tema: ${themeLabel()}`}
@@ -296,22 +291,9 @@
 			{/if}
 		</button>
 
-		<!-- Accessibility shortcut -->
-		<button
-			type="button"
-			aria-label="Pengaturan aksesibilitas"
-			class="w-12 h-12 rounded-full bg-accent text-white grid place-items-center
-			       shadow-xl shadow-accent/40
-			       transition-all duration-300
-			       hover:bg-accent-600 hover:-translate-y-0.5
-			       focus:outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
-		>
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<circle cx="12" cy="4" r="2" />
-				<path d="M19 13a7 7 0 1 0-13.3 3" />
-				<path d="M12 8v8M8 12h8M9 22l3-6 3 6" />
-			</svg>
-		</button>
+		<!-- Accessibility shortcut: removed (R-26). A control without a real
+		     behavior is a defect, not decoration. Re-add only with a working
+		     feature such as font-size or contrast adjustment. -->
 
 		<!-- Scroll to top -->
 		<button

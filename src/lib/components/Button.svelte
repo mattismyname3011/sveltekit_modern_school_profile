@@ -11,6 +11,12 @@
 		variant?: Variant;
 		size?: Size;
 		class?: string;
+		/** Button type when rendered as <button>. Defaults to 'button' so it never submits by accident. */
+		type?: 'button' | 'submit' | 'reset';
+		disabled?: boolean;
+		/** Hide the direction arrow. Arrows signal movement, so text-only actions set this. */
+		hideArrow?: boolean;
+		ariaLabel?: string;
 		onclick?: (e: MouseEvent) => void;
 		children: Snippet;
 	}
@@ -22,6 +28,10 @@
 		variant = 'primary',
 		size = 'md',
 		class: klass = '',
+		type = 'button',
+		disabled = false,
+		hideArrow = false,
+		ariaLabel,
 		onclick,
 		children
 	}: Props = $props();
@@ -37,45 +47,52 @@
 	};
 
 	const sizes: Record<Size, string> = {
-		md: 'px-5 py-2.5 text-sm',
-		lg: 'px-7 py-3.5 text-base'
+		md: 'px-5 py-2.5 text-sm min-h-[44px]',
+		lg: 'px-7 py-3.5 text-base min-h-[48px]'
 	};
 
 	const base = `
 		group inline-flex items-center justify-center gap-2
-		font-semibold rounded-full
+		font-semibold rounded-2xl
 		transition-all duration-300
 		hover:-translate-y-0.5
-		focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+		focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2
+		disabled:opacity-60 disabled:pointer-events-none disabled:transform-none
 	`;
 </script>
 
 {#if href}
-	<a {href} {target} {rel} class="{base} {variants[variant]} {sizes[size]} {klass}">
+	<a {href} {target} {rel} aria-label={ariaLabel} aria-disabled={disabled || undefined} class="{base} {variants[variant]} {sizes[size]} {klass}">
 		{@render children()}
-		<svg
-			class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2.5"
-			stroke-linecap="round"
-		>
-			<path d="M5 12h14M13 5l7 7-7 7" />
-		</svg>
+		{#if !hideArrow}
+			<svg
+				aria-hidden="true"
+				class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.5"
+				stroke-linecap="round"
+			>
+				<path d="M5 12h14M13 5l7 7-7 7" />
+			</svg>
+		{/if}
 	</a>
 {:else}
-	<button type="button" {onclick} class="{base} {variants[variant]} {sizes[size]} {klass}">
+	<button {type} {disabled} aria-label={ariaLabel} {onclick} class="{base} {variants[variant]} {sizes[size]} {klass}">
 		{@render children()}
-		<svg
-			class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2.5"
-			stroke-linecap="round"
-		>
-			<path d="M5 12h14M13 5l7 7-7 7" />
-		</svg>
+		{#if !hideArrow}
+			<svg
+				aria-hidden="true"
+				class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.5"
+				stroke-linecap="round"
+			>
+				<path d="M5 12h14M13 5l7 7-7 7" />
+			</svg>
+		{/if}
 	</button>
 {/if}
