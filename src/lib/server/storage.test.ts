@@ -9,6 +9,8 @@ describe('storage upload utility', () => {
 			'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890.jpg'
 		);
 		expect(extractUploadFilename('/uploads/test-image_123.png')).toBe('test-image_123.png');
+		expect(extractUploadFilename('https://smpn1anggana.site/uploads/test-image_123.png')).toBe('test-image_123.png');
+		expect(extractUploadFilename('http://localhost:5174/uploads/test-image_123.png')).toBe('test-image_123.png');
 		expect(extractUploadFilename('https://example.com/test.jpg')).toBeNull();
 		expect(extractUploadFilename('/uploads/../secret.txt')).toBeNull();
 		expect(extractUploadFilename('/uploads/sub/path.jpg')).toBeNull();

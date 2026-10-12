@@ -22,11 +22,15 @@ import { join, basename } from 'node:path';
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 
+const JPEG_CONFIG = {
+	ext: 'jpg',
+	sniff: (b: Buffer) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff
+};
+
 const ALLOWED: Record<string, { ext: string; sniff: (buf: Buffer) => boolean }> = {
-	'image/jpeg': {
-		ext: 'jpg',
-		sniff: (b) => b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff
-	},
+	'image/jpeg': JPEG_CONFIG,
+	'image/jpg': JPEG_CONFIG,
+	'image/pjpeg': JPEG_CONFIG,
 	'image/png': {
 		ext: 'png',
 		sniff: (b) =>
@@ -74,7 +78,7 @@ export type UploadResult = {
 	filename: string;
 };
 
-const UPLOADS_DIR = join(process.cwd(), 'static', 'uploads');
+export const UPLOADS_DIR = join(process.cwd(), 'static', 'uploads');
 
 async function ensureDir() {
 	try {
@@ -125,13 +129,13 @@ export async function saveUpload(file: File): Promise<UploadResult | UploadFailu
 }
 
 /**
- * Extracts and validates the upload filename from a URL or relative path (e.g. "/uploads/abc.jpg").
+ * Extracts and validates the upload filename from a URL or relative path (e.g. "/uploads/abc.jpg" or "https://domain/uploads/abc.jpg").
  * Returns null if the URL is not a valid upload path or contains path traversal attempts.
  */
 export function extractUploadFilename(imageUrlOrPath: string | null | undefined): string | null {
 	if (!imageUrlOrPath || typeof imageUrlOrPath !== 'string') return null;
 	const trimmed = imageUrlOrPath.trim();
-	const match = trimmed.match(/^\/uploads\/([a-zA-Z0-9_.-]+)$/);
+	const match = trimmed.match(/(?:^|\/)uploads\/([a-zA-Z0-9_.-]+)$/);
 	if (!match) return null;
 	const filename = basename(match[1]);
 	if (!filename || filename === '.' || filename === '..' || filename.includes('/') || filename.includes('\\')) {
@@ -171,21 +175,21 @@ export async function cleanupUnusedUpload(imageUrlOrPath: string | null | undefi
 	try {
 		const { db } = await import('$lib/db');
 		const { programs, events, news } = await import('$lib/db/schema');
-		const { eq, sql } = await import('drizzle-orm');
+		const { eq, or, like, sql } = await import('drizzle-orm');
 
 		const [[pCount], [eCount], [nCount]] = await Promise.all([
 			db
 				.select({ count: sql<number>`count(*)::int` })
 				.from(programs)
-				.where(eq(programs.image, uploadUrl)),
+				.where(or(eq(programs.image, uploadUrl), like(programs.image, `%${uploadUrl}`))),
 			db
 				.select({ count: sql<number>`count(*)::int` })
 				.from(events)
-				.where(eq(events.image, uploadUrl)),
+				.where(or(eq(events.image, uploadUrl), like(events.image, `%${uploadUrl}`))),
 			db
 				.select({ count: sql<number>`count(*)::int` })
 				.from(news)
-				.where(eq(news.image, uploadUrl))
+				.where(or(eq(news.image, uploadUrl), like(news.image, `%${uploadUrl}`)))
 		]);
 
 		const totalReferences = (pCount?.count ?? 0) + (eCount?.count ?? 0) + (nCount?.count ?? 0);

@@ -323,7 +323,7 @@
 		const r = await fetch('/api/uploads', { method: 'POST', body: fd });
 		const j = await r.json();
 		if (!r.ok || !j.ok) return null;
-		return new URL(j.data.url, location.origin).toString();
+		return j.data.url;
 	}
 
 	async function handleInlineImage(file: File) {
